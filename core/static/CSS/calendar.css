@@ -1,0 +1,541 @@
+/*=============================
+        CALENDAR
+==============================*/
+
+.calendar-container{
+
+    background:#ffffff;
+
+    border-radius:14px;
+
+    padding:25px;
+
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
+
+}
+
+
+/*=============================
+      HEADER
+==============================*/
+
+.calendar-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:25px;
+
+}
+
+.calendar-header h3{
+
+    margin:0;
+
+    font-size:28px;
+
+    font-weight:bold;
+
+    color:#198754;
+
+}
+
+.month-btn{
+
+    width:42px;
+
+    height:42px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#198754;
+
+    color:white;
+
+    font-size:20px;
+
+    transition:.25s;
+
+}
+
+.month-btn:hover{
+
+    background:#157347;
+
+}
+
+
+/*=============================
+      WEEK DAYS
+==============================*/
+
+.weekdays{
+
+    display:grid;
+
+    grid-template-columns:repeat(7,minmax(0,1fr));
+
+    gap:10px;
+
+    margin-bottom:15px;
+
+}
+
+.weekdays div{
+
+    text-align:center;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    color:#6c757d;
+
+}
+
+
+/*=============================
+      CALENDAR GRID
+==============================*/
+
+.calendar-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(7,minmax(0,1fr));
+
+    gap:10px;
+
+    width:100%;
+
+}
+
+@media (max-width:768px){
+
+    .calendar-grid{
+
+        gap:6px;
+
+    }
+
+}
+
+
+/*=============================
+      DAY CARD
+==============================*/
+
+.day{
+
+    height:95px;
+
+    min-height:95px;
+    
+    /* aspect-ratio:1/0.9; */
+
+    background:white;
+
+    border:1px solid #e7e7e7;
+
+    border-radius:12px;
+
+    padding:10px;
+
+    cursor:pointer;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:flex-start;
+
+    transition:.25s;
+
+}
+
+.day:hover{
+
+    background:#f7fbf8;
+
+    border-color:#198754;
+
+}
+
+.reserved-day:hover{
+
+    background:#198754;
+
+    border-color:#198754;
+
+}
+
+.day-actions{
+
+    margin-top:auto;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    gap:4px;
+
+}
+
+.day-actions i{
+
+    font-size:14px;
+
+}
+
+.day-actions span{
+
+    cursor:pointer;
+
+    font-size:18px;
+
+    color:white;
+
+    transition:.2s;
+
+}
+
+.day-actions span:hover{
+
+    transform:scale(1.2);
+
+}
+
+.day{
+
+    position:relative;
+
+}
+
+.delete-btn{
+
+    position:absolute;
+
+    top:8px;
+
+    right:8px;
+
+    font-size:18px;
+
+    cursor:pointer;
+
+}
+
+.add-btn{
+
+    position:absolute;
+
+    bottom:8px;
+
+    right:8px;
+
+    font-size:18px;
+
+    cursor:pointer;
+
+}
+
+.delete-btn:hover,
+.add-btn:hover{
+
+    transform:scale(1.2);
+
+}
+
+.day-food{
+
+    margin-top:18px;
+
+    text-align:center;
+
+}
+
+/*=============================
+      DAY NUMBER
+==============================*/
+
+.day-number{
+
+    font-weight:bold;
+
+    font-size:17px;
+
+    text-align:left;
+
+}
+
+
+/*=============================
+      FOOD NAME
+==============================*/
+
+.day-food{
+
+    margin-top:10px;
+
+    text-align:center;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    color:#198754;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
+
+@media (max-width:768px){
+
+    .day-food{
+
+        white-space:normal;
+
+        overflow:visible;
+
+        text-overflow:unset;
+
+        line-height:1.2;
+
+        font-size:11px;
+
+        word-break:break-word;
+
+    }
+
+}
+
+
+/*=============================
+      EMPTY DAYS
+==============================*/
+
+.empty-day{
+
+    height:95px;
+
+}
+
+/*=============================
+      Past Day
+==============================*/
+.past-day{
+
+    opacity:.65;
+
+}
+
+.past-day:not(.reserved-day){
+
+    cursor:not-allowed;
+
+}
+
+.past-day:not(.reserved-day):hover{
+
+    background:#ececec;
+
+    border-color:#e7e7e7;
+
+    transform:none;
+
+    box-shadow:none;
+
+}
+
+/*=============================
+      TODAY
+==============================*/
+
+.today{
+
+    border:2px solid #0c8adf;
+
+}
+
+
+/*=============================
+      DAYS WITHOUT FOOD
+==============================*/
+
+.no-food{
+
+    background:#ececec;
+
+    color:#888;
+
+    cursor:default;
+
+}
+
+.no-food:hover{
+
+    transform:none;
+
+    box-shadow:none;
+
+}
+
+.no-food .day-number{
+
+    color:#888;
+
+}
+
+
+/*=============================
+      DAYS WITH FOOD
+==============================*/
+
+.has-food{
+
+    background:white;
+
+    cursor:pointer;
+
+}
+
+.has-food:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:0 6px 12px rgba(0,0,0,.12);
+
+}
+
+
+/*=============================
+      RESERVED DAYS
+==============================*/
+
+.reserved-day{
+
+    background:#198754;
+
+}
+
+.reserved-day .day-number{
+
+    color:white;
+
+}
+
+.reserved-day .day-food{
+
+    color:white;
+
+}
+
+
+/*=============================
+      FOOD CARD
+==============================*/
+
+.food-card{
+
+    background:white;
+
+    border-radius:14px;
+
+    padding:25px;
+
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
+
+}
+
+.food-card h4{
+
+    font-weight:bold;
+
+    margin-bottom:20px;
+
+}
+
+
+
+
+/*=============================
+      RESPONSIVE
+==============================*/
+
+@media (max-width:768px){
+
+    .calendar-container{
+
+        padding:12px;
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .day{
+
+        height:85px;
+
+    }
+
+    .day-food{
+
+        font-size:12px;
+
+        margin-top:10px;
+
+    }
+
+}
+
+.calendar-tools{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    justify-content:center;
+
+    gap:10px;
+
+    margin-bottom:20px;
+
+    flex-wrap:wrap;
+
+}
+
+.calendar-tools .btn{
+    white-space:nowrap;
+
+    font-size:14px;
+
+    padding:10px 8px;
+
+}
+
+.calendar-note{
+
+    text-align: center;
+
+    color: #198754;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    margin: -12px 0 18px;
+
+}

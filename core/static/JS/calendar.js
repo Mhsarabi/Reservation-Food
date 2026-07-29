@@ -1,0 +1,431 @@
+class PersianCalendar {
+    constructor(gridId, adminMode = false) {
+        this.grid = document.getElementById(gridId);
+        this.adminMode = adminMode;
+        this.menuData = menuData;
+        this.selectedDate = null;   
+        this.monthTitle = document.getElementById("monthTitle");
+        this.prevBtn = document.getElementById("prevMonth");
+        this.nextBtn = document.getElementById("nextMonth");
+
+        this.prevBtn.addEventListener("click", () => {
+            this.previousMonth();
+        });
+        this.nextBtn.addEventListener("click", () => {
+            this.nextMonth();
+        });
+
+        const today = new Date();
+        const jToday = jalaali.toJalaali(today);
+
+        this.currentYear = jToday.jy;
+        this.currentMonth = jToday.jm;
+        this.todayYear = jToday.jy;
+        this.todayMonth = jToday.jm;
+        this.todayDay = jToday.jd;
+
+        this.months = [
+            "فروردین",
+            "اردیبهشت",
+            "خرداد",
+            "تیر",
+            "مرداد",
+            "شهریور",
+            "مهر",
+            "آبان",
+            "آذر",
+            "دی",
+            "بهمن",
+            "اسفند"
+        ];
+
+        this.weekDays = [
+            "شنبه",
+            "یکشنبه",
+            "دوشنبه",
+            "سه شنبه",
+            "چهارشنبه",
+            "پنج شنبه",
+            "جمعه"
+        ];
+    }
+
+    renderHeader() {
+        document.getElementById("monthYear").textContent =
+            `${this.months[this.currentMonth - 1]} ${this.currentYear}`;
+    }
+
+    renderWeekDays() {
+        const weekContainer = document.getElementById("weekdays");
+        weekContainer.innerHTML = "";
+        this.weekDays.forEach(day => {
+            const div = document.createElement("div");
+            div.textContent = day;
+            weekContainer.appendChild(div);
+        });
+    }
+
+    renderGrid() {
+
+        this.grid.innerHTML = "";
+
+        const firstDay = this.convertWeekDay(
+            this.getFirstDayOfMonth()
+        );
+
+        const daysInMonth = this.getDaysInMonth();
+
+        // عدد امروز برای مقایسه
+        const todayNumber =
+            this.todayYear * 10000 +
+            this.todayMonth * 100 +
+            this.todayDay;
+
+        // خانه‌های خالی ابتدای ماه
+        for (let i = 0; i < firstDay; i++) {
+
+            this.grid.appendChild(
+                this.createDayCard({ day: null })
+            );
+
+        }
+
+        // روزهای ماه
+        for (let day = 1; day <= daysInMonth; day++) {
+
+            const key =
+                `${this.currentYear}-${String(this.currentMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+             const menu = this.menuData[key];
+
+            const food = menu
+                ? foods.find(f => f.id === menu.foodId)
+                : null;
+
+            const isToday =
+                this.currentYear === this.todayYear &&
+                this.currentMonth === this.todayMonth &&
+                day === this.todayDay;
+
+            // آیا این روز گذشته است؟
+            const currentNumber =
+                this.currentYear * 10000 +
+                this.currentMonth * 100 +
+                day;
+
+            const isPast = currentNumber < todayNumber;
+
+            this.grid.appendChild(
+
+                this.createDayCard({
+
+                    day,
+                    food: food ? food.name : null,
+                    today: isToday,
+                    past: isPast,
+                    reserved: menu?.reserved ?? false
+
+                })
+
+            );
+
+        }
+
+        // خانه‌های خالی انتهای ماه
+        const totalCells = firstDay + daysInMonth;
+
+        const remaining = 42 - totalCells;
+
+        for (let i = 0; i < remaining; i++) {
+
+            this.grid.appendChild(
+                this.createDayCard({ day: null })
+            );
+
+        }
+
+    }
+
+    createDayCard(data) {
+
+        const day = document.createElement("div");
+        day.className = "day";
+        if (data.past) {
+
+            day.classList.add("past-day");
+
+        }
+
+        // day.addEventListener("click",()=>{
+
+        //     this.selectAdminDay(data.day);
+
+        // });
+
+        if (data.day !== null) {
+            const number = document.createElement("div");
+            number.className = "day-number";
+            number.textContent = data.day;
+            day.appendChild(number);
+        }
+
+        if (data.food) {
+
+            const food = document.createElement("div");
+            food.className = "day-food";
+            food.textContent = data.food;
+            day.appendChild(food);
+
+            day.classList.add("has-food");
+
+        }
+        else if (data.day !== null) {
+
+            day.classList.add("no-food");
+
+        }
+
+        if (data.today) {
+            day.classList.add("today");
+        }
+
+        if (data.selected) {
+            day.classList.add("selected-day");
+        }
+
+        if (data.reserved && !this.adminMode) {
+
+            day.classList.add("reserved-day");
+
+            const actions = document.createElement("div");
+            actions.className = "day-actions";
+
+            if (!data.past) {
+
+                const deleteBtn = document.createElement("span");
+                deleteBtn.className = "delete-btn";
+                deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+
+                deleteBtn.addEventListener("click", (e) => {
+
+                    e.stopPropagation();
+                    this.removeReservation(data.day);
+
+                });
+
+                actions.appendChild(deleteBtn);
+
+                const addBtn = document.createElement("span");
+                addBtn.className = "add-btn";
+                addBtn.innerHTML = '<i class="bi bi-plus-circle"></i>';
+
+                addBtn.addEventListener("click", (e) => {
+
+                    e.stopPropagation();
+
+                });
+
+                actions.appendChild(addBtn);
+
+            }
+
+            day.appendChild(actions);
+
+        }
+                
+            if (data.day !== null) {
+
+                day.addEventListener("click", () => {
+
+                    // پنل ادمین
+                    if (this.adminMode) {
+
+                        this.selectAdminDay(data.day);
+                        return;
+
+                    }
+
+                    // پنل کاربر
+                    if (!data.food) return;
+
+                    if (data.past && !data.reserved) {
+
+                        return;
+
+                    }
+
+                    this.selectDay(data.day);
+
+                });
+
+            }
+
+                return day;
+            }
+
+    getFirstDayOfMonth() {
+        const gDate = jalaali.toGregorian(
+            this.currentYear,
+            this.currentMonth,
+            1
+        );
+        const date = new Date(
+            gDate.gy,
+            gDate.gm - 1,
+            gDate.gd
+        );
+        return date.getDay();
+    }
+
+    convertWeekDay(day) {
+        return (day + 1) % 7;
+    }
+
+    getDaysInMonth() {
+        return jalaali.jalaaliMonthLength(
+            this.currentYear,
+            this.currentMonth
+        );
+    }
+
+    nextMonth() {
+        if (this.currentMonth === 12) {
+            this.currentMonth = 1;
+            this.currentYear++;
+        } else {
+            this.currentMonth++;
+        }
+        this.render();
+        updateReservedCount();
+    }
+
+    previousMonth() {
+        if (this.currentMonth === 1) {
+            this.currentMonth = 12;
+            this.currentYear--;
+        } else {
+            this.currentMonth--;
+        }
+        this.render();
+        updateReservedCount();
+    }
+
+    selectDay(day) {
+
+    const key =
+        `${this.currentYear}-${String(this.currentMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+    const menu = this.menuData[key];
+
+    if (!menu) return;
+
+    // اگر قبلاً رزرو شده باشد، فقط اطلاعات روز را نمایش بده
+    if (menu.reserved) {
+
+            document.dispatchEvent(
+                new CustomEvent("daySelected", {
+                    detail: {
+                        year: this.currentYear,
+                        month: this.currentMonth,
+                        day: day
+                    }
+                })
+            );
+
+            return;
+
+        }
+
+        // فقط رزرو انجام شود
+        menu.reserved = true;
+
+        this.render();
+
+        updateReservedCount();
+
+        document.dispatchEvent(
+            new CustomEvent("daySelected", {
+                detail: {
+                    year: this.currentYear,
+                    month: this.currentMonth,
+                    day: day
+                }
+            })
+        );
+
+    }
+
+    removeReservation(day) {
+
+        const key =
+            `${this.currentYear}-${String(this.currentMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+        const menu = this.menuData[key];
+
+        if (!menu) return;
+
+        menu.reserved = false;
+
+        this.render();
+
+        updateReservedCount();
+
+        // پاک شدن اطلاعات سمت راست
+        foodImage.src = "../static/images/no-food.png";
+
+        document.getElementById("foodName").textContent = "-";
+
+        document.getElementById("selectedDate").textContent =
+            "تاریخی انتخاب نشده است.";
+
+        }
+
+    selectAdminDay(day){
+
+        const currentNumber =
+            this.currentYear * 10000 +
+            this.currentMonth * 100 +
+            day;
+
+        const todayNumber =
+            this.todayYear * 10000 +
+            this.todayMonth * 100 +
+            this.todayDay;
+
+        // اگر روز گذشته است
+        if(currentNumber < todayNumber){
+
+            // فقط در پنل ادمین پیام نمایش بده
+            if(this.adminMode){
+
+                alert("امکان ثبت یا ویرایش غذا برای روزهای گذشته وجود ندارد.");
+
+            }
+
+            return;
+
+        }
+
+        document.dispatchEvent(
+
+            new CustomEvent("daySelected",{
+
+                detail:{
+
+                    year:this.currentYear,
+                    month:this.currentMonth,
+                    day:day
+
+                }
+
+            })
+
+        );
+
+    }
+    render() {
+        this.renderHeader();
+        this.renderWeekDays();
+        this.renderGrid();
+    }
+}

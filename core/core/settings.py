@@ -41,6 +41,9 @@ INSTALLED_APPS = [
 
     # my apps
     'accounts',
+    'foods',
+    'reservations',
+    'menu'
 ]
 
 MIDDLEWARE = [
@@ -159,7 +162,7 @@ if SHOW_DEBUGGER_TOOLBAR:
     INTERNAL_IPS = [ip[: ip.rfind(".")] + ".1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
     
 # accounts model settings
-# AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = 'accounts.User'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL= '/'
 

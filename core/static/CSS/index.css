@@ -1,0 +1,488 @@
+/* ===========================
+   General
+=========================== */
+
+body{
+    margin:0;
+    background:#f4f6f9;
+    font-family:Tahoma,sans-serif;
+}
+
+/* ===========================
+   Navbar
+=========================== */
+
+.navbar{
+
+    height:70px;
+
+}
+
+.navbar-brand{
+
+    font-size:28px;
+
+    font-weight:bold;
+
+}
+
+.navbar-brand i{
+
+    margin-left:8px;
+
+}
+
+#todayDate{
+
+    color:#6c757d;
+
+    font-size:15px;
+
+}
+
+/* ===========================
+   Cards
+=========================== */
+
+.calendar-card,
+.info-card{
+
+    border:none;
+
+    border-radius:16px;
+
+    overflow:hidden;
+
+}
+
+.calendar-card{
+
+    min-height:760px;
+
+}
+
+.info-card{
+
+    min-height:760px;
+
+}
+
+.card-header{
+
+    background:#198754;
+
+    color:white;
+
+    border:none;
+
+    padding:18px;
+
+}
+
+.card-header h5{
+
+    margin:0;
+
+    font-weight:600;
+
+}
+
+.food-card{
+
+    text-align:center;
+    
+    padding:25px;
+
+    box-sizing:border-box;
+
+    overflow:visible;
+}
+
+.food-image{
+
+    display:flex;
+
+    justify-content:center;
+
+    margin:20px 0;
+
+}
+
+#foodImage{
+
+    width:220px;
+
+    height:160px;
+
+    object-fit:cover;
+
+    border-radius:15px;
+
+    border:2px solid #e5e5e5;
+
+    box-shadow:0 8px 18px rgba(0,0,0,.15);
+
+    transition:.3s;
+
+}
+
+
+#foodImage:hover{
+
+    transform:scale(1.03);
+
+}
+
+#foodName{
+
+    font-size:24px;
+
+    font-weight:bold;
+
+    margin-top:15px;
+
+    margin-bottom:20px;
+
+}
+
+#time{
+
+    font-size:16px;
+
+    color:#666;
+
+    margin-bottom:25px;
+
+}
+
+.user-food-card{
+    position: sticky;
+    top: 20px;
+}
+
+@media(max-width:992px){
+
+.user-food-card{
+
+    position:static;
+
+}
+
+}
+/* ===========================
+   Food Info
+=========================== */
+
+.food-item{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+    margin:18px 0;
+
+}
+
+.food-item i{
+
+    width:48px;
+
+    height:48px;
+
+    border-radius:50%;
+
+    background:#eaf7ef;
+
+    color:#198754;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:22px;
+
+}
+
+.food-item small{
+
+    color:#888;
+
+    display:block;
+
+    margin-bottom:3px;
+
+}
+
+.food-item h6{
+
+    margin:0;
+
+    font-weight:600;
+
+}
+
+/* ===========================
+   Reserve Button
+=========================== */
+
+#reserveBtn{
+
+    height:50px;
+
+    border-radius:12px;
+
+    font-size:17px;
+
+    font-weight:bold;
+
+}
+
+/* ===========================
+   Calendar
+=========================== */
+
+#calendar{
+
+    padding:10px;
+
+}
+
+/* Toolbar */
+
+.fc-toolbar-title{
+
+    font-size:24px !important;
+
+    font-weight:bold;
+
+}
+
+/* Buttons */
+
+.fc .fc-button{
+
+    background:#198754 !important;
+
+    border:none !important;
+
+    border-radius:8px !important;
+
+}
+
+.fc .fc-button:hover{
+
+    background:#157347 !important;
+
+}
+
+/* Today */
+
+.fc-day-today{
+
+    background:#e9f8ef !important;
+
+}
+
+/* Day Number */
+
+.fc-daygrid-day-number{
+
+    color:#444;
+
+    text-decoration:none;
+
+    font-weight:600;
+
+}
+
+/* Selected Day */
+
+.selected-day{
+
+    background:#198754 !important;
+
+    color:white !important;
+
+    border-radius:8px;
+
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+@media(max-width:992px){
+
+    .calendar-card{
+
+        min-height:auto;
+
+    }
+
+    .info-card{
+
+        min-height:auto;
+
+        margin-top:20px;
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .navbar{
+
+        height:auto;
+
+        padding:10px 0;
+
+    }
+
+    .navbar .container-fluid{
+
+        flex-direction:column;
+
+        gap:10px;
+
+    }
+
+    .food-item{
+
+        gap:12px;
+
+    }
+
+    .food-item i{
+
+        width:42px;
+
+        height:42px;
+
+        font-size:18px;
+
+    }
+
+}
+
+.week-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:12px;
+
+    margin-top:15px;
+
+}
+
+@media(max-width:576px){
+
+.week-grid{
+
+    grid-template-columns:repeat(2,1fr);
+
+}
+
+}
+
+.week-card{
+
+    position:relative;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:14px;
+
+    border:2px solid #e5e7eb;
+
+    border-radius:14px;
+
+    background:#ffffff;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    font-weight:600;
+
+    color:#444;
+
+    user-select:none;
+
+    box-shadow:0 2px 6px rgba(0,0,0,.05);
+
+}
+
+.week-card:hover{
+
+    border-color:#198754;
+
+    transform:translateY(-2px);
+
+    box-shadow:0 6px 16px rgba(0,0,0,.12);
+
+}
+
+.week-card input{
+
+    display:none;
+
+}
+
+.week-card span{
+
+    width:100%;
+
+    text-align:center;
+
+}
+
+.week-card input:checked + span{
+
+    color:#fff;
+
+}
+
+.week-card:has(input:checked){
+
+    background:#198754;
+
+    border-color:#198754;
+
+    color:white;
+
+    box-shadow:0 8px 18px rgba(25,135,84,.35);
+
+}
+.navbar-logo{
+
+    width: 65px;
+
+    height: auto;
+
+    margin-left: 10px;
+
+    object-fit: contain;
+
+    vertical-align: middle;
+
+}
+
+@media(max-width:768px){
+
+.navbar-logo{
+    width:45px;
+}
+
+}
+

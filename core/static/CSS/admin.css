@@ -1,0 +1,95 @@
+/*=============================
+      ADMIN THEME
+==============================*/
+
+/* عنوان پنل */
+.navbar-brand{
+    color:#2563eb !important;
+}
+
+/* عنوان ماه */
+.calendar-header h3{
+    color:#2563eb;
+}
+
+/* دکمه‌های ماه */
+.month-btn{
+    background:#2563eb;
+}
+
+.month-btn:hover{
+    background:#1d4ed8;
+}
+
+/* هاور روزهای دارای غذا */
+.day:hover{
+    border-color:#2563eb;
+}
+
+/* روز رزرو شده */
+.reserved-day{
+    background:#2563eb;
+}
+
+.reserved-day:hover{
+    background:#1d4ed8;
+    border-color:#1d4ed8;
+}
+
+/* نام غذا */
+.day-food{
+    color:#2563eb;
+}
+
+/* روز امروز */
+.today{
+    border:2px solid #2563eb;
+}
+
+.week-card:hover{
+    border-color:#0d6efd;
+    background:#eef5ff;
+}
+
+.week-card:has(input:checked){
+    border-color:#0d6efd;
+    background:#eef5ff;
+}
+
+.week-card input:checked + span{
+    color:#0d6efd;
+    font-weight:bold;
+}
+
+.food-card h4{
+    margin-top: 1px;   /* فاصله از لیست کشویی */
+    margin-bottom: 20px;
+}
+
+.navbar-logo{
+
+    width: 65px;
+
+    height: auto;
+
+    margin-left: 10px;
+
+    object-fit: contain;
+
+    vertical-align: middle;
+
+}
+
+.food-preview{
+
+    width:220px;
+    height:170px;
+
+    border:1px solid #ddd;
+    border-radius:12px;
+
+    object-fit:cover;
+
+    background:#f8f9fa;
+
+}

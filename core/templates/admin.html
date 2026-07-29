@@ -1,0 +1,774 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>رزرو غذا | الوان |مدیریت</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{%static 'css/index.css'%}">
+    <link rel="stylesheet" href="{%static 'css/calendar.css'%}">
+    <link rel="stylesheet" href="{%static 'css/admin.css'%}">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
+
+</head>
+
+<body>
+
+<!-- ================= Header ================= -->
+
+<nav class="navbar navbar-expand-lg bg-white shadow-sm">
+
+    <div class="container-fluid px-4">
+
+        <a href="" class="navbar-brand fw-bold text-success fs-4">
+
+            <!-- <i class="bi bi-cup-hot-fill"></i> -->
+            <img src="{%static 'images/logo.png'%}" class="navbar-logo" alt="Alvan Logo">
+            Alvan | سامانه مدیریت غذا
+
+        </a>
+
+        <div class="d-flex align-items-center gap-4">
+
+            <span id="todayDate"></span>
+
+            <div class="dropdown">
+
+                <button
+                    class="btn btn-light dropdown-toggle"
+                    type="button"
+                    id="userMenu"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+
+                    <i class="bi bi-person-circle"></i>
+                    admin
+
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end">
+
+                    <li>
+
+                        <a
+                            class="dropdown-item"
+                            href="#"
+                            id="changePassword">
+
+                            <i class="bi bi-key"></i>
+                            تغییر رمز عبور
+
+                        </a>
+                        <a
+                            class="dropdown-item"
+                            href="#"
+                            id="manageFoods">
+
+                            <i class="bi bi-egg-fried"></i>
+                            تعریف غذا
+
+                        </a>
+                        <a
+                            class="dropdown-item"
+                            href="#"
+                            id="editFoods">
+
+                            <i class="bi bi-pencil-square"></i>
+                            ویرایش غذاها
+
+                        </a>
+                        <a
+                            class="dropdown-item"
+                            href="#"
+                            id="monthlyReport">
+
+                            <i class="bi bi-file-earmark-bar-graph"></i>
+                            گزارش گیری
+
+                        </a>
+
+                    </li>
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <li>
+
+                        <a
+                            class="dropdown-item text-danger"
+                            href="#">
+
+                            <i class="bi bi-box-arrow-right"></i>
+                            خروج
+
+                        </a>
+
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</nav>
+
+<!-- ================= Main ================= -->
+
+<div class="container-fluid mt-4">
+
+    <div class="row">
+
+        <!-- Calendar -->
+
+        <div class="col-lg-8">
+
+            <div class="calendar-container">
+
+                <div class="calendar-header">
+
+                    <button id="prevMonth" class="month-btn">
+                        ❮
+                    </button>
+
+                    <h3 id="monthYear"></h3>
+
+                    <button id="nextMonth" class="month-btn">
+                        ❯
+                    </button>
+
+                </div>
+
+                <div id="weekdays" class="weekdays"></div>
+
+                <div id="calendarGrid" class="calendar-grid"></div>
+
+            </div>
+
+        </div>
+
+        <!-- Right Side -->
+
+        <div class="col-lg-4">
+
+            <div class="food-card">
+
+                <h4>
+                    انتخاب غذا
+                </h4>
+
+                <select
+                    id="foodSelect"
+                    class="form-select">
+
+                    <option value="">
+
+                    </option>
+                </select>
+                <hr>
+                <h4>
+                    مدیریت غذای روز
+                </h4>
+
+                <p id="selectedDate">
+                    تاریخی انتخاب نشده است.
+                </p>
+
+                <div class="row g-2 mt-3">
+
+                    <div class="col-6">
+
+                        <button
+                            id="saveFood"
+                            class="btn btn-success w-100">
+
+                            ذخیره غذای روز
+
+                        </button>
+
+                    </div>
+
+                    <div class="col-6">
+
+                        <button
+                            id="deleteFood"
+                            class="btn btn-danger w-100">
+
+                            حذف غذای روز
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <hr>
+
+                    <h4>
+                    مدیریت غذای هفته
+                   </h4>
+
+                    <div class="row g-2 mb-3">
+
+                        <div class="col-6">
+
+                            <label class="form-label">
+                                از تاریخ
+                            </label>
+
+                            <input
+                                id="fromDate"
+                                class="form-control"
+                                type="text"
+                                autocomplete="off">
+
+                        </div>
+
+                        <div class="col-6">
+
+                            <label class="form-label">
+                                تا تاریخ
+                            </label>
+
+                            <input
+                                id="toDate"
+                                class="form-control"
+                                type="text"
+                                autocomplete="off">
+
+                        </div>
+
+                    </div>
+
+                    <div id="weekDays" class="week-grid">
+
+                    <label class="week-card">
+                        <input class="form-check-input" type="checkbox" value="0">
+                        <span>شنبه</span>
+                    </label>
+
+                    <label class="week-card">
+                        <input class="form-check-input" type="checkbox" value="1">
+                        <span>یکشنبه</span>
+                    </label>
+
+                    <label class="week-card">
+                        <input class="form-check-input" type="checkbox" value="2">
+                        <span>دوشنبه</span>
+                    </label>
+
+                    <label class="week-card">
+                        <input class="form-check-input" type="checkbox" value="3">
+                        <span>سه شنبه</span>
+                    </label>
+
+                    <label class="week-card">
+                        <input class="form-check-input" type="checkbox" value="4">
+                        <span>چهارشنبه</span>
+                    </label>
+
+                    <label class="week-card">
+                        <input class="form-check-input" type="checkbox" value="5">
+                        <span>پنج شنبه</span>
+                    </label>
+
+                </div>
+
+                <div class="d-grid mt-3">
+
+                    <button
+                        id="saveWeekly"
+                        class="btn btn-primary">
+
+                        <i class="bi bi-calendar-week"></i>
+                        ثبت برنامه 
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+        
+
+    </div>
+
+</div>
+<!-- ================= Change Password Modal ================= -->
+
+<div class="modal fade"
+     id="changePasswordModal"
+     tabindex="-1"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    تغییر رمز عبور
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div id="passwordMessage"
+                     class="alert d-none mb-3">
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        رمز فعلی
+                    </label>
+
+                    <input
+                        type="password"
+                        id="oldPassword"
+                        class="form-control">
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        رمز جدید
+                    </label>
+
+                    <input
+                        type="password"
+                        id="newPassword"
+                        class="form-control">
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        تکرار رمز جدید
+                    </label>
+
+                    <input
+                        type="password"
+                        id="repeatPassword"
+                        class="form-control">
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    id="savePassword"
+                    class="btn btn-success">
+
+                    ذخیره
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<div class="modal fade"
+     id="foodModal"
+     tabindex="-1">
+
+    <div class="modal-dialog modal-lg">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    مدیریت غذاها
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+            <div class="modal-body">
+
+                <div id="foodMessage"
+                    class="alert d-none">
+                </div>
+
+                <div class="row align-items-start">
+
+                    <!-- اطلاعات غذا -->
+                    <div class="col-md-7">
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                نام غذا
+                            </label>
+
+                            <input
+                                id="foodNameInput"
+                                class="form-control">
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                تصویر غذا
+                            </label>
+
+                            <input
+                                type="file"
+                                id="foodImageInput"
+                                class="form-control"
+                                accept="image/*">
+
+                        </div>
+
+                    </div>
+
+                    <!-- پیش نمایش تصویر -->
+                    <div class="col-md-5 text-center">
+                        <img
+                            id="foodPreview"
+                            class="food-preview">
+
+                    </div>
+
+                </div>
+                            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    id="saveNewFood"
+                    class="btn btn-primary">
+
+                    ثبت غذا
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal fade"
+     id="reportModal"
+     tabindex="-1">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    گزارش گیری
+                </h5>
+
+                <button
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <!-- تب ها -->
+                <ul class="nav nav-tabs mb-3" id="reportTabs" role="tablist">
+
+                    <li class="nav-item">
+
+                        <button class="nav-link active"
+                                data-bs-toggle="tab"
+                                data-bs-target="#monthlyTab">
+
+                            گزارش ماهانه
+
+                        </button>
+
+                    </li>
+
+                    <li class="nav-item">
+
+                        <button class="nav-link"
+                                data-bs-toggle="tab"
+                                data-bs-target="#rangeTab">
+
+                            گزارش بازه زمانی
+
+                        </button>
+
+                    </li>
+
+                </ul>
+
+                <div class="tab-content">
+
+                    <!-- ================= گزارش ماهانه ================= -->
+
+                    <div class="tab-pane fade show active"
+                         id="monthlyTab">
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                سال
+                            </label>
+
+                            <input
+                                id="reportYear"
+                                class="form-control"
+                                type="number"
+                                value="1405">
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                ماه
+                            </label>
+
+                            <select
+                                id="reportMonth"
+                                class="form-select">
+
+                                <option value="">انتخاب کنید</option>
+                                <option value="1">فروردین</option>
+                                <option value="2">اردیبهشت</option>
+                                <option value="3">خرداد</option>
+                                <option value="4">تیر</option>
+                                <option value="5">مرداد</option>
+                                <option value="6">شهریور</option>
+                                <option value="7">مهر</option>
+                                <option value="8">آبان</option>
+                                <option value="9">آذر</option>
+                                <option value="10">دی</option>
+                                <option value="11">بهمن</option>
+                                <option value="12">اسفند</option>
+
+                            </select>
+
+                        </div>
+
+                        <button
+                            id="generateMonthlyReport"
+                            class="btn btn-primary w-100">
+
+                            دریافت گزارش ماهانه
+
+                        </button>
+
+                    </div>
+
+                    <!-- ================= گزارش بازه زمانی ================= -->
+
+                    <div class="tab-pane fade"
+                         id="rangeTab">
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                از تاریخ
+                            </label>
+
+                            <input
+                                id="reportFromDate"
+                                class="form-control"
+                                type="text"
+                                autocomplete="off">
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                تا تاریخ
+                            </label>
+
+                            <input
+                                id="reportToDate"
+                                class="form-control"
+                                type="text"
+                                autocomplete="off">
+
+                        </div>
+
+                        <button
+                            id="generateRangeReport"
+                            class="btn btn-success w-100">
+
+                            دریافت گزارش بازه زمانی
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<div class="modal fade"
+     id="editFoodModal"
+     tabindex="-1">
+
+    <div class="modal-dialog modal-lg">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+
+                    ویرایش غذا
+
+                </h5>
+
+                <button
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div class="row">
+
+                    <div class="col-md-7">
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                انتخاب غذا
+
+                            </label>
+
+                            <select
+                                id="editFoodSelect"
+                                class="form-select">
+                            </select>
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                نام غذا
+                            </label>
+
+                            <input
+                                id="editFoodName"
+                                class="form-control">
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                تصویر جدید
+
+                            </label>
+
+                            <input
+                                type="file"
+                                id="editFoodImage"
+                                class="form-control"
+                                accept="image/*">
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-5 text-center">
+                        <img
+                            id="editFoodPreview"
+                            src="{%static 'images/no-food.png'%}"
+                            class="food-preview">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    id="saveFoodChanges"
+                    class="btn btn-success">
+
+                    ذخیره تغییرات
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= Scripts ================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/jalaali-js/dist/jalaali.min.js"></script>
+
+<script src="{%static 'js/menu-data.js'%}"></script>
+<script src="{%static 'js/calendar.js'%}"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+<script src="{%static 'js/weekly-program.js'%}"></script>
+<script src="{%static 'js/admin.js'%}"></script>
+
+
+</body>
+
+</html>
