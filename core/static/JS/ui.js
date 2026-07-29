@@ -1,56 +1,41 @@
-    document.addEventListener("daySelected", function (event) {
-        const selectedDate = document.getElementById("selectedDate");
-        const foodImage = document.getElementById("foodImage");
-        const foodName = document.getElementById("foodName");
-        // const reserveBtn = document.getElementById("reserveBtn");
-        // const foodDate = document.getElementById("foodDate");
+document.addEventListener("daySelected", function (event) {
+    const selectedDate = document.getElementById("selectedDate");
+    const foodImage = document.getElementById("foodImage");
+    const foodName = document.getElementById("foodName");
+    // const reserveBtn = document.getElementById("reserveBtn");
+    // const foodDate = document.getElementById("foodDate");
 
 
 
-        const { year, month, day } = event.detail;
+    const { year, month, day } = event.detail;
 
-        const key =
-            `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const key =
+        `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
-        const menu = menuData[key];
-        
+    const menu = menuData[key];
+    
 
-        if (menu) {
+    if (menu) {
+
+    selectedDate.textContent =
+        `${day} ${getMonthName(month)} ${year}`;
+
+    const menu = menuData[key];
+
+    if (menu) {
+
+        const food = foods.find(f => f.id === menu.foodId);
 
         selectedDate.textContent =
             `${day} ${getMonthName(month)} ${year}`;
 
-        const menu = menuData[key];
+        if (food) {
 
-        if (menu) {
+            foodImage.src = food.image;
 
-            const food = foods.find(f => f.id === menu.foodId);
+            foodName.textContent = food.name;
 
-            selectedDate.textContent =
-                `${day} ${getMonthName(month)} ${year}`;
-
-            if (food) {
-
-                foodImage.src = food.image;
-
-                foodName.textContent = food.name;
-
-            } else {
-
-                foodImage.src = "../static/images/no-food.png";
-
-                foodName.textContent = "غذایی ثبت نشده است.";
-
-            }
-
-
-            currentMenu = menu;
-
-        }
-        else {
-
-            selectedDate.textContent =
-                `${day} ${getMonthName(month)} ${year}`;
+        } else {
 
             foodImage.src = "../static/images/no-food.png";
 
@@ -58,176 +43,241 @@
 
         }
 
-        if (menu.reserved) {
 
-        // updateReserveButton("reserved");
+        currentMenu = menu;
 
-        }
-        else {
+    }
+    else {
 
-            // updateReserveButton("available");
+        selectedDate.textContent =
+            `${day} ${getMonthName(month)} ${year}`;
 
-        }
+        foodImage.src = "../static/images/no-food.png";
 
-        }
-        else {
+        foodName.textContent = "غذایی ثبت نشده است.";
 
-            selectedDate.textContent =
-                `${day} ${getMonthName(month)} ${year}`;
+    }
 
-            foodImage.src = "../static/images/no-food.png";
+    if (menu.reserved) {
 
-            foodName.textContent = "غذایی ثبت نشده است.";
+    // updateReserveButton("reserved");
 
-            time.textContent = "-";
+    }
+    else {
 
-            // updateReserveButton("closed");
+        // updateReserveButton("available");
 
+    }
+
+    }
+    else {
+
+        selectedDate.textContent =
+            `${day} ${getMonthName(month)} ${year}`;
+
+        foodImage.src = "../static/images/no-food.png";
+
+        foodName.textContent = "غذایی ثبت نشده است.";
+
+        time.textContent = "-";
+
+        // updateReserveButton("closed");
+
+    }
+
+});
+
+function getMonthName(month) {
+
+    const months = [
+
+        "فروردین",
+        "اردیبهشت",
+        "خرداد",
+        "تیر",
+        "مرداد",
+        "شهریور",
+        "مهر",
+        "آبان",
+        "آذر",
+        "دی",
+        "بهمن",
+        "اسفند"
+
+    ];
+
+    return months[month - 1];
+
+}
+
+function updateReservedCount() {
+
+    let count = 0;
+
+    Object.entries(menuData).forEach(([key, menu]) => {
+
+        const [year, month] = key.split("-");
+
+        if (
+            Number(year) === calendar.currentYear &&
+            Number(month) === calendar.currentMonth &&
+            menu.reserved
+        ) {
+            count++;
         }
 
     });
 
-    function getMonthName(month) {
+    document.getElementById("reservedCount").textContent =
+        `تعداد غذاهای رزرو شده این ماه: ${count}`;
 
-        const months = [
+}
 
-            "فروردین",
-            "اردیبهشت",
-            "خرداد",
-            "تیر",
-            "مرداد",
-            "شهریور",
-            "مهر",
-            "آبان",
-            "آذر",
-            "دی",
-            "بهمن",
-            "اسفند"
 
-        ];
+/* ==========================
+    Change Password
+========================== */
 
-        return months[month - 1];
+const passwordModal = new bootstrap.Modal(
+    document.getElementById("passwordModal")
+);
 
-    }
+const passwordMessage = document.getElementById("passwordMessage");
 
-    function updateReservedCount() {
+function showPasswordMessage(text, type) {
 
-        let count = 0;
+    passwordMessage.classList.remove(
+        "d-none",
+        "alert-success",
+        "alert-danger"
+    );
 
-        Object.entries(menuData).forEach(([key, menu]) => {
+    passwordMessage.classList.add(`alert-${type}`);
 
-            const [year, month] = key.split("-");
+    passwordMessage.textContent = text;
+}
 
-            if (
-                Number(year) === calendar.currentYear &&
-                Number(month) === calendar.currentMonth &&
-                menu.reserved
-            ) {
-                count++;
+document
+    .getElementById("changePassword")
+    .addEventListener("click", function () {
+
+        passwordMessage.className = "alert d-none";
+
+        document.getElementById("oldPassword").value = "";
+        document.getElementById("newPassword").value = "";
+        document.getElementById("repeatPassword").value = "";
+
+        passwordModal.show();
+    });
+
+
+document
+    .getElementById("savePassword")
+    .addEventListener("click", async function () {
+
+        const oldPassword =
+            document.getElementById("oldPassword").value.trim();
+
+        const newPassword =
+            document.getElementById("newPassword").value.trim();
+
+        const repeatPassword =
+            document.getElementById("repeatPassword").value.trim();
+
+        if (!oldPassword) {
+            showPasswordMessage("رمز فعلی را وارد کنید.", "danger");
+            return;
+        }
+
+        if (!newPassword) {
+            showPasswordMessage("رمز جدید را وارد کنید.", "danger");
+            return;
+        }
+
+        if (!repeatPassword) {
+            showPasswordMessage("تکرار رمز جدید را وارد کنید.", "danger");
+            return;
+        }
+
+        if (newPassword.length < 8) {
+            showPasswordMessage(
+                "رمز جدید باید حداقل ۸ کاراکتر باشد.",
+                "danger"
+            );
+            return;
+        }
+
+        if (newPassword !== repeatPassword) {
+            showPasswordMessage(
+                "تکرار رمز عبور صحیح نیست.",
+                "danger"
+            );
+            return;
+        }
+
+        if (oldPassword === newPassword) {
+            showPasswordMessage(
+                "رمز جدید نباید با رمز فعلی یکسان باشد.",
+                "danger"
+            );
+            return;
+        }
+
+        const csrfToken =
+            document.getElementById("csrf-token").value;
+
+        try {
+
+            const response = await fetch("/change-password/", {
+
+                method: "POST",
+
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+
+                body: new URLSearchParams({
+
+                    old_password: oldPassword,
+                    new_password: newPassword,
+                    repeat_password: repeatPassword,
+
+                }),
+
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+
+                showPasswordMessage(
+                    data.message,
+                    "success"
+                );
+
+                document.getElementById("oldPassword").value = "";
+                document.getElementById("newPassword").value = "";
+                document.getElementById("repeatPassword").value = "";
+
+            } else {
+
+                showPasswordMessage(
+                    data.message,
+                    "danger"
+                );
+
             }
 
-        });
+        } catch (error) {
 
-        document.getElementById("reservedCount").textContent =
-            `تعداد غذاهای رزرو شده این ماه: ${count}`;
-
-    }
-
-
-    /* ==========================
-        Change Password
-    ========================== */
-
-    const passwordModal =
-        new bootstrap.Modal(
-            document.getElementById("passwordModal")
-        );
-
-    document
-        .getElementById("changePassword")
-        .addEventListener("click", function () {
-
-            document.getElementById("passwordMessage")
-                .className = "alert d-none";
-
-            document.getElementById("oldPassword").value = "";
-            document.getElementById("newPassword").value = "";
-            document.getElementById("repeatPassword").value = "";
-
-            passwordModal.show();
-
-        });
-
-    document
-        .getElementById("savePassword")
-        .addEventListener("click", function () {
-
-            const oldPass =
-                document.getElementById("oldPassword").value.trim();
-
-            const newPass =
-                document.getElementById("newPassword").value.trim();
-
-            const repeatPass =
-                document.getElementById("repeatPassword").value.trim();
-
-            const message =
-                document.getElementById("passwordMessage");
-
-            function showMessage(text, type){
-
-                message.className =
-                    `alert alert-${type}`;
-
-                message.textContent = text;
-
-            }
-
-            if(oldPass === ""){
-
-                showMessage("رمز فعلی را وارد کنید.","danger");
-                return;
-
-            }
-
-            if(newPass === ""){
-
-                showMessage("رمز جدید را وارد کنید.","danger");
-                return;
-
-            }
-
-            if(repeatPass === ""){
-
-                showMessage("تکرار رمز جدید را وارد کنید.","danger");
-                return;
-
-            }
-
-            if(newPass.length < 8){
-
-                showMessage("رمز جدید باید حداقل ۸ کاراکتر باشد.","danger");
-                return;
-
-            }
-
-            if(newPass !== repeatPass){
-
-                showMessage("تکرار رمز با رمز جدید یکسان نیست.","danger");
-                return;
-
-            }
-
-            if(oldPass === newPass){
-
-                showMessage("رمز جدید نباید با رمز فعلی یکسان باشد.","danger");
-                return;
-
-            }
-
-            showMessage(
-                "اعتبارسنجی با موفقیت انجام شد.",
-                "success"
+            showPasswordMessage(
+                "خطا در ارتباط با سرور.",
+                "danger"
             );
 
-        });
+            console.error(error);
+
+        }
+
+    });

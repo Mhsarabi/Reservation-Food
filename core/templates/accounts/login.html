@@ -41,8 +41,17 @@
     </div>
 
     <!-- فرم ورود -->
+    
 
-    <form id="loginForm">
+    <form id="loginForm" method="post">
+        {% csrf_token %}
+        {%if messages%}
+           {%for message in messages%}
+              <div class="alert alert-danger">
+                {{message}}
+              </div>
+            {%endfor%}
+        {%endif%}
 
         <div class="mb-3">
 
@@ -60,8 +69,10 @@
 
                 <input
                         type="text"
+                        name="personnel_code"
                         class="form-control"
-                        placeholder="لطفا کد پرسنلی خود را وارد نمایید">
+                        placeholder="لطفا کد پرسنلی خود را وارد نمایید"
+                        required>
 
             </div>
 
@@ -83,21 +94,25 @@
 
                 <input
                         type="password"
+                        name="password"
                         class="form-control"
-                        placeholder="لطفا رمز عبور خود را وارد نمایید">
+                        placeholder="لطفا رمز عبور خود را وارد نمایید"
+                        autocomplete="username"
+                        autocomplete="current-password"
+                        required>
 
             </div>
 
         </div>
 
-        <button class="btn btn-success w-100">
+        <button type="submit" class="btn btn-success w-100">
             ورود
         </button>
 
     </form>
 </div>
 
-<script src="{%static 'static/js/Authentication.js'%}"></script>
+<script src="{%static 'js/Authentication.js'%}"></script>
 
 </body>
 
