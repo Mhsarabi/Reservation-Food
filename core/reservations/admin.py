@@ -8,12 +8,10 @@ class ReservationAdmin(admin.ModelAdmin):
         "user",
         "food_date",
         "food_name",
-        "status",
         "reserve_time",
     )
 
     list_filter = (
-        "status",
         "menu__food_date",
     )
 

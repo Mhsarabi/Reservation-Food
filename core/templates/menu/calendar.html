@@ -172,7 +172,7 @@
 
                 <img
                     id="foodImage"
-                    src="../static/images/no-food.png"
+                    src="{% static 'images/no-food.png' %}"
                     alt="">
 
             </div>
@@ -292,7 +292,20 @@
 <!-- ================= Scripts ================= -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jalaali-js/dist/jalaali.min.js"></script>
-<script src="{%static 'js/menu-data.js'%}"></script>
+<!-- Calendar Data -->
+<script>
+const menuData = {
+{% for menu in menus %}
+    "{{ menu.food_date|date:'Y-m-d' }}": {
+        foodId: {{ menu.food.id }},
+        foodName: "{{ menu.food.food_name|escapejs }}",
+        image: "{% if menu.food.food_image %}{{ menu.food.food_image.url }}{% else %}{% static 'images/no-food.png' %}{% endif %}",
+        reserved: {{ menu.is_reserved|yesno:"true,false" }},
+    },
+{% endfor %}
+};
+</script>
+<!-- JS Files -->
 <script src="{%static 'js/calendar.js'%}"></script>
 <script src="{%static 'js/ui.js'%}"></script>
 <script src="{%static 'js/reservation.js'%}"></script>

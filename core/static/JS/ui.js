@@ -9,8 +9,10 @@ document.addEventListener("daySelected", function (event) {
 
     const { year, month, day } = event.detail;
 
+    const g = jalaali.toGregorian(year, month, day);
+
     const key =
-        `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
 
     const menu = menuData[key];
     
@@ -18,45 +20,10 @@ document.addEventListener("daySelected", function (event) {
     if (menu) {
 
     selectedDate.textContent =
-        `${day} ${getMonthName(month)} ${year}`;
+    `${day} ${getMonthName(month)} ${year}`;
 
-    const menu = menuData[key];
-
-    if (menu) {
-
-        const food = foods.find(f => f.id === menu.foodId);
-
-        selectedDate.textContent =
-            `${day} ${getMonthName(month)} ${year}`;
-
-        if (food) {
-
-            foodImage.src = food.image;
-
-            foodName.textContent = food.name;
-
-        } else {
-
-            foodImage.src = "../static/images/no-food.png";
-
-            foodName.textContent = "غذایی ثبت نشده است.";
-
-        }
-
-
-        currentMenu = menu;
-
-    }
-    else {
-
-        selectedDate.textContent =
-            `${day} ${getMonthName(month)} ${year}`;
-
-        foodImage.src = "../static/images/no-food.png";
-
-        foodName.textContent = "غذایی ثبت نشده است.";
-
-    }
+    foodImage.src = menu.image;
+    foodName.textContent = menu.foodName;
 
     if (menu.reserved) {
 
@@ -116,11 +83,13 @@ function updateReservedCount() {
 
     Object.entries(menuData).forEach(([key, menu]) => {
 
-        const [year, month] = key.split("-");
+        const [gy, gm, gd] = key.split("-").map(Number);
+
+        const j = jalaali.toJalaali(gy, gm, gd);
 
         if (
-            Number(year) === calendar.currentYear &&
-            Number(month) === calendar.currentMonth &&
+            j.jy === calendar.currentYear &&
+            j.jm === calendar.currentMonth &&
             menu.reserved
         ) {
             count++;
@@ -238,7 +207,6 @@ document
                 },
 
                 body: new URLSearchParams({
-
                     old_password: oldPassword,
                     new_password: newPassword,
                     repeat_password: repeatPassword,

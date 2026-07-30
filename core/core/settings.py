@@ -152,7 +152,7 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD",default="")
 SHOW_DEBUGGER_TOOLBAR = config("SHOW_DEBUGGER_TOOLBAR", cast=bool, default=True)
 if SHOW_DEBUGGER_TOOLBAR:
     INSTALLED_APPS += [
-        "debug_toolbar", 
+        "debug_toolbar",
     ]
     MIDDLEWARE += [
         "debug_toolbar.middleware.DebugToolbarMiddleware",

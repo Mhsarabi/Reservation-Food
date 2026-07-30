@@ -5,15 +5,9 @@ from menu.models import DailyMenu
 # Create your models here.
 class Reservation(models.Model):
 
-    class Status(models.TextChoices):
-        RESERVED="reserved","رزرو شده"
-        CANCELED="canceled","لغو شده"
-
     user=models.ForeignKey(User,on_delete=models.CASCADE,related_name="reservations",verbose_name="کاربر")
 
     menu=models.ForeignKey(DailyMenu,on_delete=models.CASCADE,related_name="reservations",verbose_name="منوی روز")
-
-    status=models.CharField(max_length=20,choices=Status.choices,default=Status.RESERVED,verbose_name="وضعیت")
 
     reserve_time= models.DateTimeField(auto_now_add=True,verbose_name="زمان رزرو")
 
@@ -21,7 +15,7 @@ class Reservation(models.Model):
         verbose_name="رزرو"
         verbose_name_plural="رزروها"
 
-        ordering = ["-reserve_time"]
+        ordering = ("-reserve_time",)
 
         constraints=[
             models.UniqueConstraint(

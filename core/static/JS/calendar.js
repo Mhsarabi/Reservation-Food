@@ -93,13 +93,19 @@ class PersianCalendar {
         // روزهای ماه
         for (let day = 1; day <= daysInMonth; day++) {
 
-            const key =
-                `${this.currentYear}-${String(this.currentMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+            const g = jalaali.toGregorian(
+                this.currentYear,
+                this.currentMonth,
+                day
+            );
 
-             const menu = this.menuData[key];
+            const key =
+            `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
+
+            const menu = this.menuData[key];
 
             const food = menu
-                ? foods.find(f => f.id === menu.foodId)
+                ? { name: menu.foodName }
                 : null;
 
             const isToday =
@@ -155,12 +161,6 @@ class PersianCalendar {
             day.classList.add("past-day");
 
         }
-
-        // day.addEventListener("click",()=>{
-
-        //     this.selectAdminDay(data.day);
-
-        // });
 
         if (data.day !== null) {
             const number = document.createElement("div");
@@ -310,17 +310,22 @@ class PersianCalendar {
         updateReservedCount();
     }
 
-    selectDay(day) {
+ selectDay(day) {
+     const g = jalaali.toGregorian(
+        this.currentYear,
+        this.currentMonth,
+        day
+     );
 
-    const key =
-        `${this.currentYear}-${String(this.currentMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+     const key =
+     `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
 
-    const menu = this.menuData[key];
+     const menu = this.menuData[key];
 
-    if (!menu) return;
+     if (!menu) return;
 
-    // اگر قبلاً رزرو شده باشد، فقط اطلاعات روز را نمایش بده
-    if (menu.reserved) {
+     // اگر قبلاً رزرو شده باشد، فقط اطلاعات روز را نمایش بده
+     if (menu.reserved) {
 
             document.dispatchEvent(
                 new CustomEvent("daySelected", {
@@ -336,12 +341,7 @@ class PersianCalendar {
 
         }
 
-        // فقط رزرو انجام شود
-        menu.reserved = true;
-
-        this.render();
-
-        updateReservedCount();
+        this.toggleReservation(day);
 
         document.dispatchEvent(
             new CustomEvent("daySelected", {
@@ -353,32 +353,74 @@ class PersianCalendar {
             })
         );
 
+      
     }
 
-    removeReservation(day) {
 
-        const key =
-            `${this.currentYear}-${String(this.currentMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+ async removeReservation(day) {
 
-        const menu = this.menuData[key];
+    const g = jalaali.toGregorian(
+        this.currentYear,
+        this.currentMonth,
+        day
+    );
 
-        if (!menu) return;
+    const key =
+        `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
 
-        menu.reserved = false;
+    const menu = this.menuData[key];
 
-        this.render();
+    if (!menu) return;
 
-        updateReservedCount();
+    const csrfToken =
+        document.getElementById("csrf-token").value;
 
-        // پاک شدن اطلاعات سمت راست
-        foodImage.src = "../static/images/no-food.png";
+    try {
 
-        document.getElementById("foodName").textContent = "-";
+        const response = await fetch("/reservations/delete/", {
 
-        document.getElementById("selectedDate").textContent =
-            "تاریخی انتخاب نشده است.";
+            method: "POST",
+
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+
+            body: new URLSearchParams({
+                food_date: key,
+            }),
+
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            this.menuData[key].reserved = false;
+
+            this.render();
+
+            updateReservedCount();
+
+            foodImage.src = "/static/images/no-food.png";
+            document.getElementById("foodName").textContent = "-";
+            document.getElementById("selectedDate").textContent =
+                "تاریخی انتخاب نشده است.";
+
+        } else {
+
+            alert(data.message);
 
         }
+
+    } catch (error) {
+
+        console.error(error);
+        alert("خطا در ارتباط با سرور");
+
+    }
+
+ }
 
     selectAdminDay(day){
 
@@ -428,4 +470,60 @@ class PersianCalendar {
         this.renderWeekDays();
         this.renderGrid();
     }
+    async toggleReservation(day) {
+
+    const g = jalaali.toGregorian(
+        this.currentYear,
+        this.currentMonth,
+        day
+    );
+
+    const key =
+        `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
+
+    const csrfToken =
+        document.getElementById("csrf-token").value;
+
+    try {
+
+        const response = await fetch("/reservations/toggle/", {
+
+            method: "POST",
+
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+
+            body: new URLSearchParams({
+                food_date: key,
+            }),
+
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            this.menuData[key].reserved = true;
+
+            this.render();
+
+            updateReservedCount();
+
+        } else {
+
+            alert(data.message);
+
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("خطا در ارتباط با سرور");
+
+    }
+
+}
 }
