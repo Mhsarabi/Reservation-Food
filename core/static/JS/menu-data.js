@@ -31,25 +31,3 @@ const menuData = {
     },
 
 };
-
-const foods = [
-
-    {
-        id:1,
-        name:"زرشک پلو با مرغ",
-        image:"../images/zereshpolo.jpg"
-    },
-
-    {
-        id:2,
-        name:"قورمه سبزی",
-        image:"../images/ghormeh.jpg"
-    },
-
-    {
-        id:3,
-        name:"جوجه کباب",
-        image:"../images/joojeh.jpg"
-    }
-
-];

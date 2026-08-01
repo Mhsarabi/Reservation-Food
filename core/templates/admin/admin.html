@@ -108,7 +108,7 @@
 
                         <a
                             class="dropdown-item text-danger"
-                            href="#">
+                            href="{%url 'accounts:logout'%}">
 
                             <i class="bi bi-box-arrow-right"></i>
                             خروج
@@ -380,7 +380,10 @@
                 </div>
 
             </div>
-
+            <input
+                type="hidden"
+                id="csrf-token"
+                value="{{ csrf_token }}">
             <div class="modal-footer">
 
                 <button
@@ -762,6 +765,7 @@
 
 <script src="{%static 'js/menu-data.js'%}"></script>
 <script src="{%static 'js/calendar.js'%}"></script>
+<script src="{%static 'js/ui.js'%}"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>

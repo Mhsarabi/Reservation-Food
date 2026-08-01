@@ -151,6 +151,27 @@ class PersianCalendar {
         }
 
     }
+    getMonthStartGregorian() {
+        return jalaali.toGregorian(
+            this.currentYear,
+            this.currentMonth,
+            1
+            );
+        }
+
+        getMonthEndGregorian() {
+
+            const lastDay = jalaali.jalaaliMonthLength(
+                this.currentYear,
+                this.currentMonth
+            );
+
+            return jalaali.toGregorian(
+                this.currentYear,
+                this.currentMonth,
+                lastDay
+            );
+        }
 
     createDayCard(data) {
 

@@ -1,4 +1,5 @@
 let currentMenu = null;
+const csrfToken = document.getElementById("csrf-token").value;
 /* ============================================
    Today
 ============================================ */
@@ -32,61 +33,71 @@ function updateReserveButton(status) {
     switch (status) {
 
         case "available":
-
             reserveBtn.disabled = false;
             reserveBtn.classList.add("btn-success");
             reserveBtn.textContent = "رزرو غذا";
             break;
 
         case "reserved":
-
             reserveBtn.disabled = false;
             reserveBtn.classList.add("btn-danger");
             reserveBtn.textContent = "لغو رزرو";
             break;
 
         case "closed":
-
             reserveBtn.disabled = true;
             reserveBtn.classList.add("btn-secondary");
             reserveBtn.textContent = "مهلت رزرو به پایان رسیده";
             break;
-
     }
-
 }
 
-document.getElementById("reserveMonthBtn").addEventListener("click", function () {
+
+document.getElementById("reserveMonthBtn").addEventListener("click", async () => {
+
+    const start = calendar.getMonthStartGregorian();
+    const end = calendar.getMonthEndGregorian();
+
+    const response = await fetch("/reservations/reserve-month/", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": csrfToken,
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+            start_date: `${start.gy}-${String(start.gm).padStart(2,"0")}-${String(start.gd).padStart(2,"0")}`,
+            end_date: `${end.gy}-${String(end.gm).padStart(2,"0")}-${String(end.gd).padStart(2,"0")}`,
+        }),
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+        alert(data.message);
+        return;
+    }
 
     Object.entries(menuData).forEach(([key, menu]) => {
 
-        const [year, month, day] = key.split("-").map(Number);
+    const [gy, gm, gd] = key.split("-").map(Number);
 
-        // فقط ماه جاری
-        if (
-            year !== calendar.currentYear ||
-            month !== calendar.currentMonth
-        ) return;
+    // فقط اگر روز گذشته نباشد
+    const menuDate = new Date(gy, gm - 1, gd);
 
-        // گذشته نباشد
-        const currentNumber =
-            year * 10000 +
-            month * 100 +
-            day;
+    const today = new Date();
+    today.setHours(0,0,0,0);
 
-        const todayNumber =
-            calendar.todayYear * 10000 +
-            calendar.todayMonth * 100 +
-            calendar.todayDay;
+    if (menuDate < today)
+        return;
 
-        if (currentNumber < todayNumber)
-            return;
+    const j = jalaali.toJalaali(gy, gm, gd);
 
-        // غذا داشته باشد
-        if (!menu.foodId)
-            return;
-
+    if (
+        j.jy === calendar.currentYear &&
+        j.jm === calendar.currentMonth
+    ) {
         menu.reserved = true;
+    }
 
     });
 
@@ -95,35 +106,55 @@ document.getElementById("reserveMonthBtn").addEventListener("click", function ()
 
 });
 
-document.getElementById("cancelMonthBtn").addEventListener("click", function () {
+document.getElementById("cancelMonthBtn").addEventListener("click", async () => {
+
+    const start = calendar.getMonthStartGregorian();
+    const end = calendar.getMonthEndGregorian();
+
+    const response = await fetch("/reservations/cancel-month/", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": csrfToken,
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+            start_date: `${start.gy}-${String(start.gm).padStart(2,"0")}-${String(start.gd).padStart(2,"0")}`,
+            end_date: `${end.gy}-${String(end.gm).padStart(2,"0")}-${String(end.gd).padStart(2,"0")}`,
+        }),
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+        alert(data.message);
+        return;
+    }
 
     Object.entries(menuData).forEach(([key, menu]) => {
 
-        const [year, month, day] = key.split("-").map(Number);
+        const [gy, gm, gd] = key.split("-").map(Number);
 
-        if (
-            year !== calendar.currentYear ||
-            month !== calendar.currentMonth
-        ) return;
+        const menuDate = new Date(gy, gm - 1, gd);
 
-        const currentNumber =
-            year * 10000 +
-            month * 100 +
-            day;
+        const today = new Date();
+        today.setHours(0,0,0,0);
 
-        const todayNumber =
-            calendar.todayYear * 10000 +
-            calendar.todayMonth * 100 +
-            calendar.todayDay;
-
-        if (currentNumber < todayNumber)
+        if (menuDate < today)
             return;
 
-        menu.reserved = false;
+        const j = jalaali.toJalaali(gy, gm, gd);
+
+        if (
+            j.jy === calendar.currentYear &&
+            j.jm === calendar.currentMonth
+        ) {
+            menu.reserved = false;
+        }
 
     });
 
-    calendar.render();
-    updateReservedCount();
+        calendar.render();
+        updateReservedCount();
 
-});
+    });
+

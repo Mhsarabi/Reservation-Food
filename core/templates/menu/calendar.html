@@ -52,8 +52,11 @@
         aria-expanded="false">
 
         <i class="bi bi-person-circle"></i>
-        محسن سرابی
-
+        {{ request.user.full_name }}
+        <br>
+        <small class="text-muted">
+            {{ request.user.department }}
+        </small>
     </button>
 
     <ul class="dropdown-menu dropdown-menu-end">

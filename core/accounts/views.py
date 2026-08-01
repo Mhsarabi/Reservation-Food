@@ -5,8 +5,9 @@ from django.contrib import messages
 from django.contrib.auth import logout
 import json
 from django.http import JsonResponse
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import update_session_auth_hash
+from django.views.generic import TemplateView
 
 # Create your views here.
 # login
@@ -15,7 +16,10 @@ class LoginView(View):
 
     def get(self, request):
         if request.user.is_authenticated:
-            return redirect("/")
+            if request.user.is_staff:
+                return redirect("accounts:admin_dashboard")
+            else:
+                return redirect("menu:calendar")
 
         return render(request, self.template_name)
 
@@ -31,6 +35,10 @@ class LoginView(View):
 
         if user is not None:
             login(request, user)
+
+            if user.is_staff:
+                return redirect("accounts:admin_dashboard")
+
             return redirect("menu:calendar")
 
         messages.error(
@@ -84,3 +92,9 @@ class ChangePasswordView(LoginRequiredMixin, View):
             "success": True,
             "message": "رمز عبور با موفقیت تغییر یافت."
         })
+
+class AdminDashboardView(LoginRequiredMixin,UserPassesTestMixin,TemplateView):
+    template_name = "admin/admin.html"
+
+    def test_func(self):
+        return self.request.user.is_staff
