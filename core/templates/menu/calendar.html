@@ -297,16 +297,8 @@
 <script src="https://cdn.jsdelivr.net/npm/jalaali-js/dist/jalaali.min.js"></script>
 <!-- Calendar Data -->
 <script>
-const menuData = {
-{% for menu in menus %}
-    "{{ menu.food_date|date:'Y-m-d' }}": {
-        foodId: {{ menu.food.id }},
-        foodName: "{{ menu.food.food_name|escapejs }}",
-        image: "{% if menu.food.food_image %}{{ menu.food.food_image.url }}{% else %}{% static 'images/no-food.png' %}{% endif %}",
-        reserved: {{ menu.is_reserved|yesno:"true,false" }},
-    },
-{% endfor %}
-};
+    // ✅ این متغیر به صورت سراسری تعریف می‌شود
+    window.menuData = {};
 </script>
 <!-- JS Files -->
 <script src="{%static 'js/calendar.js'%}"></script>

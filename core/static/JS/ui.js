@@ -2,8 +2,6 @@ document.addEventListener("daySelected", function (event) {
     const selectedDate = document.getElementById("selectedDate");
     const foodImage = document.getElementById("foodImage");
     const foodName = document.getElementById("foodName");
-    // const reserveBtn = document.getElementById("reserveBtn");
-    // const foodDate = document.getElementById("foodDate");
 
 
 

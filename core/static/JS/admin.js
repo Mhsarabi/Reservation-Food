@@ -2,6 +2,8 @@
 // متغیرهای سراسری
 // ===========================
 let foods = [];
+let selectedKey = null;
+
 // ===========================
 // دریافت CSRF Token
 // ===========================
@@ -38,6 +40,7 @@ function getImageUrl(imagePath) {
     
     return '/static/images/no-food.png';
 }
+
 // ===========================
 // دریافت لیست غذاها از سرور
 // ===========================
@@ -56,7 +59,7 @@ function fetchFoods() {
         }
         return response.json();
     })
-        .then(data => {
+    .then(data => {
         if (data.success) {
             foods = data.foods;
             console.log(`✅ ${foods.length} غذا دریافت شد.`);
@@ -71,6 +74,42 @@ function fetchFoods() {
         return foods;
     });
 }
+
+// ===========================
+// دریافت menuData از سرور (API)
+// ===========================
+function fetchMenuData() {
+    console.log('📡 دریافت داده‌های تقویم از سرور...');
+    
+    return fetch('/menu/daily-menus/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`خطا در دریافت داده‌ها: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // پاک کردن menuData قبلی
+        for (let key in menuData) {
+            delete menuData[key];
+        }
+        // اضافه کردن داده‌های جدید
+        Object.assign(menuData, data);
+        console.log(`✅ ${Object.keys(menuData).length} روز با غذا دریافت شد.`);
+        return menuData;
+    })
+    .catch(error => {
+        console.error('❌ خطا در دریافت داده‌های تقویم:', error);
+        menuData = {};
+        return menuData;
+    });
+}
+
 // ===========================
 // نمایش پیام در مودال
 // ===========================
@@ -82,7 +121,6 @@ function showFoodMessage(message, type = 'success') {
     messageDiv.className = `alert alert-${type}`;
     messageDiv.classList.remove('d-none');
     
-    // بعد از 5 ثانیه پیام را مخفی کن
     clearTimeout(window.foodMessageTimeout);
     window.foodMessageTimeout = setTimeout(() => {
         messageDiv.classList.add('d-none');
@@ -99,13 +137,9 @@ function updateAllFoodSelects() {
         const select = document.getElementById(selectId);
         if (!select) return;
         
-        // ذخیره مقدار فعلی
         const currentValue = select.value;
-        
-        // پاک کردن گزینه‌ها (به جز گزینه خالی اول)
         select.innerHTML = '<option value=""></option>';
         
-        // اضافه کردن همه غذاها
         foods.forEach(food => {
             const option = document.createElement('option');
             option.value = food.id;
@@ -113,7 +147,6 @@ function updateAllFoodSelects() {
             select.appendChild(option);
         });
         
-        // بازیابی مقدار قبلی اگر وجود داشت
         if (currentValue && foods.some(f => f.id == currentValue)) {
             select.value = currentValue;
         }
@@ -121,20 +154,11 @@ function updateAllFoodSelects() {
 }
 
 // ===========================
-// اضافه کردن غذا به Select (برای استفاده قبلی)
-// ===========================
-function addFoodToSelect(id, name) {
-    const option = document.createElement('option');
-    option.value = id;
-    option.textContent = name;
-    foodSelect.appendChild(option);
-}
-
-// ===========================
 // بارگذاری اطلاعات روز
 // ===========================
 function loadDayData(year, month, day) {
-    selectedKey = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const g = jalaali.toGregorian(year, month, day);
+    selectedKey = `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
     
     const months = [
         "فروردین",
@@ -150,22 +174,33 @@ function loadDayData(year, month, day) {
         "بهمن",
         "اسفند"
     ];
-    
-    selectedDate.textContent = `${day} ${months[month - 1]} ${year}`;
+
+    // به‌روزرسانی تاریخ انتخاب شده
+    const selectedDateEl = document.getElementById("selectedDate");
+    if (selectedDateEl) {
+        selectedDateEl.textContent = `${day} ${months[month - 1]} ${year}`;
+    }
     
     const menu = menuData[selectedKey];
+    const foodSelectEl = document.getElementById("foodSelect");
+    const foodImageEl = document.getElementById("foodImage");
+    const foodTitleEl = document.getElementById("foodTitle");
     
-    if (menu) {
+    if (menu && menu.foodId) {
         const food = foods.find(f => f.id === menu.foodId);
         if (food) {
-            foodSelect.value = food.id;
-            foodImage.src = getImageUrl(food.image);
-            foodTitle.textContent = food.name;
+            if (foodSelectEl) foodSelectEl.value = food.id;
+            if (foodImageEl) foodImageEl.src = getImageUrl(food.image);
+            if (foodTitleEl) foodTitleEl.textContent = food.name;
+        } else {
+            if (foodSelectEl) foodSelectEl.value = menu.foodId;
+            if (foodImageEl) foodImageEl.src = '/static/images/no-food.png';
+            if (foodTitleEl) foodTitleEl.textContent = `غذای با ID: ${menu.foodId}`;
         }
     } else {
-        foodSelect.value = "";
-        foodImage.src = "/static/images/no-food.png";
-        foodTitle.textContent = "هنوز غذایی انتخاب نشده است.";
+        if (foodSelectEl) foodSelectEl.value = "";
+        if (foodImageEl) foodImageEl.src = "/static/images/no-food.png";
+        if (foodTitleEl) foodTitleEl.textContent = "هنوز غذایی انتخاب نشده است.";
     }
 }
 
@@ -190,7 +225,6 @@ function loadSelectedFood() {
 // راه‌اندازی اولیه تقویم
 // ===========================
 const calendar = new PersianCalendar("calendarGrid", true);
-calendar.render();
 
 // ===========================
 // عناصر DOM
@@ -198,12 +232,6 @@ calendar.render();
 const fromDate = document.getElementById("fromDate");
 const toDate = document.getElementById("toDate");
 const weekChecks = document.querySelectorAll("#weekDays input[type='checkbox']");
-const foodSelect = document.getElementById("foodSelect");
-const foodImage = document.getElementById("foodImage");
-const foodTitle = document.getElementById("foodTitle");
-const selectedDate = document.getElementById("selectedDate");
-
-let selectedKey = null;
 
 // ===========================
 // مقداردهی اولیه Datepicker ها
@@ -211,24 +239,28 @@ let selectedKey = null;
 $("#fromDate").persianDatepicker({
     format: "YYYY/MM/DD",
     initialValue: false,
+    persianDigit: false,
     autoClose: true
 });
 
 $("#toDate").persianDatepicker({
     format: "YYYY/MM/DD",
     initialValue: false,
+    persianDigit: false,
     autoClose: true
 });
 
 $("#reportFromDate").persianDatepicker({
     format: "YYYY/MM/DD",
     initialValue: false,
+    persianDigit: false,
     autoClose: true
 });
 
 $("#reportToDate").persianDatepicker({
     format: "YYYY/MM/DD",
     initialValue: false,
+    persianDigit: false,
     autoClose: true
 });
 
@@ -246,22 +278,6 @@ const today = new Date();
 document.getElementById("todayDate").textContent = today.toLocaleDateString("fa-IR");
 
 // ===========================
-// رویداد: تغییر غذا
-// ===========================
-foodSelect.addEventListener("change", function () {
-    const food = foods.find(f => f.id == this.value);
-    
-    if (!food) {
-        foodImage.src = "/static/images/no-food.png";
-        foodTitle.textContent = "هنوز غذایی انتخاب نشده است.";
-        return;
-    }
-    
-    foodImage.src = getImageUrl(food.image);
-    foodTitle.textContent = food.name;
-});
-
-// ===========================
 // رویداد: انتخاب روز از تقویم
 // ===========================
 document.addEventListener("daySelected", function (e) {
@@ -269,60 +285,173 @@ document.addEventListener("daySelected", function (e) {
 });
 
 // ===========================
-// رویداد: ذخیره غذای روز
+// رویداد: تغییر غذا
+// ===========================
+const foodSelectEl = document.getElementById("foodSelect");
+if (foodSelectEl) {
+    foodSelectEl.addEventListener("change", function () {
+        const food = foods.find(f => f.id == this.value);
+        const foodImageEl = document.getElementById("foodImage");
+        const foodTitleEl = document.getElementById("foodTitle");
+        
+        if (!food) {
+            if (foodImageEl) foodImageEl.src = "/static/images/no-food.png";
+            if (foodTitleEl) foodTitleEl.textContent = "هنوز غذایی انتخاب نشده است.";
+            return;
+        }
+        
+        if (foodImageEl) foodImageEl.src = getImageUrl(food.image);
+        if (foodTitleEl) foodTitleEl.textContent = food.name;
+    });
+}
+
+// ===========================
+// رویداد: ذخیره غذای روز (ارسال به سرور)
 // ===========================
 document.getElementById("saveFood").addEventListener("click", function () {
     if (!selectedKey) {
-        alert("ابتدا یک روز را انتخاب کنید.");
+        alert("⚠️ ابتدا یک روز را در تقویم انتخاب کنید.");
         return;
     }
-    
-    const [year, month, day] = selectedKey.split("-").map(Number);
-    const selectedNumber = year * 10000 + month * 100 + day;
+
+    // بررسی تاریخ
+    const [gy, gm, gd] = selectedKey.split("-").map(Number);
+    const jSelected = jalaali.toJalaali(gy, gm, gd);
+    const selectedNumber = jSelected.jy * 10000 + jSelected.jm * 100 + jSelected.jd;
     
     const today = new Date();
     const jToday = jalaali.toJalaali(today);
     const todayNumber = jToday.jy * 10000 + jToday.jm * 100 + jToday.jd;
     
     if (selectedNumber < todayNumber) {
-        alert("امکان ثبت غذا برای روزهای گذشته وجود ندارد.");
+        alert(`⚠️ امکان ثبت غذا برای روزهای گذشته وجود ندارد.`);
         return;
     }
     
-    if (foodSelect.value === "") {
-        alert("یک غذا انتخاب کنید.");
+    const foodSelectEl = document.getElementById("foodSelect");
+    if (!foodSelectEl || foodSelectEl.value === "") {
+        alert("⚠️ لطفاً یک غذا را از لیست انتخاب کنید.");
         return;
     }
     
-    if (!menuData[selectedKey]) {
-        menuData[selectedKey] = {};
-    }
+    const csrfToken = getCSRFToken();
+    const saveBtn = this;
     
-    menuData[selectedKey].foodId = Number(foodSelect.value);
-    calendar.render();
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> در حال ذخیره...';
+    
+    fetch('/menu/save-daily-food/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            food_id: foodSelectEl.value,
+            food_date: selectedKey,
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✅ ${data.message}`);
+            return fetchMenuData();
+        } else {
+            alert(`❌ ${data.message}`);
+            throw new Error(data.message);
+        }
+    })
+    .then(() => {
+        calendar.render();
+        console.log('✅ تقویم به‌روزرسانی شد.');
+        
+        // به‌روزرسانی اطلاعات نمایش داده شده
+        const foodSelectEl = document.getElementById("foodSelect");
+        const foodImageEl = document.getElementById("foodImage");
+        const foodTitleEl = document.getElementById("foodTitle");
+        
+        const menu = menuData[selectedKey];
+        if (menu && menu.foodId) {
+            const food = foods.find(f => f.id === menu.foodId);
+            if (food) {
+                if (foodSelectEl) foodSelectEl.value = food.id;
+                if (foodImageEl) foodImageEl.src = getImageUrl(food.image);
+                if (foodTitleEl) foodTitleEl.textContent = food.name;
+            }
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error:', error);
+        if (error.message !== 'خطا در دریافت داده‌ها') {
+            alert(`❌ ${error.message}`);
+        }
+    })
+    .finally(() => {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = 'ذخیره غذای روز';
+    });
 });
 
 // ===========================
-// رویداد: حذف غذای روز
+// رویداد: حذف غذای روز (ارسال به سرور)
 // ===========================
 document.getElementById("deleteFood").addEventListener("click", function () {
     if (!selectedKey) {
-        alert("ابتدا یک روز را انتخاب کنید.");
+        alert("⚠️ ابتدا یک روز را در تقویم انتخاب کنید.");
         return;
     }
     
     if (!menuData[selectedKey] || !menuData[selectedKey].foodId) {
-        alert("برای این روز غذایی ثبت نشده است.");
+        alert("⚠️ برای این روز غذایی ثبت نشده است.");
         return;
     }
     
-    delete menuData[selectedKey].foodId;
+    const csrfToken = getCSRFToken();
+    const deleteBtn = this;
     
-    if (Object.keys(menuData[selectedKey]).length === 0) {
-        delete menuData[selectedKey];
-    }
+    deleteBtn.disabled = true;
+    deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> در حال حذف...';
     
-    calendar.render();
+    fetch('/menu/delete-daily-food/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            food_date: selectedKey,
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {          
+            return fetchMenuData();
+        } else {
+            throw new Error(data.message);
+        }
+    })
+    .then(() => {
+        calendar.render();
+
+        // پاک کردن اطلاعات نمایش داده شده
+        const foodSelectEl = document.getElementById("foodSelect");
+        const foodImageEl = document.getElementById("foodImage");
+        const foodTitleEl = document.getElementById("foodTitle");
+        
+        if (foodSelectEl) foodSelectEl.value = '';
+        if (foodImageEl) foodImageEl.src = '/static/images/no-food.png';
+        if (foodTitleEl) foodTitleEl.textContent = 'هنوز غذایی انتخاب نشده است.';
+    })
+    .catch(error => {
+        console.error('❌ Error:', error);
+        if (error.message !== 'خطا در دریافت داده‌ها') {
+            alert(`❌ ${error.message}`);
+        }
+    })
+    .finally(() => {
+        deleteBtn.disabled = false;
+        deleteBtn.innerHTML = 'حذف غذای روز';
+    });
 });
 
 // ===========================
@@ -333,6 +462,135 @@ document.getElementById("changePassword").addEventListener("click", function (e)
     const modal = new bootstrap.Modal(document.getElementById("changePasswordModal"));
     modal.show();
 });
+
+// ===========================
+// تبدیل اعداد فارسی به انگلیسی
+// ===========================
+function toEnglishDigits(str) {
+    if (!str) return str;
+    
+    const map = {
+        '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+        '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'
+    };
+    
+    return str.replace(/[۰-۹]/g, function(match) {
+        return map[match];
+    });
+}
+
+// ===========================
+// ذخیره برنامه هفتگی
+// ===========================
+function saveWeeklyProgram() {
+    const fromDate = document.getElementById("fromDate");
+    const toDate = document.getElementById("toDate");
+    const foodSelect = document.getElementById("foodSelect");
+    const weekChecks = document.querySelectorAll("#weekDays input[type='checkbox']:checked");
+    
+    // اعتبارسنجی
+    if (!fromDate || !fromDate.value.trim()) {
+        alert("⚠️ لطفاً تاریخ شروع را انتخاب کنید.");
+        return;
+    }
+    
+    if (!toDate || !toDate.value.trim()) {
+        alert("⚠️ لطفاً تاریخ پایان را انتخاب کنید.");
+        return;
+    }
+    
+    if (!foodSelect || foodSelect.value === "") {
+        alert("⚠️ لطفاً یک غذا را انتخاب کنید.");
+        return;
+    }
+    
+    if (weekChecks.length === 0) {
+        alert("⚠️ لطفاً حداقل یک روز از هفته را انتخاب کنید.");
+        return;
+    }
+    
+    // دریافت مقادیر
+    const fromDateValue = toEnglishDigits(fromDate.value.trim());
+    const toDateValue = toEnglishDigits(toDate.value.trim());
+    const foodId = foodSelect.value;
+    
+    console.log('📅 fromDate:', fromDateValue);
+    console.log('📅 toDate:', toDateValue);
+    
+    // تبدیل تاریخ شمسی به میلادی
+    const fromParts = fromDateValue.split('/').map(Number);
+    const toParts = toDateValue.split('/').map(Number);
+    
+    if (fromParts.some(isNaN) || toParts.some(isNaN)) {
+        alert("⚠️ تاریخ وارد شده نامعتبر است.");
+        return;
+    }
+    
+    const fromGreg = jalaali.toGregorian(fromParts[0], fromParts[1], fromParts[2]);
+    const toGreg = jalaali.toGregorian(toParts[0], toParts[1], toParts[2]);
+    
+    const fromDateGreg = `${fromGreg.gy}-${String(fromGreg.gm).padStart(2, "0")}-${String(fromGreg.gd).padStart(2, "0")}`;
+    const toDateGreg = `${toGreg.gy}-${String(toGreg.gm).padStart(2, "0")}-${String(toGreg.gd).padStart(2, "0")}`;
+    
+    // ✅ دریافت روزهای انتخاب شده
+    const weekdays = [];
+    weekChecks.forEach(checkbox => {
+        weekdays.push(checkbox.value);
+    });
+    
+    console.log('📆 weekdays (انتخاب شده):', weekdays);
+    
+    const csrfToken = getCSRFToken();
+    const saveBtn = document.getElementById("saveWeekly");
+    
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> در حال ثبت...';
+    }
+    
+    // ✅ روش درست برای ارسال آرایه
+    const formData = new URLSearchParams();
+    formData.append('from_date', fromDateGreg);
+    formData.append('to_date', toDateGreg);
+    formData.append('food_id', foodId);
+    
+    // ✅ هر روز را با کلید یکسان اضافه کن
+    weekdays.forEach(day => {
+        formData.append('weekdays', day);
+    });
+    
+    console.log('📤 داده‌های ارسالی:', formData.toString());
+    
+    fetch('/menu/save-weekly/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✅ ${data.message}`);
+            fetchMenuData().then(() => {
+                calendar.render();
+            });
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error:', error);
+        alert(`❌ خطا در ارتباط با سرور: ${error.message}`);
+    })
+    .finally(() => {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="bi bi-calendar-week"></i> ثبت برنامه';
+        }
+    });
+}
 
 // ===========================
 // رویداد: ذخیره برنامه هفتگی
@@ -366,7 +624,6 @@ document.getElementById("foodImageInput").addEventListener("change", function ()
     
     const file = this.files[0];
     
-    // بررسی حجم
     if (file.size > 2 * 1024 * 1024) {
         showFoodMessage('❌ حجم تصویر نباید بیشتر از 2 مگابایت باشد.', 'danger');
         this.value = '';
@@ -374,7 +631,6 @@ document.getElementById("foodImageInput").addEventListener("change", function ()
         return;
     }
     
-    // بررسی نوع فایل
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
         showFoodMessage('❌ فقط فرمت‌های JPEG, PNG, GIF و WEBP مجاز هستند.', 'danger');
@@ -404,19 +660,16 @@ document.getElementById("saveNewFood").addEventListener("click", function () {
     const name = nameInput.value.trim();
     const imageFile = imageInput.files[0];
     
-    // ===== اعتبارسنجی =====
     if (name === "") {
         showFoodMessage('❌ لطفاً نام غذا را وارد کنید.', 'danger');
         nameInput.focus();
         return;
     }
     
-    // ===== آماده‌سازی داده برای ارسال =====
     const formData = new FormData();
     formData.append('food_name', name);
     
     if (imageFile) {
-        // بررسی حجم فایل (حداکثر 2 مگابایت)
         if (imageFile.size > 2 * 1024 * 1024) {
             showFoodMessage('❌ حجم تصویر نباید بیشتر از 2 مگابایت باشد.', 'danger');
             imageInput.value = '';
@@ -424,7 +677,6 @@ document.getElementById("saveNewFood").addEventListener("click", function () {
             return;
         }
         
-        // بررسی نوع فایل
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedTypes.includes(imageFile.type)) {
             showFoodMessage('❌ فقط فرمت‌های JPEG, PNG, GIF و WEBP مجاز هستند.', 'danger');
@@ -436,12 +688,10 @@ document.getElementById("saveNewFood").addEventListener("click", function () {
         formData.append('food_image', imageFile);
     }
     
-    // ===== غیرفعال کردن دکمه =====
     const saveBtn = this;
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> در حال ثبت...';
     
-    // ===== ارسال به سرور =====
     fetch('/menu/foods/create/', {
         method: 'POST',
         body: formData,
@@ -463,10 +713,8 @@ document.getElementById("saveNewFood").addEventListener("click", function () {
     })
     .then(data => {
         if (data.success) {
-            // ===== موفقیت =====
             showFoodMessage(`✅ ${data.message}`, 'success');
             
-            // اضافه کردن به آرایه محلی
             const newFood = {
                 id: data.food.id,
                 name: data.food.name,
@@ -474,24 +722,20 @@ document.getElementById("saveNewFood").addEventListener("click", function () {
             };
             foods.push(newFood);
             
-            // بروزرسانی تمام select ها
             updateAllFoodSelects();
-            
-            // انتخاب غذا در select اصلی (اختیاری)
             document.getElementById('foodSelect').value = data.food.id;
             
-            // نمایش تصویر غذا در کارت سمت راست
-            if (foodImage && foodTitle) {
-                foodImage.src = newFood.image;
-                foodTitle.textContent = newFood.name;
+            const foodImageEl = document.getElementById("foodImage");
+            const foodTitleEl = document.getElementById("foodTitle");
+            if (foodImageEl && foodTitleEl) {
+                foodImageEl.src = newFood.image;
+                foodTitleEl.textContent = newFood.name;
             }
             
-            // پاک کردن فرم
             nameInput.value = '';
             imageInput.value = '';
             previewImg.src = "/static/images/no-food.png";
             
-            // بستن مودال بعد از 1.5 ثانیه
             setTimeout(() => {
                 const modal = bootstrap.Modal.getInstance(document.getElementById('foodModal'));
                 if (modal) {
@@ -502,7 +746,6 @@ document.getElementById("saveNewFood").addEventListener("click", function () {
             }, 1500);
             
         } else {
-            // ===== خطا از سمت سرور =====
             showFoodMessage(`❌ ${data.message}`, 'danger');
             saveBtn.disabled = false;
             saveBtn.innerHTML = 'ثبت غذا';
@@ -599,7 +842,6 @@ document.getElementById("saveFoodChanges").addEventListener("click", function ()
     const newName = nameInput.value.trim();
     const imageFile = imageInput.files[0];
     
-    // ===== اعتبارسنجی =====
     if (!id) {
         alert("❌ لطفاً یک غذا را انتخاب کنید.");
         return;
@@ -611,20 +853,17 @@ document.getElementById("saveFoodChanges").addEventListener("click", function ()
         return;
     }
     
-    // پیدا کردن غذا در آرایه محلی برای نمایش موقت
     const existingFood = foods.find(f => f.id === id);
     if (!existingFood) {
         alert("❌ غذا در لیست محلی یافت نشد.");
         return;
     }
     
-    // ===== آماده‌سازی داده برای ارسال =====
     const formData = new FormData();
     formData.append('food_id', id);
     formData.append('food_name', newName);
     
     if (imageFile) {
-        // بررسی حجم فایل (حداکثر 2 مگابایت)
         if (imageFile.size > 2 * 1024 * 1024) {
             alert('❌ حجم تصویر نباید بیشتر از 2 مگابایت باشد.');
             imageInput.value = '';
@@ -632,7 +871,6 @@ document.getElementById("saveFoodChanges").addEventListener("click", function ()
             return;
         }
         
-        // بررسی نوع فایل
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedTypes.includes(imageFile.type)) {
             alert('❌ فقط فرمت‌های JPEG, PNG, GIF و WEBP مجاز هستند.');
@@ -644,12 +882,10 @@ document.getElementById("saveFoodChanges").addEventListener("click", function ()
         formData.append('food_image', imageFile);
     }
     
-    // ===== غیرفعال کردن دکمه =====
     const saveBtn = this;
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> در حال ویرایش...';
     
-    // ===== ارسال به سرور =====
     fetch('/menu/foods/update/', {
         method: 'POST',
         body: formData,
@@ -670,11 +906,7 @@ document.getElementById("saveFoodChanges").addEventListener("click", function ()
         return response.json();
     })
     .then(data => {
-        if (data.success) {
-            // ===== موفقیت =====
-            console.log('✅ غذا با موفقیت ویرایش شد:', data.food);
-            
-            // بروزرسانی در آرایه محلی
+        if (data.success) {            
             const foodIndex = foods.findIndex(f => f.id === data.food.id);
             if (foodIndex !== -1) {
                 foods[foodIndex] = {
@@ -684,25 +916,24 @@ document.getElementById("saveFoodChanges").addEventListener("click", function ()
                 };
             }
             
-            // بروزرسانی تمام select ها
             updateAllFoodSelects();
             
-            // بروزرسانی نمایش در کارت سمت راست
-            if (foodSelect.value == data.food.id) {
-                foodImage.src = getImageUrl(data.food.image);
-                foodTitle.textContent = data.food.name;
+            const foodSelectEl = document.getElementById("foodSelect");
+            const foodImageEl = document.getElementById("foodImage");
+            const foodTitleEl = document.getElementById("foodTitle");
+            
+            if (foodSelectEl && foodSelectEl.value == data.food.id) {
+                if (foodImageEl) foodImageEl.src = getImageUrl(data.food.image);
+                if (foodTitleEl) foodTitleEl.textContent = data.food.name;
             }
             
-            // پاک کردن فرم
             nameInput.value = '';
             imageInput.value = '';
             previewImg.src = "/static/images/no-food.png";
             select.value = '';
             
-            // نمایش پیام موفقیت
             alert(`✅ ${data.message}`);
             
-            // بستن مودال
             const modal = bootstrap.Modal.getInstance(document.getElementById('editFoodModal'));
             if (modal) {
                 modal.hide();
@@ -712,7 +943,6 @@ document.getElementById("saveFoodChanges").addEventListener("click", function ()
             saveBtn.innerHTML = 'ذخیره تغییرات';
             
         } else {
-            // ===== خطا از سمت سرور =====
             console.error('❌ خطای سرور:', data.message);
             alert(`❌ ${data.message}`);
             saveBtn.disabled = false;
@@ -739,7 +969,6 @@ document.getElementById("generateMonthlyReport").addEventListener("click", funct
         return;
     }
     
-    // اینجا کد دریافت گزارش ماهانه از سرور قرار می‌گیرد
     alert(`دریافت گزارش ماهانه ${year}/${month}`);
 });
 
@@ -755,14 +984,27 @@ document.getElementById("generateRangeReport").addEventListener("click", functio
         return;
     }
     
-    // اینجا کد دریافت گزارش بازه زمانی از سرور قرار می‌گیرد
     alert(`دریافت گزارش بازه زمانی ${fromDate} تا ${toDate}`);
 });
 
 // ===========================
-// بارگذاری اولیه - دریافت غذاها از سرور
+// بارگذاری اولیه
 // ===========================
-fetchFoods().then(() => {
-    updateAllFoodSelects();
-    calendar.render();
-});
+function initApp() {
+    console.log('🚀 شروع بارگذاری پنل ادمین...');
+    
+    // 1. دریافت لیست غذاها
+    fetchFoods().then(() => {
+        updateAllFoodSelects();
+    });
+    
+    // 2. دریافت داده‌های تقویم از سرور
+    fetchMenuData().then(() => {
+        // 3. رندر تقویم
+        calendar.render();
+        console.log('✅ تقویم بارگذاری شد.');
+    });
+}
+
+// اجرای برنامه
+initApp();

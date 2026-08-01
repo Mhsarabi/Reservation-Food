@@ -2,7 +2,8 @@ class PersianCalendar {
     constructor(gridId, adminMode = false) {
         this.grid = document.getElementById(gridId);
         this.adminMode = adminMode;
-        this.menuData = menuData;
+        // ✅ اصلاح: استفاده از window.menuData
+        this.menuData = window.menuData || menuData || {};
         this.selectedDate = null;   
         this.monthTitle = document.getElementById("monthTitle");
         this.prevBtn = document.getElementById("prevMonth");
@@ -66,7 +67,6 @@ class PersianCalendar {
     }
 
     renderGrid() {
-
         this.grid.innerHTML = "";
 
         const firstDay = this.convertWeekDay(
@@ -75,24 +75,18 @@ class PersianCalendar {
 
         const daysInMonth = this.getDaysInMonth();
 
-        // عدد امروز برای مقایسه
         const todayNumber =
             this.todayYear * 10000 +
             this.todayMonth * 100 +
             this.todayDay;
 
-        // خانه‌های خالی ابتدای ماه
         for (let i = 0; i < firstDay; i++) {
-
             this.grid.appendChild(
                 this.createDayCard({ day: null })
             );
-
         }
 
-        // روزهای ماه
         for (let day = 1; day <= daysInMonth; day++) {
-
             const g = jalaali.toGregorian(
                 this.currentYear,
                 this.currentMonth,
@@ -102,6 +96,7 @@ class PersianCalendar {
             const key =
             `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
 
+            // ✅ از this.menuData استفاده می‌کند
             const menu = this.menuData[key];
 
             const food = menu
@@ -113,7 +108,6 @@ class PersianCalendar {
                 this.currentMonth === this.todayMonth &&
                 day === this.todayDay;
 
-            // آیا این روز گذشته است؟
             const currentNumber =
                 this.currentYear * 10000 +
                 this.currentMonth * 100 +
@@ -122,65 +116,51 @@ class PersianCalendar {
             const isPast = currentNumber < todayNumber;
 
             this.grid.appendChild(
-
                 this.createDayCard({
-
                     day,
                     food: food ? food.name : null,
                     today: isToday,
                     past: isPast,
                     reserved: menu?.reserved ?? false
-
                 })
-
             );
-
         }
 
-        // خانه‌های خالی انتهای ماه
         const totalCells = firstDay + daysInMonth;
-
         const remaining = 42 - totalCells;
 
         for (let i = 0; i < remaining; i++) {
-
             this.grid.appendChild(
                 this.createDayCard({ day: null })
             );
-
         }
-
     }
+
     getMonthStartGregorian() {
         return jalaali.toGregorian(
             this.currentYear,
             this.currentMonth,
             1
-            );
-        }
+        );
+    }
 
-        getMonthEndGregorian() {
-
-            const lastDay = jalaali.jalaaliMonthLength(
-                this.currentYear,
-                this.currentMonth
-            );
-
-            return jalaali.toGregorian(
-                this.currentYear,
-                this.currentMonth,
-                lastDay
-            );
-        }
+    getMonthEndGregorian() {
+        const lastDay = jalaali.jalaaliMonthLength(
+            this.currentYear,
+            this.currentMonth
+        );
+        return jalaali.toGregorian(
+            this.currentYear,
+            this.currentMonth,
+            lastDay
+        );
+    }
 
     createDayCard(data) {
-
         const day = document.createElement("div");
         day.className = "day";
         if (data.past) {
-
             day.classList.add("past-day");
-
         }
 
         if (data.day !== null) {
@@ -191,19 +171,14 @@ class PersianCalendar {
         }
 
         if (data.food) {
-
             const food = document.createElement("div");
             food.className = "day-food";
             food.textContent = data.food;
             day.appendChild(food);
-
             day.classList.add("has-food");
-
         }
         else if (data.day !== null) {
-
             day.classList.add("no-food");
-
         }
 
         if (data.today) {
@@ -215,23 +190,19 @@ class PersianCalendar {
         }
 
         if (data.reserved && !this.adminMode) {
-
             day.classList.add("reserved-day");
 
             const actions = document.createElement("div");
             actions.className = "day-actions";
 
             if (!data.past) {
-
                 const deleteBtn = document.createElement("span");
                 deleteBtn.className = "delete-btn";
                 deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
 
                 deleteBtn.addEventListener("click", (e) => {
-
                     e.stopPropagation();
                     this.removeReservation(data.day);
-
                 });
 
                 actions.appendChild(deleteBtn);
@@ -241,48 +212,32 @@ class PersianCalendar {
                 addBtn.innerHTML = '<i class="bi bi-plus-circle"></i>';
 
                 addBtn.addEventListener("click", (e) => {
-
                     e.stopPropagation();
-
                 });
 
                 actions.appendChild(addBtn);
-
             }
 
             day.appendChild(actions);
-
         }
                 
-            if (data.day !== null) {
+        if (data.day !== null) {
+            day.addEventListener("click", () => {
+                if (this.adminMode) {
+                    this.selectAdminDay(data.day);
+                    return;
+                }
 
-                day.addEventListener("click", () => {
+                if (!data.food) return;
+                if (data.past && !data.reserved) {
+                    return;
+                }
+                this.selectDay(data.day);
+            });
+        }
 
-                    // پنل ادمین
-                    if (this.adminMode) {
-
-                        this.selectAdminDay(data.day);
-                        return;
-
-                    }
-
-                    // پنل کاربر
-                    if (!data.food) return;
-
-                    if (data.past && !data.reserved) {
-
-                        return;
-
-                    }
-
-                    this.selectDay(data.day);
-
-                });
-
-            }
-
-                return day;
-            }
+        return day;
+    }
 
     getFirstDayOfMonth() {
         const gDate = jalaali.toGregorian(
@@ -317,7 +272,9 @@ class PersianCalendar {
             this.currentMonth++;
         }
         this.render();
-        updateReservedCount();
+        if (typeof updateReservedCount === 'function') {
+            updateReservedCount();
+        }
     }
 
     previousMonth() {
@@ -328,26 +285,26 @@ class PersianCalendar {
             this.currentMonth--;
         }
         this.render();
-        updateReservedCount();
+        if (typeof updateReservedCount === 'function') {
+            updateReservedCount();
+        }
     }
 
- selectDay(day) {
-     const g = jalaali.toGregorian(
-        this.currentYear,
-        this.currentMonth,
-        day
-     );
+    selectDay(day) {
+        const g = jalaali.toGregorian(
+            this.currentYear,
+            this.currentMonth,
+            day
+        );
 
-     const key =
-     `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
+        const key =
+        `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
 
-     const menu = this.menuData[key];
+        const menu = this.menuData[key];
 
-     if (!menu) return;
+        if (!menu) return;
 
-     // اگر قبلاً رزرو شده باشد، فقط اطلاعات روز را نمایش بده
-     if (menu.reserved) {
-
+        if (menu.reserved) {
             document.dispatchEvent(
                 new CustomEvent("daySelected", {
                     detail: {
@@ -357,9 +314,7 @@ class PersianCalendar {
                     }
                 })
             );
-
             return;
-
         }
 
         this.toggleReservation(day);
@@ -373,78 +328,63 @@ class PersianCalendar {
                 }
             })
         );
-
-      
     }
 
+    async removeReservation(day) {
+        const g = jalaali.toGregorian(
+            this.currentYear,
+            this.currentMonth,
+            day
+        );
 
- async removeReservation(day) {
+        const key =
+            `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
 
-    const g = jalaali.toGregorian(
-        this.currentYear,
-        this.currentMonth,
-        day
-    );
+        const menu = this.menuData[key];
 
-    const key =
-        `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
+        if (!menu) return;
 
-    const menu = this.menuData[key];
+        const csrfToken =
+            document.getElementById("csrf-token").value;
 
-    if (!menu) return;
+        try {
+            const response = await fetch("/reservations/delete/", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    food_date: key,
+                }),
+            });
 
-    const csrfToken =
-        document.getElementById("csrf-token").value;
+            const data = await response.json();
 
-    try {
+            if (data.success) {
+                this.menuData[key].reserved = false;
+                this.render();
+                if (typeof updateReservedCount === 'function') {
+                    updateReservedCount();
+                }
 
-        const response = await fetch("/reservations/delete/", {
+                const foodImage = document.getElementById("foodImage");
+                const foodName = document.getElementById("foodName");
+                const selectedDate = document.getElementById("selectedDate");
 
-            method: "POST",
-
-            headers: {
-                "X-CSRFToken": csrfToken,
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-
-            body: new URLSearchParams({
-                food_date: key,
-            }),
-
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-
-            this.menuData[key].reserved = false;
-
-            this.render();
-
-            updateReservedCount();
-
-            foodImage.src = "/static/images/no-food.png";
-            document.getElementById("foodName").textContent = "-";
-            document.getElementById("selectedDate").textContent =
-                "تاریخی انتخاب نشده است.";
-
-        } else {
-
-            alert(data.message);
-
+                if (foodImage) foodImage.src = "/static/images/no-food.png";
+                if (foodName) foodName.textContent = "-";
+                if (selectedDate) selectedDate.textContent = "تاریخی انتخاب نشده است.";
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("خطا در ارتباط با سرور");
         }
-
-    } catch (error) {
-
-        console.error(error);
-        alert("خطا در ارتباط با سرور");
-
     }
 
- }
-
-    selectAdminDay(day){
-
+    selectAdminDay(day) {
         const currentNumber =
             this.currentYear * 10000 +
             this.currentMonth * 100 +
@@ -455,96 +395,69 @@ class PersianCalendar {
             this.todayMonth * 100 +
             this.todayDay;
 
-        // اگر روز گذشته است
-        if(currentNumber < todayNumber){
-
-            // فقط در پنل ادمین پیام نمایش بده
-            if(this.adminMode){
-
+        if (currentNumber < todayNumber) {
+            if (this.adminMode) {
                 alert("امکان ثبت یا ویرایش غذا برای روزهای گذشته وجود ندارد.");
-
             }
-
             return;
-
         }
 
         document.dispatchEvent(
-
-            new CustomEvent("daySelected",{
-
-                detail:{
-
-                    year:this.currentYear,
-                    month:this.currentMonth,
-                    day:day
-
+            new CustomEvent("daySelected", {
+                detail: {
+                    year: this.currentYear,
+                    month: this.currentMonth,
+                    day: day
                 }
-
             })
-
         );
-
     }
+
     render() {
         this.renderHeader();
         this.renderWeekDays();
         this.renderGrid();
     }
+
     async toggleReservation(day) {
+        const g = jalaali.toGregorian(
+            this.currentYear,
+            this.currentMonth,
+            day
+        );
 
-    const g = jalaali.toGregorian(
-        this.currentYear,
-        this.currentMonth,
-        day
-    );
+        const key =
+            `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
 
-    const key =
-        `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
+        const csrfToken =
+            document.getElementById("csrf-token").value;
 
-    const csrfToken =
-        document.getElementById("csrf-token").value;
+        try {
+            const response = await fetch("/reservations/toggle/", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    food_date: key,
+                }),
+            });
 
-    try {
+            const data = await response.json();
 
-        const response = await fetch("/reservations/toggle/", {
-
-            method: "POST",
-
-            headers: {
-                "X-CSRFToken": csrfToken,
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-
-            body: new URLSearchParams({
-                food_date: key,
-            }),
-
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-
-            this.menuData[key].reserved = true;
-
-            this.render();
-
-            updateReservedCount();
-
-        } else {
-
-            alert(data.message);
-
+            if (data.success) {
+                this.menuData[key].reserved = true;
+                this.render();
+                if (typeof updateReservedCount === 'function') {
+                    updateReservedCount();
+                }
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("خطا در ارتباط با سرور");
         }
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert("خطا در ارتباط با سرور");
-
     }
-
-}
 }
