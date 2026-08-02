@@ -777,12 +777,122 @@ document.getElementById('foodModal').addEventListener('hidden.bs.modal', functio
 });
 
 // ===========================
-// رویداد: گزارش ماهانه
+// گزارش ماهانه
+// ===========================
+document.getElementById("generateMonthlyReport").addEventListener("click", function() {
+    const year = document.getElementById("reportYear").value;
+    const month = document.getElementById("reportMonth").value;
+    
+    if (!year || !month) {
+        alert("⚠️ لطفاً سال و ماه را انتخاب کنید.");
+        return;
+    }
+    
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> در حال ایجاد گزارش...';
+    
+    const csrfToken = getCSRFToken();
+    
+    fetch('/reservations/report-monthly/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            year: year,
+            month: month,
+        }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`خطا: ${response.status}`);
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `monthly_report_${year}_${month}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => {
+        console.error('❌ Error:', error);
+        alert(`❌ خطا در دریافت گزارش: ${error.message}`);
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = 'دریافت گزارش ماهانه';
+    });
+});
+// ===========================
+// رویداد: باز کردن مودال گزارش گیری
 // ===========================
 document.getElementById("monthlyReport").addEventListener("click", function (e) {
     e.preventDefault();
     const modal = new bootstrap.Modal(document.getElementById("reportModal"));
     modal.show();
+});
+// ===========================
+// گزارش بازه زمانی
+// ===========================
+document.getElementById("generateRangeReport").addEventListener("click", function() {
+    const fromDate = document.getElementById("reportFromDate").value;
+    const toDate = document.getElementById("reportToDate").value;
+    
+    if (!fromDate || !toDate) {
+        alert("⚠️ لطفاً بازه زمانی را مشخص کنید.");
+        return;
+    }
+    
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> در حال ایجاد گزارش...';
+    
+    const csrfToken = getCSRFToken();
+    
+    // ✅ مسیر جدید
+    fetch('/reservations/report-range/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            from_date: fromDate,
+            to_date: toDate,
+        }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`خطا: ${response.status}`);
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const cleanFrom = fromDate.replace(/\//g, '-');
+        const cleanTo = toDate.replace(/\//g, '-');
+        a.download = `range_report_${cleanFrom}_to_${cleanTo}.xlsx`;
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => {
+        console.error('❌ Error:', error);
+        alert(`❌ خطا در دریافت گزارش: ${error.message}`);
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = 'دریافت گزارش بازه زمانی';
+    });
 });
 
 // ===========================
@@ -970,21 +1080,6 @@ document.getElementById("generateMonthlyReport").addEventListener("click", funct
     }
     
     alert(`دریافت گزارش ماهانه ${year}/${month}`);
-});
-
-// ===========================
-// رویداد: گزارش گیری - دریافت گزارش بازه زمانی
-// ===========================
-document.getElementById("generateRangeReport").addEventListener("click", function() {
-    const fromDate = document.getElementById("reportFromDate").value;
-    const toDate = document.getElementById("reportToDate").value;
-    
-    if (!fromDate || !toDate) {
-        alert("لطفاً بازه زمانی را مشخص کنید.");
-        return;
-    }
-    
-    alert(`دریافت گزارش بازه زمانی ${fromDate} تا ${toDate}`);
 });
 
 // ===========================

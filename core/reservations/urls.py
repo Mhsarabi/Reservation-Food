@@ -9,4 +9,6 @@ urlpatterns=[
     path("delete/", ReservationDeleteView.as_view(), name="delete"),
     path("reserve-month/",ReservationReserveMonthView.as_view(),name="reserve_month",),
     path("cancel-month/",ReservationCancelMonthView.as_view(),name="cancel_month",),
+    path('report-monthly/', MonthlyReportView.as_view(), name='report_monthly'),
+    path('report-range/', RangeReportView.as_view(), name='report_range'),
 ]

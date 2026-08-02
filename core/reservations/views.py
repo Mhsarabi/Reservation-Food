@@ -1,11 +1,16 @@
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponse
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views import View
 from menu.models import DailyMenu
 from .models import Reservation
 from datetime import datetime, time,timedelta
 from django.utils import timezone
+import jalaali
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill
+from accounts.models import User
 
 # Create your views here.
 class ReservationToggleView(LoginRequiredMixin, View):
@@ -183,3 +188,230 @@ def reservation_is_closed(menu):
     deadline = datetime.combine(menu.food_date - timedelta(days=1), time(23, 59, 59))
     deadline = timezone.make_aware(deadline)
     return timezone.now() >= deadline
+
+
+
+class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
+    """گزارش ماهانه به صورت اکسل"""
+    
+    def test_func(self):
+        return self.request.user.is_staff
+    
+    def post(self, request):
+        try:
+            year = int(request.POST.get('year'))
+            month = int(request.POST.get('month'))
+            
+            if not year or not month:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'لطفاً سال و ماه را انتخاب کنید.'
+                })
+            
+            start_date = jalaali.Jalaali.to_gregorian(year, month, 1)
+            end_day = jalaali.Jalaali.jalaali_month_length(year, month)
+            end_date = jalaali.Jalaali.to_gregorian(year, month, end_day)
+            
+            start_date_obj = datetime(
+                start_date["gy"],
+                start_date["gm"],
+                start_date["gd"]
+            ).date()
+
+            end_date_obj = datetime(
+                end_date["gy"],
+                end_date["gm"],
+                end_date["gd"]
+            ).date()
+            
+            # دریافت همه کاربران فعال
+            users = User.objects.filter(is_active=True)
+            
+            # دریافت رزروها در بازه زمانی
+            reservations = Reservation.objects.filter(
+                menu__food_date__range=[start_date_obj, end_date_obj]
+            ).select_related('user', 'menu__food')
+            
+            # ایجاد دیکشنری برای شمارش رزروها
+            report_data = []
+            for user in users:
+                user_reservations = reservations.filter(user=user)
+                count = user_reservations.count()
+                
+
+                
+                report_data.append({
+                    'full_name': user.full_name if hasattr(user, 'full_name') else user.username,
+                    'national_code': user.national_code if hasattr(user, 'national_code') else '',
+                    'department': user.department if hasattr(user, 'department') else '',
+                    'reservation_count': count,
+                })
+            
+            report_data.sort(key=lambda x: x['national_code'], reverse=True)
+            
+            wb = Workbook()
+            ws = wb.active
+            ws.title = f"Monthly_Report_{year}_{month}"
+            
+            headers = ['ردیف', 'نام کاربر', 'کد ملی', 'دپارتمان', 'تعداد رزرو']
+            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            header_font = Font(color="FFFFFF", bold=True)
+            
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col, value=header)
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.alignment = Alignment(horizontal='center')
+            
+            # پر کردن داده‌ها
+            for row, data in enumerate(report_data, 2):
+                ws.cell(row=row, column=1, value=row-1)
+                ws.cell(row=row, column=2, value=data['full_name'])
+                ws.cell(row=row, column=3, value=data['national_code'])
+                ws.cell(row=row, column=4, value=data['department'])
+                ws.cell(row=row, column=5, value=data['reservation_count'])
+            
+            # تنظیم عرض ستون‌ها
+            ws.column_dimensions['A'].width = 8
+            ws.column_dimensions['B'].width = 20
+            ws.column_dimensions['C'].width = 15
+            ws.column_dimensions['D'].width = 20
+            ws.column_dimensions['E'].width = 15
+            ws.column_dimensions['F'].width = 40
+            
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            filename = f"monthly_report_{year}_{month}.xlsx"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            
+            wb.save(response)
+            return response
+            
+        except Exception as e:
+            print(f"❌ خطا: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'message': f'خطا در ایجاد گزارش: {str(e)}'
+            })
+
+
+class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
+    """گزارش بازه زمانی به صورت اکسل"""
+    
+    def test_func(self):
+        return self.request.user.is_staff
+    
+    def post(self, request):
+        try:
+            from_date = request.POST.get('from_date')  
+            to_date = request.POST.get('to_date')      
+            
+            if not from_date or not to_date:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'لطفاً بازه زمانی را مشخص کنید.'
+                })
+            
+            from_parts = from_date.split('/')
+            to_parts = to_date.split('/')
+            
+            from_greg = jalaali.Jalaali.to_gregorian(
+                int(from_parts[0]),
+                int(from_parts[1]),
+                int(from_parts[2])
+            )
+
+            to_greg = jalaali.Jalaali.to_gregorian(
+                int(to_parts[0]),
+                int(to_parts[1]),
+                int(to_parts[2])
+            )
+
+            start_date_obj = datetime(
+                from_greg["gy"],
+                from_greg["gm"],
+                from_greg["gd"]
+            ).date()
+
+            end_date_obj = datetime(
+                to_greg["gy"],
+                to_greg["gm"],
+                to_greg["gd"]
+            ).date()
+            
+            
+            if start_date_obj > end_date_obj:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'تاریخ شروع نباید از تاریخ پایان بزرگتر باشد.'
+                })
+            
+            users = User.objects.filter(is_active=True)
+            
+            reservations = Reservation.objects.filter(
+                menu__food_date__range=[start_date_obj, end_date_obj]
+            ).select_related('user', 'menu__food')
+            
+            report_data = []
+            for user in users:
+                user_reservations = reservations.filter(user=user)
+                count = user_reservations.count()
+                                
+                report_data.append({
+                    'full_name': user.full_name if hasattr(user, 'full_name') else user.username,
+                    'national_code': user.national_code if hasattr(user, 'national_code') else '',
+                    'department': user.department if hasattr(user, 'department') else '',
+                    'reservation_count': count,
+                })
+            
+            report_data.sort(key=lambda x: x['national_code'], reverse=True)
+            
+            wb = Workbook()
+            ws = wb.active
+            
+            
+            headers = ['ردیف', 'نام کاربر', 'کد ملی', 'دپارتمان', 'تعداد رزرو']
+            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            header_font = Font(color="FFFFFF", bold=True)
+            
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col, value=header)
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.alignment = Alignment(horizontal='center')
+            
+            # پر کردن داده‌ها
+            for row, data in enumerate(report_data, 2):
+                ws.cell(row=row, column=1, value=row-1)
+                ws.cell(row=row, column=2, value=data['full_name'])
+                ws.cell(row=row, column=3, value=data['national_code'])
+                ws.cell(row=row, column=4, value=data['department'])
+                ws.cell(row=row, column=5, value=data['reservation_count'])            
+            # تنظیم عرض ستون‌ها
+            ws.column_dimensions['A'].width = 8
+            ws.column_dimensions['B'].width = 20
+            ws.column_dimensions['C'].width = 15
+            ws.column_dimensions['D'].width = 20
+            ws.column_dimensions['E'].width = 15
+            ws.column_dimensions['F'].width = 40
+            
+            # ایجاد پاسخ HTTP
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            clean_from = from_date.replace('/', '-')
+            clean_to = to_date.replace('/', '-')
+            ws.title = f"Range_Report_{clean_from}_to_{clean_to}"
+            filename = f"range_report_{clean_from}_to_{clean_to}.xlsx"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            
+            wb.save(response)
+            return response
+            
+        except Exception as e:
+            print(f"❌ خطا: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'message': f'خطا در ایجاد گزارش: {str(e)}'
+            })
