@@ -31,10 +31,9 @@
 
     <div class="container-fluid px-4">
 
-        <a href="#" class="navbar-brand fw-bold text-success fs-4">
+        <a href="" class="navbar-brand fw-bold text-success fs-4">
              <img src="{%static 'images/logo.png'%}" class="navbar-logo" alt="Alvan Logo">
-
-            Alvan|سامانه رزرو غذا
+             Alvan|سامانه رزرو غذا
 
         </a>
 
@@ -52,7 +51,7 @@
         aria-expanded="false">
 
         <i class="bi bi-person-circle"></i>
-        {{ request.user.full_name }}
+        {{ request.user.username }}
         <br>
         <small class="text-muted">
             {{ request.user.department }}
@@ -297,7 +296,6 @@
 <script src="https://cdn.jsdelivr.net/npm/jalaali-js/dist/jalaali.min.js"></script>
 <!-- Calendar Data -->
 <script>
-    // ✅ این متغیر به صورت سراسری تعریف می‌شود
     window.menuData = {};
 </script>
 <!-- JS Files -->

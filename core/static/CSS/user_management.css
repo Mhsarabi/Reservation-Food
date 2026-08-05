@@ -1,0 +1,206 @@
+/* ============================================================
+   مدیریت کاربران - استایل‌های اختصاصی
+   ============================================================ */
+
+/* ============================================================
+   1. استایل‌های جدول کاربران
+   ============================================================ */
+.user-table {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.user-table th {
+    background: #2563eb;
+    color: white;
+    font-weight: 600;
+    padding: 12px 8px;
+    white-space: nowrap;
+}
+
+.user-table td {
+    padding: 10px 8px;
+    vertical-align: middle;
+}
+
+.user-table input {
+    min-width: 120px;
+}
+
+.user-table .form-control-sm,
+.user-table .form-select-sm {
+    min-width: 120px;
+}
+
+/* ============================================================
+   2. ردیف افزودن کاربر جدید
+   ============================================================ */
+.new-user {
+    background: #f8f9fa;
+}
+
+.new-user td {
+    padding: 8px;
+    vertical-align: middle;
+}
+
+.new-user .badge {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+}
+
+/* ============================================================
+   3. استایل‌های هدر کارت
+   ============================================================ */
+.card-header {
+    background: white;
+    padding: 16px 20px;
+    border-bottom: 2px solid #2563eb;
+}
+
+.card-header h4 {
+    margin: 0;
+    color: #2563eb;
+    font-weight: 600;
+}
+
+.card-header h4 i {
+    color: #2563eb;
+    font-size: 1.5rem;
+    margin-left: 8px;
+}
+
+/* ============================================================
+   4. استایل‌های دکمه‌ها
+   ============================================================ */
+.btn-outline-warning {
+    border-color: #ffc107;
+    color: #856404;
+}
+
+.btn-outline-warning:hover {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.btn-outline-warning i {
+    font-size: 0.9rem;
+}
+
+/* ============================================================
+   5. استایل‌های وضعیت کاربران
+   ============================================================ */
+.badge {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+.badge.bg-success {
+    background-color: #198754 !important;
+}
+
+.badge[style*="background-color: #8B0000"] {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+/* ============================================================
+   6. استایل‌های لوگو
+   ============================================================ */
+.navbar-logo {
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
+    margin-left: 10px;
+}
+
+/* ============================================================
+   7. استایل‌های پاسخگو (Responsive)
+   ============================================================ */
+@media (max-width: 768px) {
+    .user-table input,
+    .user-table .form-control-sm,
+    .user-table .form-select-sm {
+        min-width: 80px;
+        font-size: 0.8rem;
+    }
+    
+    .user-table th,
+    .user-table td {
+        padding: 6px 4px;
+        font-size: 0.8rem;
+    }
+    
+    .card-header h4 {
+        font-size: 1.1rem;
+    }
+    
+    .navbar-logo {
+        width: 35px;
+        height: 35px;
+    }
+}
+
+@media (max-width: 576px) {
+    .user-table {
+        font-size: 0.7rem;
+    }
+    
+    .user-table input,
+    .user-table .form-control-sm,
+    .user-table .form-select-sm {
+        min-width: 60px;
+        font-size: 0.7rem;
+        padding: 4px;
+    }
+    
+    .user-table th,
+    .user-table td {
+        padding: 4px 2px;
+    }
+    
+    .card-header h4 {
+        font-size: 0.9rem;
+    }
+    
+    .badge {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+    }
+    
+    .btn-sm {
+        font-size: 0.7rem;
+        padding: 4px 6px;
+    }
+}
+
+/* ============================================================
+   8. استایل‌های اضافی
+   ============================================================ */
+/* حذف کلاس is-invalid از select ها */
+select.is-invalid {
+    border-color: #dc3545;
+    padding-left: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: left calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.alert {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) translateX(-50%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) translateX(-50%);
+    }
+}
+

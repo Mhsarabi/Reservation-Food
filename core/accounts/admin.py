@@ -8,9 +8,12 @@ class CustomUserAdmin(UserAdmin):
     model=User
 
     list_display=(
+        "username",
+        "first_name",
+        "last_name",
         "national_code",
         "personnel_code",
-        "full_name",
+        "site",
         "department",
         "is_active",
         "is_staff",
@@ -20,12 +23,16 @@ class CustomUserAdmin(UserAdmin):
         "is_active",
         "is_staff",
         "is_superuser",
+        "site"
     )
 
     search_fields = (
         "national_code",
         "personnel_code",
-        "full_name",
+        "username",
+        "first_name",
+        "last_name",
+        "site"
     )
 
     ordering = ("personnel_code",)
@@ -37,7 +44,10 @@ class CustomUserAdmin(UserAdmin):
         ("اطلاعات پرسنلی",{
             "fields":(
                 "personnel_code",
-                "full_name",
+                "username",
+                "first_name",
+                "last_name",
+                "site",
                 "department",
             ),
         }),
@@ -61,7 +71,10 @@ class CustomUserAdmin(UserAdmin):
             "fields": (
                 "national_code",
                 "personnel_code",
-                "full_name",
+                "username",
+                "first_name",
+                "last_name",
+                "site",
                 "department",
                 "password1",
                 "password2",

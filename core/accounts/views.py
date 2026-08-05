@@ -3,11 +3,14 @@ from django.views import View
 from django.contrib.auth import authenticate,login
 from django.contrib import messages
 from django.contrib.auth import logout
-import json
+from .models import User
 from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import update_session_auth_hash
 from django.views.generic import TemplateView
+from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Create your views here.
 # login
@@ -24,12 +27,12 @@ class LoginView(View):
         return render(request, self.template_name)
 
     def post(self, request):
-        personnel_code = request.POST.get("personnel_code")
+        national_code = request.POST.get("national_code")
         password = request.POST.get("password")
 
         user = authenticate(
             request,
-            username=personnel_code,
+            username=national_code,
             password=password,
         )
 
@@ -93,8 +96,160 @@ class ChangePasswordView(LoginRequiredMixin, View):
             "message": "رمز عبور با موفقیت تغییر یافت."
         })
 
+
 class AdminDashboardView(LoginRequiredMixin,UserPassesTestMixin,TemplateView):
     template_name = "admin/admin.html"
 
     def test_func(self):
         return self.request.user.is_staff
+
+
+class UsersManagementView(LoginRequiredMixin,View):
+
+    template_name = "admin/user_management.html"
+    items_per_page = 10
+
+    def get(self, request):
+
+        users_list = User.objects.all().order_by('id')
+
+        paginator = Paginator(users_list, self.items_per_page)
+
+        page_number = request.GET.get('page')
+
+        try:
+            users = paginator.page(page_number)
+        except PageNotAnInteger:
+            users = paginator.page(1)
+        except EmptyPage:
+            users = paginator.page(paginator.num_pages)
+        
+        return render(
+            request,
+            self.template_name,
+            {
+                "users": users
+            }
+        )
+
+
+    def post(self, request):
+         
+        if "add_user" in request.POST:
+
+            try:
+
+                User.objects.create_user(
+
+                    national_code=request.POST.get("national_code"),
+                    password=request.POST.get("password"),
+                    first_name=request.POST.get("first_name"),
+                    last_name=request.POST.get("last_name"),
+                    username=request.POST.get("username"),
+                    personnel_code=request.POST.get("personnel_code"),
+                    site = request.POST.get("site"),
+                    department=request.POST.get("department"),
+
+                )
+
+            except IntegrityError:
+
+                messages.error(
+                    request,
+                    "کد ملی یا کد پرسنلی قبلاً ثبت شده است."
+                )
+
+
+        return redirect("accounts:user_management")
+
+
+class ResetPasswordView(LoginRequiredMixin, View):
+
+    def post(self, request):
+
+        user_id = request.POST.get("user_id")
+        new_password = request.POST.get("password")
+
+        user = User.objects.get(id=user_id)
+
+        user.set_password(new_password)
+        user.save()
+
+        return JsonResponse({
+            "success": True,
+            "message": "رمز عبور با موفقیت تغییر کرد."
+        })
+
+class EditUserView(LoginRequiredMixin,UserPassesTestMixin,View):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def post(self, request):
+
+        user = User.objects.get(
+            id=request.POST["user_id"]
+        )
+
+        user.first_name = request.POST["first_name"]
+        user.last_name = request.POST["last_name"]
+        user.username = request.POST["username"]
+        user.personnel_code = request.POST["personnel_code"]
+        user.national_code = request.POST["national_code"]
+        user.department = request.POST["department"]
+        user.is_active = request.POST.get("is_active") == "true"
+
+        user.save()
+
+        return JsonResponse({
+            "success": True
+        })
+
+
+
+class DeleteUserView(LoginRequiredMixin,UserPassesTestMixin,View):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def post(self, request):
+
+        user = User.objects.get(id=request.POST["user_id"])
+
+        if user.is_superuser:
+            return JsonResponse({
+                "success": False,
+                "message": "امکان حذف کردن مدیر اصلی وجود ندارد."
+            })
+
+        user.delete()
+
+        return JsonResponse({
+            "success": True
+        })
+
+class ToggleUserStatusView(LoginRequiredMixin,UserPassesTestMixin,View):
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def post(self, request):
+
+        user = get_object_or_404(User,id=request.POST["user_id"])
+
+        if user.is_superuser:
+            return JsonResponse({
+                "success": False,
+                "message": "امکان غیرفعال کردن مدیر اصلی وجود ندارد."
+            })
+
+        user.is_active = not user.is_active
+        user.save()
+
+        return JsonResponse({
+            "success": True,
+            "is_active": user.is_active,
+            "message": (
+                "کاربر فعال شد."if user.is_active else "کاربر غیرفعال شد."
+            )
+        })

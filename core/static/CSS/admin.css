@@ -2,17 +2,14 @@
       ADMIN THEME
 ==============================*/
 
-/* عنوان پنل */
 .navbar-brand{
     color:#2563eb !important;
 }
 
-/* عنوان ماه */
 .calendar-header h3{
     color:#2563eb;
 }
 
-/* دکمه‌های ماه */
 .month-btn{
     background:#2563eb;
 }
@@ -21,12 +18,10 @@
     background:#1d4ed8;
 }
 
-/* هاور روزهای دارای غذا */
 .day:hover{
     border-color:#2563eb;
 }
 
-/* روز رزرو شده */
 .reserved-day{
     background:#2563eb;
 }
@@ -36,12 +31,10 @@
     border-color:#1d4ed8;
 }
 
-/* نام غذا */
 .day-food{
     color:#2563eb;
 }
 
-/* روز امروز */
 .today{
     border:2px solid #2563eb;
 }
@@ -62,7 +55,7 @@
 }
 
 .food-card h4{
-    margin-top: 1px;   /* فاصله از لیست کشویی */
+    margin-top: 1px;   
     margin-bottom: 20px;
 }
 

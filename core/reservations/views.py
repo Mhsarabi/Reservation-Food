@@ -51,7 +51,6 @@ class ReservationToggleView(LoginRequiredMixin, View):
             })
 
 
-        # اگر رزرو وجود نداشت → ایجاد رزرو
         Reservation.objects.create(
             user=request.user,
             menu=menu,
@@ -182,18 +181,13 @@ class ReservationCancelMonthView(LoginRequiredMixin, View):
 
 
 def reservation_is_closed(menu):
-    """
-    اگر وارد روز غذا شده باشیم، رزرو بسته است.
-    """
     deadline = datetime.combine(menu.food_date - timedelta(days=1), time(23, 59, 59))
     deadline = timezone.make_aware(deadline)
     return timezone.now() >= deadline
 
 
 
-class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
-    """گزارش ماهانه به صورت اکسل"""
-    
+class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):    
     def test_func(self):
         return self.request.user.is_staff
     
@@ -224,15 +218,12 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
                 end_date["gd"]
             ).date()
             
-            # دریافت همه کاربران فعال
             users = User.objects.filter(is_active=True)
             
-            # دریافت رزروها در بازه زمانی
             reservations = Reservation.objects.filter(
                 menu__food_date__range=[start_date_obj, end_date_obj]
             ).select_related('user', 'menu__food')
             
-            # ایجاد دیکشنری برای شمارش رزروها
             report_data = []
             for user in users:
                 user_reservations = reservations.filter(user=user)
@@ -251,6 +242,7 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
             
             wb = Workbook()
             ws = wb.active
+            ws.sheet_view.rightToLeft = True
             ws.title = f"Monthly_Report_{year}_{month}"
             
             headers = ['ردیف', 'نام کاربر', 'کد ملی', 'دپارتمان', 'تعداد رزرو']
@@ -263,7 +255,6 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
                 cell.font = header_font
                 cell.alignment = Alignment(horizontal='center')
             
-            # پر کردن داده‌ها
             for row, data in enumerate(report_data, 2):
                 ws.cell(row=row, column=1, value=row-1)
                 ws.cell(row=row, column=2, value=data['full_name'])
@@ -271,7 +262,6 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
                 ws.cell(row=row, column=4, value=data['department'])
                 ws.cell(row=row, column=5, value=data['reservation_count'])
             
-            # تنظیم عرض ستون‌ها
             ws.column_dimensions['A'].width = 8
             ws.column_dimensions['B'].width = 20
             ws.column_dimensions['C'].width = 15
@@ -289,16 +279,14 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
             return response
             
         except Exception as e:
-            print(f"❌ خطا: {str(e)}")
+            print(f"error: {str(e)}")
             return JsonResponse({
                 'success': False,
                 'message': f'خطا در ایجاد گزارش: {str(e)}'
             })
 
 
-class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
-    """گزارش بازه زمانی به صورت اکسل"""
-    
+class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):    
     def test_func(self):
         return self.request.user.is_staff
     
@@ -369,6 +357,7 @@ class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
             
             wb = Workbook()
             ws = wb.active
+            ws.sheet_view.rightToLeft = True
             
             
             headers = ['ردیف', 'نام کاربر', 'کد ملی', 'دپارتمان', 'تعداد رزرو']
@@ -381,14 +370,13 @@ class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
                 cell.font = header_font
                 cell.alignment = Alignment(horizontal='center')
             
-            # پر کردن داده‌ها
             for row, data in enumerate(report_data, 2):
                 ws.cell(row=row, column=1, value=row-1)
                 ws.cell(row=row, column=2, value=data['full_name'])
                 ws.cell(row=row, column=3, value=data['national_code'])
                 ws.cell(row=row, column=4, value=data['department'])
-                ws.cell(row=row, column=5, value=data['reservation_count'])            
-            # تنظیم عرض ستون‌ها
+                ws.cell(row=row, column=5, value=data['reservation_count'])    
+
             ws.column_dimensions['A'].width = 8
             ws.column_dimensions['B'].width = 20
             ws.column_dimensions['C'].width = 15
@@ -396,7 +384,6 @@ class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
             ws.column_dimensions['E'].width = 15
             ws.column_dimensions['F'].width = 40
             
-            # ایجاد پاسخ HTTP
             response = HttpResponse(
                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             )
@@ -410,8 +397,8 @@ class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
             return response
             
         except Exception as e:
-            print(f"❌ خطا: {str(e)}")
+            print(f"error: {str(e)}")
             return JsonResponse({
                 'success': False,
-                'message': f'خطا در ایجاد گزارش: {str(e)}'
+                'message': f'errors in reaporing: {str(e)}'
             })
