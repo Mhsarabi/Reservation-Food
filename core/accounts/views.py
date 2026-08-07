@@ -1,4 +1,5 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,get_object_or_404
+from django.template.loader import render_to_string
 from django.views import View
 from django.contrib.auth import authenticate,login
 from django.contrib import messages
@@ -9,7 +10,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import update_session_auth_hash
 from django.views.generic import TemplateView
 from django.db import IntegrityError
-from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Create your views here.
@@ -46,7 +46,7 @@ class LoginView(View):
 
         messages.error(
             request,
-            "کد پرسنلی یا رمز عبور اشتباه است."
+            "کد ملی یا رمز عبور اشتباه است."
         )
 
         return render(request, self.template_name)
@@ -107,29 +107,64 @@ class AdminDashboardView(LoginRequiredMixin,UserPassesTestMixin,TemplateView):
 class UsersManagementView(LoginRequiredMixin,View):
 
     template_name = "admin/user_management.html"
-    items_per_page = 10
+
 
     def get(self, request):
-
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        
         users_list = User.objects.all().order_by('id')
 
-        paginator = Paginator(users_list, self.items_per_page)
+        first_name = request.GET.get('first_name')
+        if first_name:
+            users_list = users_list.filter(first_name__icontains=first_name)
 
-        page_number = request.GET.get('page')
+        last_name = request.GET.get('last_name')
+        if last_name:
+            users_list = users_list.filter(last_name__icontains=last_name)
 
-        try:
-            users = paginator.page(page_number)
-        except PageNotAnInteger:
-            users = paginator.page(1)
-        except EmptyPage:
-            users = paginator.page(paginator.num_pages)
+        national_code = request.GET.get('national_code')
+        if national_code:
+            users_list = users_list.filter(national_code__icontains=national_code)
+
+        personnel_code = request.GET.get('personnel_code')
+        if personnel_code:
+            users_list = users_list.filter(personnel_code__icontains=personnel_code)
+
+        username = request.GET.get('username')
+        if username:
+            users_list = users_list.filter(username__icontains=username)
+
+        site = request.GET.get('site')
+        if site:
+            users_list = users_list.filter(site=site)
+
+        department = request.GET.get('department')
+        if department:
+            users_list = users_list.filter(department=department)
+
+        status = request.GET.get('status')
+        if status:
+            is_active = status == 'active'
+            users_list = users_list.filter(is_active=is_active)
+
+        users = users_list
         
+        if is_ajax:
+            html = render_to_string(
+                'admin/partials/user_table_rows.html',
+                {'users': users},
+                request=request
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'html': html,
+            })
+
         return render(
             request,
             self.template_name,
-            {
-                "users": users
-            }
+            {"users": users}
         )
 
 
@@ -158,7 +193,6 @@ class UsersManagementView(LoginRequiredMixin,View):
                     request,
                     "کد ملی یا کد پرسنلی قبلاً ثبت شده است."
                 )
-
 
         return redirect("accounts:user_management")
 
@@ -196,6 +230,7 @@ class EditUserView(LoginRequiredMixin,UserPassesTestMixin,View):
         user.username = request.POST["username"]
         user.personnel_code = request.POST["personnel_code"]
         user.national_code = request.POST["national_code"]
+        user.site = request.POST["site"]
         user.department = request.POST["department"]
         user.is_active = request.POST.get("is_active") == "true"
 

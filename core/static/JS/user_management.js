@@ -1,4 +1,10 @@
+// ============================================================
+// User Management JS - مدیریت جدول کاربران
+// ============================================================
+
 document.addEventListener("DOMContentLoaded", function() {
+    console.log("✅ User Management JS loaded!");
+    
     // ============================================================
     // 1. اعتبارسنجی فرم افزودن کاربر جدید
     // ============================================================
@@ -70,228 +76,335 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ============================================================
-    // 2. تغییر وضعیت کاربر (فعال/غیرفعال) با مودال تأیید
+    // 2. فیلترهای AJAX بدون رفرش صفحه
     // ============================================================
-    const toggleStatusButtons = document.querySelectorAll(".toggle-status-btn");
+    const filterInputs = document.querySelectorAll(".filter-input");
+    const filterSelects = document.querySelectorAll(".filter-select");
+    const userTableBody = document.getElementById("userTableBody");
+    const userCount = document.getElementById("userCount");
+    
+    let timeoutId = null;
 
-    toggleStatusButtons.forEach(btn => {
-        btn.addEventListener("click", function() {
-            const userId = this.dataset.userId;
-            const username = this.dataset.username;
-            const currentStatus = this.dataset.status;
-            const newStatus = currentStatus === "active" ? "inactive" : "active";
-            const action = newStatus === "active" ? "فعال" : "غیرفعال";
-            const icon = newStatus === "active" ? "bi-check-circle-fill text-success" : "bi-x-circle-fill text-danger";
-
-            showConfirmModal(
-                `تغییر وضعیت حساب کاربری`,
-                `
-                <div class="text-center">
-                    <i class="bi ${icon}" style="font-size: 4rem;"></i>
-                    <p class="mt-3">آیا از <strong>${action}</strong> کردن حساب کاربری</p>
-                    <p class="fw-bold text-primary fs-5">"${username}"</p>
-                    <p class="text-muted small">اطمینان دارید؟</p>
-                </div>
-                `,
-                function() {
-                    fetch("/Alvan/toggle-status/user", {
-                        method: "POST",
-                        headers: {
-                            "X-CSRFToken": getCSRFToken(),
-                            "Content-Type": "application/x-www-form-urlencoded",
-                        },
-                        body: new URLSearchParams({
-                            user_id: userId,
-                            status: newStatus
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showMessage(`حساب کاربری با موفقیت ${action} شد.`, "success");
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1500);
-                        } else {
-                            showMessage(data.message || `خطا در ${action} کردن حساب کاربری.`, "danger");
-                        }
-                    })
-                    .catch(error => {
-                        showMessage("خطا در ارتباط با سرور.", "danger");
-                    });
-                }
-            );
+    function fetchUsers() {
+        const params = new URLSearchParams();
+        
+        filterInputs.forEach(input => {
+            const value = input.value.trim();
+            if (value) params.append(input.name, value);
         });
-    });
-
-    // ============================================================
-    // 3. ویرایش کاربر
-    // ============================================================
-    const editButtons = document.querySelectorAll(".edit-user-btn");
-
-    editButtons.forEach(btn => {
-        btn.addEventListener("click", function() {
-            const userId = this.dataset.userId;
-            const firstName = this.dataset.firstName;
-            const lastName = this.dataset.lastName;
-            const nationalCode = this.dataset.nationalCode;
-            const personnelCode = this.dataset.personnelCode;
-            const username = this.dataset.username;
-            const site = this.dataset.site;
-            const department = this.dataset.department;
-            const status = this.dataset.status;
-
-            document.getElementById("editUserId").value = userId;
-            document.getElementById("editFirstName").value = firstName;
-            document.getElementById("editLastName").value = lastName;
-            document.getElementById("editNationalCode").value = nationalCode;
-            document.getElementById("editPersonnelCode").value = personnelCode;
-            document.getElementById("editUsername").value = username;
-            document.getElementById("editSite").value = site;
-            document.getElementById("editDepartment").value = department;
-            document.getElementById("editStatus").value = status;
-
-            const modal = new bootstrap.Modal(
-                document.getElementById("editUserModal")
-            );
-            modal.show();
+        
+        filterSelects.forEach(select => {
+            const value = select.value.trim();
+            if (value) params.append(select.name, value);
         });
-    });
+        
+        if (userTableBody) {
+            userTableBody.innerHTML = `
+                <tr>
+                    <td colspan="10" class="text-center py-4">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">در حال بارگذاری...</span>
+                        </div>
+                        <p class="text-muted mt-2">در حال جستجو...</p>
+                    </td>
+                </tr>
+            `;
+        }
 
-    // ============================================================
-    // 4. ذخیره تغییرات ویرایش کاربر
-    // ============================================================
-    const saveUserChanges = document.getElementById("saveUserChanges");
-
-    if (saveUserChanges) {
-        saveUserChanges.addEventListener("click", function() {
-            const userId = document.getElementById("editUserId").value;
-            const firstName = document.getElementById("editFirstName").value;
-            const lastName = document.getElementById("editLastName").value;
-            const nationalCode = document.getElementById("editNationalCode").value;
-            const personnelCode = document.getElementById("editPersonnelCode").value;
-            const username = document.getElementById("editUsername").value;
-            const site = document.getElementById("editSite").value;
-            const department = document.getElementById("editDepartment").value;
-            const status = document.getElementById("editStatus").value;
-
-            if (!firstName.trim() || !lastName.trim() || !nationalCode.trim() || 
-                !personnelCode.trim() || !username.trim() || !site || !department) {
-                showMessage("لطفاً تمام فیلدها را پر کنید.", "danger");
-                return;
+        fetch(`/Alvan/users?${params.toString()}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
             }
-
-            fetch("/Alvan/edit/user", {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": getCSRFToken(),
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: new URLSearchParams({
-                    user_id: userId,
-                    first_name: firstName,
-                    last_name: lastName,
-                    national_code: nationalCode,
-                    personnel_code: personnelCode,
-                    username: username,
-                    site: site,
-                    department: department,
-                    is_active: status === "active" ? "true" : "false"
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showMessage("اطلاعات کاربر با موفقیت به‌روزرسانی شد.", "success");
-                    const modalElement = document.getElementById("editUserModal");
-                    const modal = bootstrap.Modal.getInstance(modalElement);
-                    modal.hide();
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1500);
-                } else {
-                    showMessage(data.message || "خطا در به‌روزرسانی اطلاعات.", "danger");
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (userTableBody) {
+                    userTableBody.innerHTML = data.html;
                 }
-            })
-            .catch(error => {
-                showMessage("خطا در ارتباط با سرور.", "danger");
-            });
+                
+                if (userCount) {
+                    userCount.innerHTML = `تعداد کل کاربران: ${data.total}`;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (userTableBody) {
+                userTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="text-center py-4 text-danger">
+                            <i class="bi bi-exclamation-triangle display-4"></i>
+                            <p class="mt-2">خطا در ارتباط با سرور</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        });
+    }
+
+    filterInputs.forEach(input => {
+        input.addEventListener("input", function() {
+            console.log(`🔍 Input changed: ${this.name} = "${this.value}"`);
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(fetchUsers, 400);
+        });
+    });
+
+    filterSelects.forEach(select => {
+        select.addEventListener("change", function() {
+            console.log(`🔍 Select changed: ${this.name} = "${this.value}"`);
+            fetchUsers();
+        });
+    });
+
+    // ============================================================
+    // 3. Event Delegation برای دکمه‌های عملیات
+    // ============================================================
+    const userTable = document.getElementById("userTable");
+    
+    if (userTable) {
+        userTable.addEventListener("click", function(e) {
+            const target = e.target.closest(".toggle-status-btn");
+            if (target) {
+                handleToggleStatus(e, target);
+            }
+        });
+        
+        userTable.addEventListener("click", function(e) {
+            const target = e.target.closest(".edit-toggle-btn");
+            if (target) {
+                const userId = target.dataset.userId;
+                enableEditMode(userId);
+            }
+        });
+        
+        userTable.addEventListener("click", function(e) {
+            const target = e.target.closest(".save-edit-btn");
+            if (target) {
+                const userId = target.dataset.userId;
+                saveEditUser(userId);
+            }
+        });
+        
+        userTable.addEventListener("click", function(e) {
+            const target = e.target.closest(".cancel-edit-btn");
+            if (target) {
+                const userId = target.dataset.userId;
+                cancelEditMode(userId);
+            }
+        });
+        
+        userTable.addEventListener("click", function(e) {
+            const target = e.target.closest(".delete-user-btn");
+            if (target) {
+                handleDeleteUser(e, target);
+            }
+        });
+        
+        userTable.addEventListener("click", function(e) {
+            const target = e.target.closest(".reset-password-btn");
+            if (target) {
+                handleResetPassword(e, target);
+            }
         });
     }
 
     // ============================================================
-    // 5. حذف کاربر با مودال تأیید
+    // 4. هندلرهای دکمه‌های عملیات
     // ============================================================
-    const deleteButtons = document.querySelectorAll(".delete-user-btn");
+    function handleToggleStatus(e, btn) {
+        const userId = btn.dataset.userId;
+        const username = btn.dataset.username;
+        const currentStatus = btn.dataset.status;
+        const newStatus = currentStatus === "active" ? "inactive" : "active";
+        const action = newStatus === "active" ? "فعال" : "غیرفعال";
+        const icon = newStatus === "active" ? "bi-check-circle-fill text-success" : "bi-x-circle-fill text-danger";
 
-    deleteButtons.forEach(btn => {
-        btn.addEventListener("click", function() {
-            const userId = this.dataset.userId;
-            const username = this.dataset.username;
-
-            showConfirmModal(
-                `حذف کاربر`,
-                `
-                <div class="text-center">
-                    <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 4rem;"></i>
-                    <p class="mt-3">آیا از حذف کاربر</p>
-                    <p class="fw-bold text-danger fs-5">"${username}"</p>
-                    <p class="mt-3">مطمئن هستید؟</p>
-                    <p class="text-muted small">این عمل غیرقابل بازگشت است!</p>
-                </div>
-                `,
-                function() {
-                    fetch("/Alvan/delete/user", {
-                        method: "POST",
-                        headers: {
-                            "X-CSRFToken": getCSRFToken(),
-                            "Content-Type": "application/x-www-form-urlencoded",
-                        },
-                        body: new URLSearchParams({
-                            user_id: userId
-                        })
+        showConfirmModal(
+            `تغییر وضعیت حساب کاربری`,
+            `
+            <div class="text-center">
+                <i class="bi ${icon}" style="font-size: 4rem;"></i>
+                <p class="mt-3">آیا از <strong>${action}</strong> کردن حساب کاربری</p>
+                <p class="fw-bold text-primary fs-5">"${username}"</p>
+                <p class="text-muted small">اطمینان دارید؟</p>
+            </div>
+            `,
+            function() {
+                fetch("/Alvan/toggle-status/user", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCSRFToken(),
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({
+                        user_id: userId,
+                        status: newStatus
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showMessage("کاربر با موفقیت حذف شد.", "success");
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1500);
-                        } else {
-                            showMessage(data.message || "خطا در حذف کاربر.", "danger");
-                        }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage(`حساب کاربری با موفقیت ${action} شد.`, "success");
+                        fetchUsers();
+                    } else {
+                        showMessage(data.message || `خطا در ${action} کردن حساب کاربری.`, "danger");
+                    }
+                })
+                .catch(error => {
+                    showMessage("خطا در ارتباط با سرور.", "danger");
+                });
+            }
+        );
+    }
+
+    // ============================================================
+    // 5. توابع Inline Edit
+    // ============================================================
+    function enableEditMode(userId) {
+        const row = document.getElementById(`user-row-${userId}`);
+        if (!row) return;
+        row.classList.add('editing');
+    }
+
+    function cancelEditMode(userId) {
+        const row = document.getElementById(`user-row-${userId}`);
+        if (!row) return;
+        row.classList.remove('editing');
+    }
+
+    function saveEditUser(userId) {
+        const row = document.getElementById(`user-row-${userId}`);
+        if (!row) return;
+        
+        const first_name = row.querySelector('input[name="first_name"]').value.trim();
+        const last_name = row.querySelector('input[name="last_name"]').value.trim();
+        const national_code = row.querySelector('input[name="national_code"]').value.trim();
+        const personnel_code = row.querySelector('input[name="personnel_code"]').value.trim();
+        const username = row.querySelector('input[name="username"]').value.trim();
+        const site = row.querySelector('select[name="site"]').value;
+        const department = row.querySelector('select[name="department"]').value;
+        const status = row.querySelector('select[name="status"]').value;
+        
+        if (!first_name || !last_name || !national_code || !personnel_code || !username) {
+            showMessage("لطفاً تمام فیلدهای ضروری را پر کنید.", "danger");
+            return;
+        }
+        
+        if (!site) {
+            showMessage("لطفاً سایت را انتخاب کنید.", "danger");
+            return;
+        }
+        
+        if (!department) {
+            showMessage("لطفاً واحد را انتخاب کنید.", "danger");
+            return;
+        }
+        
+        const saveBtn = row.querySelector('.save-edit-btn');
+        const originalHtml = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+        saveBtn.disabled = true;
+        
+        fetch("/Alvan/edit/user", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCSRFToken(),
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+                user_id: userId,
+                first_name: first_name,
+                last_name: last_name,
+                national_code: national_code,
+                personnel_code: personnel_code,
+                username: username,
+                site: site,
+                department: department,
+                is_active: status === "active" ? "true" : "false"
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            saveBtn.innerHTML = originalHtml;
+            saveBtn.disabled = false;
+            
+            if (data.success) {
+                showMessage("اطلاعات کاربر با موفقیت به‌روزرسانی شد.", "success");
+                fetchUsers();
+            } else {
+                showMessage(data.message || "خطا در به‌روزرسانی اطلاعات.", "danger");
+            }
+        })
+        .catch(error => {
+            saveBtn.innerHTML = originalHtml;
+            saveBtn.disabled = false;
+            showMessage("خطا در ارتباط با سرور.", "danger");
+        });
+    }
+
+    // ============================================================
+    // 6. حذف کاربر
+    // ============================================================
+    function handleDeleteUser(e, btn) {
+        const userId = btn.dataset.userId;
+        const username = btn.dataset.username;
+
+        showConfirmModal(
+            `حذف کاربر`,
+            `
+            <div class="text-center">
+                <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 4rem;"></i>
+                <p class="mt-3">آیا از حذف کاربر</p>
+                <p class="fw-bold text-danger fs-5">"${username}"</p>
+                <p class="mt-3">مطمئن هستید؟</p>
+                <p class="text-muted small">این عمل غیرقابل بازگشت است!</p>
+            </div>
+            `,
+            function() {
+                fetch("/Alvan/delete/user", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCSRFToken(),
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({
+                        user_id: userId
                     })
-                    .catch(error => {
-                        showMessage("خطا در ارتباط با سرور.", "danger");
-                    });
-                }
-            );
-        });
-    });
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage("کاربر با موفقیت حذف شد.", "success");
+                        fetchUsers();
+                    } else {
+                        showMessage(data.message || "خطا در حذف کاربر.", "danger");
+                    }
+                })
+                .catch(error => {
+                    showMessage("خطا در ارتباط با سرور.", "danger");
+                });
+            }
+        );
+    }
 
     // ============================================================
-    // 6. ریست رمز عبور کاربر
+    // 7. ریست رمز عبور کاربر
     // ============================================================
-    const resetButtons = document.querySelectorAll(".reset-password-btn");
+    function handleResetPassword(e, btn) {
+        const username = btn.dataset.username;
+        const userId = btn.dataset.userId;
 
-    resetButtons.forEach(btn => {
-        btn.addEventListener("click", function() {
-            const username = this.dataset.username;
-            const userId = this.dataset.userId;
+        document.getElementById("resetUsername").innerText = username;
+        document.getElementById("resetUserId").value = userId;
 
-            document.getElementById("resetUsername").innerText = username;
-            document.getElementById("resetUserId").value = userId;
-
-            const modal = new bootstrap.Modal(
-                document.getElementById("resetPasswordModal")
-            );
-            modal.show();
-        });
-    });
+        const modal = new bootstrap.Modal(document.getElementById("resetPasswordModal"));
+        modal.show();
+    }
 
     // ============================================================
-    // 7. ذخیره رمز جدید برای کاربر
+    // 8. ذخیره رمز جدید برای کاربر
     // ============================================================
     const saveResetPassword = document.getElementById("saveResetPassword");
 
@@ -339,38 +452,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ============================================================
-    // 8. نمایش تاریخ امروز
-    // ============================================================
-    const today = new Date();
-    const todayDateElement = document.getElementById("todayDate");
-    if (todayDateElement) {
-        todayDateElement.textContent = today.toLocaleDateString("fa-IR");
-    }
-
-    // ============================================================
-    // 9. مدیریت دکمه‌های منو برای نمایش مودال‌ها
-    // ============================================================
-    const menuButtons = {
-        "changePassword": "passwordModal",
-        "manageFoods": "foodModal",
-        "editFoods": "editFoodModal",
-        "monthlyReport": "reportModal"
-    };
-
-    Object.keys(menuButtons).forEach(btnId => {
-        const btn = document.getElementById(btnId);
-        if (btn) {
-            btn.addEventListener("click", function(e) {
-                e.preventDefault();
-                const modalId = menuButtons[btnId];
-                const modal = new bootstrap.Modal(
-                    document.getElementById(modalId)
-                );
-                modal.show();
-            });
-        }
-    });
+    console.log("✅ User Management initialized!");
 });
 
 // ============================================================
@@ -382,7 +464,6 @@ function showConfirmModal(title, bodyHTML, onConfirm) {
         existingModal.remove();
     }
 
-    // ساخت مودال جدید
     const modalHTML = `
         <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -403,28 +484,22 @@ function showConfirmModal(title, bodyHTML, onConfirm) {
         </div>
     `;
 
-    // اضافه کردن مودال به صفحه
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-    // نمایش مودال
     const modalElement = document.getElementById("customConfirmModal");
     const modal = new bootstrap.Modal(modalElement);
     modal.show();
 
-    // رویداد برای دکمه تأیید
     document.getElementById("confirmAction").addEventListener("click", function() {
         modal.hide();
-        // حذف مودال بعد از بسته شدن
         modalElement.addEventListener('hidden.bs.modal', function() {
             modalElement.remove();
         });
-        // اجرای تابع تأیید
         if (typeof onConfirm === 'function') {
             onConfirm();
         }
     });
 
-    // حذف مودال هنگام بسته شدن با دکمه close یا کلیک خارج
     modalElement.addEventListener('hidden.bs.modal', function() {
         setTimeout(() => {
             if (document.getElementById("customConfirmModal")) {
@@ -435,32 +510,7 @@ function showConfirmModal(title, bodyHTML, onConfirm) {
 }
 
 // ============================================================
-// تابع کمکی برای نمایش پیام‌ها
-// ============================================================
-function showMessage(message, type = "info") {
-    const existingAlerts = document.querySelectorAll(".alert.position-fixed");
-    existingAlerts.forEach(alert => alert.remove());
-
-    const alertBox = document.createElement("div");
-    alertBox.className =
-        `alert alert-${type} position-fixed top-0 start-50 translate-middle-x mt-3 shadow`;
-    alertBox.style.zIndex = "9999";
-    alertBox.style.minWidth = "300px";
-    alertBox.style.textAlign = "center";
-    alertBox.style.maxWidth = "90%";
-    alertBox.innerHTML = message;
-
-    document.body.appendChild(alertBox);
-
-    setTimeout(() => {
-        if (alertBox.parentNode) {
-            alertBox.remove();
-        }
-    }, 3000);
-}
-
-// ============================================================
-// تابع کمکی برای دریافت توکن CSRF
+// تابع کمکی برای دریافت توکن CSRF 
 // ============================================================
 function getCSRFToken() {
     const tokenElement = document.getElementById("csrf-token");

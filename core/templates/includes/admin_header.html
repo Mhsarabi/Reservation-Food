@@ -1,0 +1,49 @@
+{% load static %}
+
+<!-- ============================================================ -->
+<!-- HEADER / NAVBAR                                              -->
+<!-- ============================================================ -->
+<nav class="navbar navbar-expand-lg bg-white shadow-sm">
+    <div class="container-fluid px-4">
+        <a href="{% url 'accounts:admin_dashboard' %}" class="navbar-brand fw-bold text-success fs-4">
+            <img src="{% static 'images/logo.png' %}" class="navbar-logo" alt="Alvan Logo">
+            Alvan | سامانه مدیریت غذا
+        </a>
+
+        <div class="d-flex align-items-center gap-4">
+            <span id="todayDate"></span>
+
+            <div class="dropdown">
+                <button class="btn btn-light dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle"></i>
+                    admin
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="#" id="changePassword">
+                            <i class="bi bi-key"></i> تغییر رمز عبور
+                        </a>
+                        <a class="dropdown-item" href="#" id="manageFoods">
+                            <i class="bi bi-egg-fried"></i> تعریف غذا
+                        </a>
+                        <a class="dropdown-item" href="#" id="editFoods">
+                            <i class="bi bi-pencil-square"></i> ویرایش غذاها
+                        </a>
+                        <a class="dropdown-item" href="#" id="monthlyReport">
+                            <i class="bi bi-file-earmark-bar-graph"></i> گزارش گیری
+                        </a>
+                        <a class="dropdown-item" href="{% url 'accounts:user_management' %}">
+                            <i class="bi bi-people"></i> کاربران
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+                            <i class="bi bi-box-arrow-right"></i> خروج
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>

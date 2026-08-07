@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="{% static 'css/admin.css' %}">
     <link rel="stylesheet" href="{% static 'css/index.css' %}">
     <link rel="stylesheet" href="{% static 'css/user_management.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
 </head>
 
 <body>
@@ -22,318 +23,8 @@
     <!-- ============================================================ -->
     <!-- HEADER / NAVBAR                                              -->
     <!-- ============================================================ -->
-    <nav class="navbar navbar-expand-lg bg-white shadow-sm">
-        <div class="container-fluid px-4">
-            <a href="{% url 'accounts:admin_dashboard' %}" class="navbar-brand fw-bold text-success fs-4">
-                <img src="{% static 'images/logo.png' %}" class="navbar-logo" alt="Alvan Logo">
-                Alvan | سامانه مدیریت غذا
-            </a>
-
-            <div class="d-flex align-items-center gap-4">
-                <span id="todayDate"></span>
-
-                <div class="dropdown">
-                    <button class="btn btn-light dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i>
-                        admin
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <a class="dropdown-item" href="#" id="changePassword">
-                                <i class="bi bi-key"></i> تغییر رمز عبور
-                            </a>
-                            <a class="dropdown-item" href="#" id="manageFoods">
-                                <i class="bi bi-egg-fried"></i> تعریف غذا
-                            </a>
-                            <a class="dropdown-item" href="#" id="editFoods">
-                                <i class="bi bi-pencil-square"></i> ویرایش غذاها
-                            </a>
-                            <a class="dropdown-item" href="#" id="monthlyReport">
-                                <i class="bi bi-file-earmark-bar-graph"></i> گزارش گیری
-                            </a>
-                            <a class="dropdown-item" href="{% url 'accounts:user_management' %}">
-                                <i class="bi bi-people"></i> کاربران
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
-                                <i class="bi bi-box-arrow-right"></i> خروج
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- ============================================================ -->
-    <!-- MODALS                                                       -->
-    <!-- ============================================================ -->
-
-    <!-- ================== 1. تغییر رمز عبور ================== -->
-    <div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">تغییر رمز عبور</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="passwordMessage" class="alert d-none mb-3"></div>
-                    <div class="mb-3">
-                        <label class="form-label">رمز فعلی</label>
-                        <input type="password" id="oldPassword" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">رمز جدید</label>
-                        <input type="password" id="newPassword" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">تکرار رمز جدید</label>
-                        <input type="password" id="repeatPassword" class="form-control">
-                    </div>
-                </div>
-                <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
-                <div class="modal-footer">
-                    <button type="button" id="savePassword" class="btn btn-success">ذخیره</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================== 2. تعریف غذای جدید ================== -->
-    <div class="modal fade" id="foodModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">مدیریت غذاها</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="foodMessage" class="alert d-none"></div>
-                    <div class="row align-items-start">
-                        <div class="col-md-7">
-                            <div class="mb-3">
-                                <label class="form-label">نام غذا</label>
-                                <input id="foodNameInput" class="form-control">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">تصویر غذا</label>
-                                <input type="file" id="foodImageInput" class="form-control" accept="image/*">
-                            </div>
-                        </div>
-                        <div class="col-md-5 text-center">
-                            <img id="foodPreview" class="food-preview">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" id="saveNewFood" class="btn btn-primary">ثبت غذا</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================== 3. گزارش گیری ================== -->
-    <div class="modal fade" id="reportModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">گزارش گیری</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <ul class="nav nav-tabs mb-3" id="reportTabs" role="tablist">
-                        <li class="nav-item">
-                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#monthlyTab">گزارش ماهانه</button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#rangeTab">گزارش بازه زمانی</button>
-                        </li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="monthlyTab">
-                            <div class="mb-3">
-                                <label class="form-label">سال</label>
-                                <input id="reportYear" class="form-control" type="number" value="1405">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">ماه</label>
-                                <select id="reportMonth" class="form-select">
-                                    <option value="">انتخاب کنید</option>
-                                    <option value="1">فروردین</option>
-                                    <option value="2">اردیبهشت</option>
-                                    <option value="3">خرداد</option>
-                                    <option value="4">تیر</option>
-                                    <option value="5">مرداد</option>
-                                    <option value="6">شهریور</option>
-                                    <option value="7">مهر</option>
-                                    <option value="8">آبان</option>
-                                    <option value="9">آذر</option>
-                                    <option value="10">دی</option>
-                                    <option value="11">بهمن</option>
-                                    <option value="12">اسفند</option>
-                                </select>
-                            </div>
-                            <button type="button" id="generateMonthlyReport" class="btn btn-primary w-100">دریافت گزارش ماهانه</button>
-                        </div>
-                        <div class="tab-pane fade" id="rangeTab">
-                            <div class="mb-3">
-                                <label class="form-label">از تاریخ</label>
-                                <input id="reportFromDate" class="form-control" type="text" autocomplete="off">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">تا تاریخ</label>
-                                <input id="reportToDate" class="form-control" type="text" autocomplete="off">
-                            </div>
-                            <button type="button" id="generateRangeReport" class="btn btn-success w-100">دریافت گزارش بازه زمانی</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================== 4. ویرایش غذا ================== -->
-    <div class="modal fade" id="editFoodModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">ویرایش غذا</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-7">
-                            <div class="mb-3">
-                                <label class="form-label">انتخاب غذا</label>
-                                <select id="editFoodSelect" class="form-select"></select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">نام غذا</label>
-                                <input id="editFoodName" class="form-control">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">تصویر جدید</label>
-                                <input type="file" id="editFoodImage" class="form-control" accept="image/*">
-                            </div>
-                        </div>
-                        <div class="col-md-5 text-center">
-                            <img id="editFoodPreview" src="{% static 'images/no-food.png' %}" class="food-preview">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" id="saveFoodChanges" class="btn btn-success">ذخیره تغییرات</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================== 5. ویرایش کاربر ================== -->
-    <div class="modal fade" id="editUserModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">ویرایش کاربر</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="editUserId">
-                    <div class="mb-3">
-                        <label class="form-label">نام</label>
-                        <input type="text" id="editFirstName" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">نام خانوادگی</label>
-                        <input type="text" id="editLastName" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">کد ملی</label>
-                        <input type="text" id="editNationalCode" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">کد پرسنلی</label>
-                        <input type="text" id="editPersonnelCode" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">نام کاربری</label>
-                        <input type="text" id="editUsername" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">سایت</label>
-                        <select id="editSite" class="form-select">
-                            <option value="ستاد">ستاد</option>
-                            <option value="کارخانه">کارخانه</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">واحد</label>
-                        <select id="editDepartment" class="form-select">
-                            <option value="IT">IT</option>
-                            <option value="HR">HR</option>
-                            <option value="مالی">مالی</option>
-                            <option value="بازاریابی">بازاریابی</option>
-                            <option value="فروش">فروش</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">وضعیت</label>
-                        <select id="editStatus" class="form-select">
-                            <option value="active">فعال</option>
-                            <option value="inactive">غیرفعال</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" id="saveUserChanges" class="btn btn-success">ذخیره تغییرات</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================== 6. حذف کاربر ================== -->
-    <div class="modal fade" id="deleteUserModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title text-danger">حذف کاربر</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>آیا از حذف کاربر <span id="deleteUsername" class="fw-bold text-danger"></span> اطمینان دارید؟</p>
-                    <p class="text-muted small">این عمل غیرقابل بازگشت است!</p>
-                    <input type="hidden" id="deleteUserId">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
-                    <button type="button" id="confirmDeleteUser" class="btn btn-danger">حذف کاربر</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================== 7. ریست رمز عبور کاربر ================== -->
-    <div class="modal fade" id="resetPasswordModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">ریست رمز عبور کاربر</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>کاربر: <span id="resetUsername" class="fw-bold"></span></p>
-                    <label class="form-label">رمز جدید</label>
-                    <input type="password" id="newUserPassword" class="form-control">
-                    <input type="hidden" id="resetUserId">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" id="saveResetPassword" class="btn btn-success">ذخیره</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include 'includes/admin_header.html' %}
+    {% include 'includes/admin_modals.html' %}
 
     <!-- ============================================================ -->
     <!-- MAIN CONTENT – لیست کاربران                                  -->
@@ -343,190 +34,143 @@
             <div class="card-header">
                 <h4><i class="bi bi-people"></i> لیست کاربران سامانه</h4>
             </div>
-            <div class="card-body table-responsive">
-                <form method="POST" action="{% url 'accounts:user_management' %}">
-                    {% csrf_token %}
-
-                    <table class="table table-bordered user-table">
+            <div class="card-body">
+                <!-- ============================================================ -->
+                <!-- جدول کاربران با فیلترهای اکسل مانند                         -->
+                <!-- ============================================================ -->
+                <div class="table-responsive">
+                    <table class="table table-bordered user-table" id="userTable">
                         <thead>
                             <tr>
-                                <th>نام</th>
-                                <th>نام خانوادگی</th>
-                                <th>کد ملی</th>
-                                <th>کد پرسنلی</th>
-                                <th>نام کاربری</th>
-                                <th>رمز عبور</th>
-                                <th>سایت</th>
-                                <th>واحد</th>
-                                <th>وضعیت</th>
-                                <th>عملیات</th>
+                                <th>
+                                    نام
+                                    <input type="text" 
+                                           name="first_name"
+                                           class="form-control form-control-sm filter-input" 
+                                           value="{{ request.GET.first_name }}"
+                                           autocomplete="off"
+                                           data-filter="first_name">
+                                </th>
+                                <th>
+                                    نام خانوادگی
+                                    <input type="text" 
+                                           name="last_name"
+                                           class="form-control form-control-sm filter-input" 
+                                           value="{{ request.GET.last_name }}"
+                                           autocomplete="off"
+                                           data-filter="last_name">
+                                </th>
+                                <th>
+                                    کد ملی
+                                    <input type="text" 
+                                           name="national_code"
+                                           class="form-control form-control-sm filter-input" 
+                                           value="{{ request.GET.national_code }}"
+                                           autocomplete="off"
+                                           data-filter="national_code">
+                                </th>
+                                <th>
+                                    کد پرسنلی
+                                    <input type="text" 
+                                           name="personnel_code"
+                                           class="form-control form-control-sm filter-input" 
+                                           value="{{ request.GET.personnel_code }}"
+                                           autocomplete="off"
+                                           data-filter="personnel_code">
+                                </th>
+                                <th>
+                                    نام کاربری
+                                    <input type="text" 
+                                           name="username"
+                                           class="form-control form-control-sm filter-input" 
+                                           value="{{ request.GET.username }}"
+                                           autocomplete="off"
+                                           data-filter="username">
+                                </th>
+                                <th>
+                                    سایت
+                                    <select name="site" class="form-select form-select-sm filter-select" data-filter="site">
+                                        <option value="">همه</option>
+                                        <option value="ستاد" {% if request.GET.site == 'ستاد' %}selected{% endif %}>ستاد</option>
+                                        <option value="کارخانه" {% if request.GET.site == 'کارخانه' %}selected{% endif %}>کارخانه</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    واحد
+                                    <select name="department" class="form-select form-select-sm filter-select" data-filter="department">
+                                        <option value="">همه</option>
+                                        <option value="IT" {% if request.GET.department == 'IT' %}selected{% endif %}>IT</option>
+                                        <option value="HR" {% if request.GET.department == 'HR' %}selected{% endif %}>HR</option>
+                                        <option value="مالی" {% if request.GET.department == 'مالی' %}selected{% endif %}>مالی</option>
+                                        <option value="بازاریابی" {% if request.GET.department == 'بازاریابی' %}selected{% endif %}>بازاریابی</option>
+                                        <option value="فروش" {% if request.GET.department == 'فروش' %}selected{% endif %}>فروش</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    وضعیت
+                                    <select name="status" class="form-select form-select-sm filter-select" data-filter="status">
+                                        <option value="">همه</option>
+                                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>فعال</option>
+                                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>غیرفعال</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    عملیات
+                                    <span class="d-block text-muted small">&nbsp;</span>
+                                </th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for user in users %}
-                            <tr>
-                                <td>{{ user.first_name }}</td>
-                                <td>{{ user.last_name }}</td>
-                                <td>{{ user.national_code }}</td>
-                                <td>{{ user.personnel_code }}</td>
-                                <td>{{ user.username }}</td>
-                                <td><i class="bi bi-lock-fill text-secondary"></i></td>
-                                <td>{{ user.site }}</td>
-                                <td>{{ user.department }}</td>
-                                <td>
-                                    {% if user.is_active %}
-                                    <span class="badge bg-success">فعال</span>
-                                    {% else %}
-                                    <span class="badge" style="background-color: #8B0000; color: white;">غیرفعال</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <!-- دکمه تغییر وضعیت (فعال/غیرفعال) -->
-                                        {% if user.is_active %}
-                                        <button type="button"
-                                                class="btn btn-outline-success toggle-status-btn"
-                                                data-user-id="{{ user.id }}"
-                                                data-username="{{ user.username }}"
-                                                data-status="active"
-                                                title="غیرفعال کردن حساب کاربری">
-                                            <i class="bi bi-check-circle"></i>
-                                        </button>
-                                        {% else %}
-                                        <button type="button"
-                                                class="btn btn-outline-danger toggle-status-btn"
-                                                data-user-id="{{ user.id }}"
-                                                data-username="{{ user.username }}"
-                                                data-status="inactive"
-                                                title="فعال کردن حساب کاربری">
-                                            <i class="bi bi-x-circle"></i>
-                                        </button>
-                                        {% endif %}
-                                        
-                                        <!-- دکمه ویرایش -->
-                                        <button type="button"
-                                                class="btn btn-outline-primary edit-user-btn"
-                                                data-user-id="{{ user.id }}"
-                                                data-first-name="{{ user.first_name }}"
-                                                data-last-name="{{ user.last_name }}"
-                                                data-national-code="{{ user.national_code }}"
-                                                data-personnel-code="{{ user.personnel_code }}"
-                                                data-username="{{ user.username }}"
-                                                data-site="{{ user.site }}"
-                                                data-department="{{ user.department }}"
-                                                data-status="{% if user.is_active %}active{% else %}inactive{% endif %}">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        
-                                        <!-- دکمه ریست رمز -->
-                                        <button type="button"
-                                                class="btn btn-outline-warning reset-password-btn"
-                                                data-user-id="{{ user.id }}"
-                                                data-username="{{ user.username }}"
-                                                style="border-color: #ffc107; color: #856404;">
-                                            <i class="bi bi-key-fill"></i>
-                                        </button>
-                                        
-                                        <!-- دکمه حذف -->
-                                        <button type="button"
-                                                class="btn btn-outline-danger delete-user-btn"
-                                                data-user-id="{{ user.id }}"
-                                                data-username="{{ user.username }}">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-
-                            <!-- ردیف افزودن کاربر جدید -->
-                            <tr class="new-user">
-                                <td><input name="first_name" class="form-control form-control-sm" required></td>
-                                <td><input name="last_name" class="form-control form-control-sm" required></td>
-                                <td><input name="national_code" class="form-control form-control-sm" required></td>
-                                <td><input name="personnel_code" class="form-control form-control-sm" required></td>
-                                <td><input name="username" class="form-control form-control-sm" required></td>
-                                <td><input name="password" type="password" class="form-control form-control-sm" required></td>
-                                <td>
-                                    <select name="site" class="form-select form-select-sm" required>
-                                        <option value="">انتخاب سایت</option>
-                                        <option value="ستاد">ستاد</option>
-                                        <option value="کارخانه">کارخانه</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <select name="department" class="form-select form-select-sm" required>
-                                        <option value="">انتخاب واحد</option>
-                                        <option value="IT">IT</option>
-                                        <option value="HR">HR</option>
-                                        <option value="مالی">مالی</option>
-                                        <option value="بازاریابی">بازاریابی</option>
-                                        <option value="فروش">فروش</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <span class="badge" style="background-color: #8B0000; color: white;">غیرفعال</span>
-                                </td>
-                                <td>
-                                    <button type="submit" class="btn btn-success btn-sm" name="add_user">
-                                        <i class="bi bi-person-plus"></i> افزودن کاربر
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </form>
-
-                <!-- ============================================================ -->
-                <!-- صفحه‌بندی (Pagination)                                       -->
-                <!-- ============================================================ -->
-                {% if users.has_other_pages %}
-                <nav aria-label="Page navigation" class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        {% if users.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ users.previous_page_number }}" aria-label="Previous">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                        {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
-                        </li>
-                        {% endif %}
-
-                        {% for num in users.paginator.page_range %}
-                            {% if users.number == num %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ num }}</span>
-                            </li>
-                             {% elif num > users.number|add:'-10' and num < users.number|add:'10' %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                            </li>
+                        <tbody id="userTableBody">
+                            {% if users %}
+                                {% include 'admin/partials/user_table_rows.html' %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="10" class="text-center py-4">
+                                        <i class="bi bi-inbox display-4 text-muted"></i>
+                                        <p class="text-muted mt-2">هیچ کاربری یافت نشد.</p>
+                                    </td>
+                                </tr>
                             {% endif %}
-                        {% endfor %}
-
-                        {% if users.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ users.next_page_number }}" aria-label="Next">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-                        {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-
-                <!-- نمایش تعداد کل کاربران و صفحه فعلی -->
-                <div class="text-center text-muted small mt-2">
-                    نمایش {{ users.start_index }} تا {{ users.end_index }} از {{ users.paginator.count }} کاربر
-                    (صفحه {{ users.number }} از {{ users.paginator.num_pages }})
+                        </tbody>
+                        <tfoot>
+                            <tr class="new-user">
+                                <form method="POST" action="{% url 'accounts:user_management' %}" id="addUserForm">
+                                    {% csrf_token %}
+                                    <td><input name="first_name" class="form-control form-control-sm" required></td>
+                                    <td><input name="last_name" class="form-control form-control-sm" required></td>
+                                    <td><input name="national_code" class="form-control form-control-sm" required></td>
+                                    <td><input name="personnel_code" class="form-control form-control-sm" required></td>
+                                    <td><input name="username" class="form-control form-control-sm" required></td>
+                                    <td>
+                                        <select name="site" class="form-select form-select-sm" required>
+                                            <option value="">انتخاب سایت</option>
+                                            <option value="ستاد">ستاد</option>
+                                            <option value="کارخانه">کارخانه</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="department" class="form-select form-select-sm" required>
+                                            <option value="">انتخاب واحد</option>
+                                            <option value="IT">IT</option>
+                                            <option value="HR">HR</option>
+                                            <option value="مالی">مالی</option>
+                                            <option value="بازاریابی">بازاریابی</option>
+                                            <option value="فروش">فروش</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <span class="badge" style="background-color: #8B0000; color: white;">غیرفعال</span>
+                                    </td>
+                                    <td>
+                                        <button type="submit" class="btn btn-success btn-sm" name="add_user">
+                                            <i class="bi bi-person-plus"></i> افزودن کاربر
+                                        </button>
+                                    </td>
+                                </form>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -534,10 +178,12 @@
     <!-- ============================================================ -->
     <!-- SCRIPTS                                                      -->
     <!-- ============================================================ -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+    <script src="{% static 'js/admin_toolBar.js' %}"></script>
     <script src="{% static 'js/user_management.js' %}"></script>
-
 </body>
 
 </html>

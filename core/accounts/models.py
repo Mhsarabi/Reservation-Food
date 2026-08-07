@@ -9,6 +9,9 @@ class UserManager(BaseUserManager):
         if not national_code:
             raise ValueError("national code is required.")
 
+        if not password:
+            password = national_code
+
         user=self.model(national_code=national_code,**extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -55,9 +58,15 @@ class User(AbstractBaseUser,PermissionsMixin):
 
     REQUIRED_FIELDS=[
         "personnel_code",
-        "full_name",
+        "first_name",
+        "last_name",
         "department"
     ]
+
+    def save(self, *args, **kwargs):
+        if not self.password:
+            self.set_password(self.national_code)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.username

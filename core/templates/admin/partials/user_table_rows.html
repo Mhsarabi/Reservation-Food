@@ -1,0 +1,166 @@
+{% for user in users %}
+<tr id="user-row-{{ user.id }}" class="user-row">
+    <!-- ستون نام -->
+    <td>
+        <span class="view-mode">{{ user.first_name }}</span>
+        <input type="text" 
+               name="first_name" 
+               class="form-control form-control-sm edit-mode" 
+               value="{{ user.first_name }}" 
+               style="display:none;">
+    </td>
+    
+    <!-- ستون نام خانوادگی -->
+    <td>
+        <span class="view-mode">{{ user.last_name }}</span>
+        <input type="text" 
+               name="last_name" 
+               class="form-control form-control-sm edit-mode" 
+               value="{{ user.last_name }}" 
+               style="display:none;">
+    </td>
+    
+    <!-- ستون کد ملی -->
+    <td>
+        <span class="view-mode">{{ user.national_code }}</span>
+        <input type="text" 
+               name="national_code" 
+               class="form-control form-control-sm edit-mode" 
+               value="{{ user.national_code }}" 
+               style="display:none;">
+    </td>
+    
+    <!-- ستون کد پرسنلی -->
+    <td>
+        <span class="view-mode">{{ user.personnel_code }}</span>
+        <input type="text" 
+               name="personnel_code" 
+               class="form-control form-control-sm edit-mode" 
+               value="{{ user.personnel_code }}" 
+               style="display:none;">
+    </td>
+    
+    <!-- ستون نام کاربری -->
+    <td>
+        <span class="view-mode">{{ user.username }}</span>
+        <input type="text" 
+               name="username" 
+               class="form-control form-control-sm edit-mode" 
+               value="{{ user.username }}" 
+               style="display:none;">
+    </td>
+    
+    <!-- ستون سایت -->
+    <td>
+        <span class="view-mode">{{ user.site|default:"-" }}</span>
+        <select name="site" class="form-select form-select-sm edit-mode" style="display:none;">
+            <option value="">انتخاب سایت</option>
+            <option value="ستاد" {% if user.site == 'ستاد' %}selected{% endif %}>ستاد</option>
+            <option value="کارخانه" {% if user.site == 'کارخانه' %}selected{% endif %}>کارخانه</option>
+        </select>
+    </td>
+    
+    <!-- ستون واحد -->
+    <td>
+        <span class="view-mode">{{ user.department }}</span>
+        <select name="department" class="form-select form-select-sm edit-mode" style="display:none;">
+            <option value="IT" {% if user.department == 'IT' %}selected{% endif %}>IT</option>
+            <option value="HR" {% if user.department == 'HR' %}selected{% endif %}>HR</option>
+            <option value="مالی" {% if user.department == 'مالی' %}selected{% endif %}>مالی</option>
+            <option value="بازاریابی" {% if user.department == 'بازاریابی' %}selected{% endif %}>بازاریابی</option>
+            <option value="فروش" {% if user.department == 'فروش' %}selected{% endif %}>فروش</option>
+        </select>
+    </td>
+    
+    <!-- ستون وضعیت -->
+    <td>
+        <span class="view-mode">
+            {% if user.is_active %}
+            <span class="badge bg-success">فعال</span>
+            {% else %}
+            <span class="badge" style="background-color: #8B0000; color: white;">غیرفعال</span>
+            {% endif %}
+        </span>
+        <select name="status" class="form-select form-select-sm edit-mode" style="display:none;">
+            <option value="active" {% if user.is_active %}selected{% endif %}>فعال</option>
+            <option value="inactive" {% if not user.is_active %}selected{% endif %}>غیرفعال</option>
+        </select>
+    </td>
+    
+    <!-- ستون عملیات -->
+    <td>
+        <div class="btn-group btn-group-sm" role="group">
+            <!-- دکمه تغییر وضعیت -->
+            {% if user.is_active %}
+            <button type="button"
+                    class="btn btn-outline-success toggle-status-btn"
+                    data-user-id="{{ user.id }}"
+                    data-username="{{ user.username }}"
+                    data-status="active"
+                    title="غیرفعال کردن حساب کاربری">
+                <i class="bi bi-check-circle"></i>
+            </button>
+            {% else %}
+            <button type="button"
+                    class="btn btn-outline-danger toggle-status-btn"
+                    data-user-id="{{ user.id }}"
+                    data-username="{{ user.username }}"
+                    data-status="inactive"
+                    title="فعال کردن حساب کاربری">
+                <i class="bi bi-x-circle"></i>
+            </button>
+            {% endif %}
+            
+            <!-- دکمه ویرایش (حالت عادی) -->
+            <button type="button"
+                    class="btn btn-outline-primary edit-toggle-btn"
+                    data-user-id="{{ user.id }}"
+                    title="ویرایش کاربر">
+                <i class="bi bi-pencil"></i>
+            </button>
+            
+            <!-- دکمه ذخیره (در حالت ویرایش) -->
+            <button type="button"
+                    class="btn btn-outline-success save-edit-btn"
+                    data-user-id="{{ user.id }}"
+                    style="display:none;"
+                    title="ذخیره تغییرات">
+                <i class="bi bi-check-lg"></i>
+            </button>
+            
+            <!-- دکمه لغو (در حالت ویرایش) -->
+            <button type="button"
+                    class="btn btn-outline-secondary cancel-edit-btn"
+                    data-user-id="{{ user.id }}"
+                    style="display:none;"
+                    title="لغو">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            
+            <!-- دکمه ریست رمز -->
+            <button type="button"
+                    class="btn btn-outline-warning reset-password-btn"
+                    data-user-id="{{ user.id }}"
+                    data-username="{{ user.username }}"
+                    style="border-color: #ffc107; color: #856404;">
+                <i class="bi bi-key-fill"></i>
+            </button>
+            
+            <!-- دکمه حذف -->
+            <button type="button"
+                    class="btn btn-outline-danger delete-user-btn"
+                    data-user-id="{{ user.id }}"
+                    data-username="{{ user.username }}">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="10" class="text-center py-4">
+        <i class="bi bi-inbox display-4 text-muted"></i>
+        <p class="text-muted mt-2">هیچ کاربری با این فیلترها یافت نشد.</p>
+    </td>
+</tr>
+{% endfor %}

@@ -232,8 +232,12 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
 
                 
                 report_data.append({
-                    'full_name': user.full_name if hasattr(user, 'full_name') else user.username,
+                    'first_name': user.first_name if hasattr(user, 'first_name') else user.username,
+                    'last_name': user.last_name if hasattr(user, 'last_name') else '',
+                    'username': user.username if hasattr(user, 'username') else '',
                     'national_code': user.national_code if hasattr(user, 'national_code') else '',
+                    'personnel_code': user.personnel_code if hasattr(user, 'personnel_code') else '',
+                    'site': user.site if hasattr(user, 'site') else '',
                     'department': user.department if hasattr(user, 'department') else '',
                     'reservation_count': count,
                 })
@@ -245,7 +249,7 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
             ws.sheet_view.rightToLeft = True
             ws.title = f"Monthly_Report_{year}_{month}"
             
-            headers = ['ردیف', 'نام کاربر', 'کد ملی', 'دپارتمان', 'تعداد رزرو']
+            headers = ['ردیف', 'نام','نام خانوادگی','نام کاربری', 'کد ملی','کد پرسنلی','سایت', 'دپارتمان', 'تعداد رزرو']
             header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
             header_font = Font(color="FFFFFF", bold=True)
             
@@ -257,17 +261,25 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
             
             for row, data in enumerate(report_data, 2):
                 ws.cell(row=row, column=1, value=row-1)
-                ws.cell(row=row, column=2, value=data['full_name'])
-                ws.cell(row=row, column=3, value=data['national_code'])
-                ws.cell(row=row, column=4, value=data['department'])
-                ws.cell(row=row, column=5, value=data['reservation_count'])
+                ws.cell(row=row, column=2, value=data['first_name'])
+                ws.cell(row=row, column=3, value=data['last_name'])
+                ws.cell(row=row, column=4, value=data['username'])
+                ws.cell(row=row, column=5, value=data['national_code'])
+                ws.cell(row=row, column=6, value=data['personnel_code'])
+                ws.cell(row=row, column=7, value=data['site'])
+                ws.cell(row=row, column=8, value=data['department'])
+                ws.cell(row=row, column=9, value=data['reservation_count'])
             
-            ws.column_dimensions['A'].width = 8
+            ws.column_dimensions['A'].width = 6
             ws.column_dimensions['B'].width = 20
-            ws.column_dimensions['C'].width = 15
+            ws.column_dimensions['C'].width = 20
             ws.column_dimensions['D'].width = 20
-            ws.column_dimensions['E'].width = 15
-            ws.column_dimensions['F'].width = 40
+            ws.column_dimensions['E'].width = 20
+            ws.column_dimensions['F'].width = 15
+            ws.column_dimensions['G'].width = 15
+            ws.column_dimensions['H'].width = 15
+            ws.column_dimensions['I'].width = 20
+
             
             response = HttpResponse(
                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -347,8 +359,12 @@ class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
                 count = user_reservations.count()
                                 
                 report_data.append({
-                    'full_name': user.full_name if hasattr(user, 'full_name') else user.username,
+                    'first_name': user.first_name if hasattr(user, 'first_name') else user.username,
+                    'last_name': user.last_name if hasattr(user, 'last_name') else '',
+                    'username': user.username if hasattr(user, 'username') else '',
                     'national_code': user.national_code if hasattr(user, 'national_code') else '',
+                    'personnel_code': user.personnel_code if hasattr(user, 'personnel_code') else '',
+                    'site': user.site if hasattr(user, 'site') else '',
                     'department': user.department if hasattr(user, 'department') else '',
                     'reservation_count': count,
                 })
@@ -360,7 +376,7 @@ class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
             ws.sheet_view.rightToLeft = True
             
             
-            headers = ['ردیف', 'نام کاربر', 'کد ملی', 'دپارتمان', 'تعداد رزرو']
+            headers = ['ردیف', 'نام','نام خانوادگی','نام کاربری', 'کد ملی','کد پرسنلی','سایت', 'دپارتمان', 'تعداد رزرو']
             header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
             header_font = Font(color="FFFFFF", bold=True)
             
@@ -372,17 +388,24 @@ class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
             
             for row, data in enumerate(report_data, 2):
                 ws.cell(row=row, column=1, value=row-1)
-                ws.cell(row=row, column=2, value=data['full_name'])
-                ws.cell(row=row, column=3, value=data['national_code'])
-                ws.cell(row=row, column=4, value=data['department'])
-                ws.cell(row=row, column=5, value=data['reservation_count'])    
+                ws.cell(row=row, column=2, value=data['first_name'])
+                ws.cell(row=row, column=3, value=data['last_name'])
+                ws.cell(row=row, column=4, value=data['username'])
+                ws.cell(row=row, column=5, value=data['national_code'])
+                ws.cell(row=row, column=6, value=data['personnel_code'])
+                ws.cell(row=row, column=7, value=data['site'])
+                ws.cell(row=row, column=8, value=data['department'])
+                ws.cell(row=row, column=9, value=data['reservation_count'])
 
-            ws.column_dimensions['A'].width = 8
+            ws.column_dimensions['A'].width = 6
             ws.column_dimensions['B'].width = 20
-            ws.column_dimensions['C'].width = 15
+            ws.column_dimensions['C'].width = 20
             ws.column_dimensions['D'].width = 20
-            ws.column_dimensions['E'].width = 15
-            ws.column_dimensions['F'].width = 40
+            ws.column_dimensions['E'].width = 20
+            ws.column_dimensions['F'].width = 15
+            ws.column_dimensions['G'].width = 15
+            ws.column_dimensions['H'].width = 15
+            ws.column_dimensions['I'].width = 20
             
             response = HttpResponse(
                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
