@@ -186,12 +186,19 @@ class UsersManagementView(LoginRequiredMixin,View):
                     department=request.POST.get("department"),
 
                 )
+                messages.success(request, "کاربر با موفقیت اضافه شد.")
 
             except IntegrityError:
 
                 messages.error(
                     request,
                     "کد ملی یا کد پرسنلی قبلاً ثبت شده است."
+                )
+                
+            except Exception as e:
+                messages.error(
+                    request,
+                    f"خطا در ایجاد کاربر: {str(e)}"
                 )
 
         return redirect("accounts:user_management")

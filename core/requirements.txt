@@ -1,5 +1,6 @@
 asgiref==3.12.1
 Django==5.2.16
+django-cleanup==9.0.0
 django-debug-toolbar==7.0.0
 et_xmlfile==2.0.0
 jalaali==0.0.1

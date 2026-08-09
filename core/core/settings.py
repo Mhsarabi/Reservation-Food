@@ -40,9 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # my apps
-    'accounts',
-    'reservations',
-    'menu'
+    'accounts.apps.AccountsConfig',
+    'reservations.apps.ReservationsConfig',
+    'menu.apps.MenuConfig',
+    'django_cleanup.apps.CleanupConfig'
 ]
 
 MIDDLEWARE = [
