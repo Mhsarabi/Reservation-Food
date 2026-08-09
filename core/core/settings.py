@@ -41,7 +41,6 @@ INSTALLED_APPS = [
 
     # my apps
     'accounts',
-    'foods',
     'reservations',
     'menu'
 ]

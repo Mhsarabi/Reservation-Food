@@ -1,0 +1,298 @@
+/* ============================================================
+   مدیریت غذاها - استایل‌های اختصاصی
+   ============================================================ */
+
+/* ============================================================
+   1. استایل‌های هدر کارت - مشابه مدیریت کاربران
+   ============================================================ */
+.card-header {
+    background: white;
+    padding: 6px 16px !important;
+    border-bottom: none;
+}
+
+.card-header h4 {
+    margin: 0;
+    color: #2563eb;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.card-header h4 i {
+    color: #2563eb;
+    font-size: 1.3rem;
+}
+
+/* ============================================================
+   2. استایل‌های card-body - کاهش فاصله از هدر
+   ============================================================ */
+.card-body {
+    padding: 0px 16px 16px 16px !important;
+}
+
+.table-responsive {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.food-table {
+    margin-top: 0 !important;
+}
+
+/* ============================================================
+   3. جدول غذاها - مشابه مدیریت کاربران
+   ============================================================ */
+.food-table {
+    vertical-align: middle;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.food-table th {
+    background: #2563eb;
+    color: white;
+    font-weight: 600;
+    padding: 2px 4px !important;  /* ✅ کاهش padding عمودی */
+    white-space: nowrap;
+    font-size: 0.85rem;
+    vertical-align: middle !important;
+    height: auto;
+    min-height: 28px;  /* ✅ کاهش ارتفاع */
+}
+
+.food-table td {
+    padding: 3px 6px !important;  /* ✅ کاهش padding عمودی */
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
+
+/* ============================================================
+   4. فیلترها - مشابه مدیریت کاربران
+   ============================================================ */
+.food-table th .filter-input {
+    display: block;
+    width: 100%;
+    margin-top: 2px;
+    font-size: 0.7rem !important;
+    padding: 2px 4px !important;
+    height: 22px !important;  /* ✅ کاهش ارتفاع */
+    min-width: 50px !important;
+    border-radius: 4px;
+}
+
+/* ============================================================
+   5. ردیف افزودن غذا - مشابه مدیریت کاربران
+   ============================================================ */
+.new-food {
+    background: #f8f9fa;
+}
+
+.new-food td {
+    padding: 2px 4px !important;  /* ✅ کاهش padding */
+    vertical-align: middle;
+}
+
+.new-food .form-control-sm {
+    font-size: 0.8rem !important;
+    padding: 2px 4px !important;  /* ✅ کاهش padding */
+    height: 26px !important;  /* ✅ کاهش ارتفاع */
+    min-width: 70px !important;
+}
+
+/* ============================================================
+   6. Inline Edit - مشابه مدیریت کاربران
+   ============================================================ */
+.food-row .edit-mode {
+    display: none;
+}
+
+.food-row .view-mode {
+    display: block;
+}
+
+.food-row .save-edit-btn,
+.food-row .cancel-edit-btn {
+    display: none;
+}
+
+.food-row.editing {
+    background-color: #fff8e1 !important;
+    transition: background-color 0.3s ease;
+}
+
+.food-row.editing td {
+    padding: 2px 4px !important;  /* ✅ کاهش padding */
+    vertical-align: middle;
+}
+
+.food-row.editing .view-mode {
+    display: none !important;
+}
+
+.food-row.editing .edit-mode {
+    display: block !important;
+}
+
+.food-row.editing .edit-toggle-btn {
+    display: none !important;
+}
+
+.food-row.editing .save-edit-btn,
+.food-row.editing .cancel-edit-btn {
+    display: inline-block !important;
+}
+
+.food-row .edit-mode input {
+    min-width: 60px;
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    height: 22px;  /* ✅ کاهش ارتفاع */
+}
+
+/* ============================================================
+   7. دکمه‌ها - مشابه مدیریت کاربران
+   ============================================================ */
+.btn-group-sm .btn {
+    padding: 4px 8px !important;
+    font-size: 0.8rem !important;
+}
+
+.btn-group-sm .btn i {
+    font-size: 0.9rem !important;
+}
+
+/* ============================================================
+   8. تصویر غذا - زوم بزرگ در مرکز صفحه
+   ============================================================ */
+.food-table img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: transform 0.25s ease;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+}
+
+.food-table img:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 5;
+}
+
+/* ✅ تصویر بزرگ - خیلی بزرگ در مرکز صفحه */
+.food-table img.active {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(1) !important;
+    width: 600px !important;
+    height: 600px !important;
+    max-width: 90vw !important;
+    max-height: 90vh !important;
+    object-fit: contain !important;
+    border-radius: 16px !important;
+    border: 4px solid #2563eb !important;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.7) !important;
+    z-index: 999 !important;
+    background: white !important;
+    padding: 15px !important;
+    transition: all 0.25s ease !important;
+    cursor: zoom-out;
+}
+
+/* ✅ بک‌دراپ تیره */
+.modal-image-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.75);
+    z-index: 998;
+    display: none;
+}
+
+.modal-image-overlay.show {
+    display: block;
+}
+
+/* ✅ دکمه بستن */
+.close-image-btn {
+    position: fixed;
+    top: 25px;
+    right: 35px;
+    font-size: 45px;
+    color: #fff;
+    cursor: pointer;
+    z-index: 1000;
+    display: none;
+    width: 55px;
+    height: 55px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.close-image-btn:hover {
+    background: rgba(0,0,0,0.7);
+}
+
+.close-image-btn.show {
+    display: flex;
+}
+/* ============================================================
+   9. انیمیشن تغییر وضعیت
+   ============================================================ */
+.food-row.editing {
+    animation: highlightRow 0.5s ease;
+}
+
+@keyframes highlightRow {
+    0% { background-color: #fff3cd; }
+    100% { background-color: #fff8e1; }
+}
+
+/* ============================================================
+   استایل‌های اعتبارسنجی
+   ============================================================ */
+.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.invalid-feedback {
+    display: none;
+    color: #dc3545;
+    font-size: 0.7rem;
+    margin-top: 3px;
+}
+
+.is-invalid ~ .invalid-feedback {
+    display: block;
+}
+
+/* ============================================================
+   پیام موفقیت/خطا
+   ============================================================ */
+.alert {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) translateX(-50%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) translateX(-50%);
+    }
+}

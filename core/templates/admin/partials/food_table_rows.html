@@ -1,0 +1,68 @@
+{% for food in foods %}
+<tr id="food-row-{{ food.id }}" class="food-row">
+    <td>
+        <span class="view-mode">{{ food.food_name }}</span>
+        <input type="text" 
+               name="food_name" 
+               class="form-control form-control-sm edit-mode" 
+               value="{{ food.food_name }}" 
+               style="display:none;">
+    </td>
+    <td>
+        <span class="view-mode">
+            {% if food.food_image %}
+            <img src="{{ food.food_image.url }}" 
+                alt="{{ food.food_name }}" 
+                title="برای بزرگ‌نمایی کلیک کنید"> 
+            {% else %}
+            <span class="text-muted">بدون تصویر</span>
+            {% endif %}
+        </span>
+        <input type="file" 
+            name="food_image" 
+            class="form-control form-control-sm edit-mode" 
+            accept="image/*" 
+            style="display:none;">
+   </td>
+    <td>
+        <div class="btn-group btn-group-sm" role="group">
+            <button type="button"
+                    class="btn btn-outline-primary edit-toggle-btn"
+                    data-food-id="{{ food.id }}"
+                    title="ویرایش غذا">
+                <i class="bi bi-pencil"></i>
+            </button>
+            
+            <button type="button"
+                    class="btn btn-outline-success save-edit-btn"
+                    data-food-id="{{ food.id }}"
+                    style="display:none;"
+                    title="ذخیره تغییرات">
+                <i class="bi bi-check-lg"></i>
+            </button>
+            
+            <button type="button"
+                    class="btn btn-outline-secondary cancel-edit-btn"
+                    data-food-id="{{ food.id }}"
+                    style="display:none;"
+                    title="لغو">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            
+            <button type="button"
+                    class="btn btn-outline-danger delete-food-btn"
+                    data-food-id="{{ food.id }}"
+                    data-food-name="{{ food.food_name }}">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="3" class="text-center py-4">
+        <i class="bi bi-inbox display-4 text-muted"></i>
+        <p class="text-muted mt-2">هیچ غذایی با این فیلترها یافت نشد.</p>
+    </td>
+</tr>
+{% endfor %}

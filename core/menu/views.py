@@ -1,5 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect,get_object_or_404
+from django.template.loader import render_to_string
 from django.views.generic import TemplateView
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import DailyMenu,Food
 from reservations.models import Reservation
@@ -9,7 +11,111 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 import os
 
+
+
 # Create your views here.
+class FoodManagementView(LoginRequiredMixin, UserPassesTestMixin, View):
+    template_name = "admin/food_management.html"
+    
+    def test_func(self):
+        return self.request.user.is_staff
+    
+    def get(self, request):
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        
+        foods_list = Food.objects.all().order_by('food_name')
+        
+        food_name = request.GET.get('food_name')
+        if food_name:
+            foods_list = foods_list.filter(food_name__icontains=food_name)
+        
+        if is_ajax:
+            html = render_to_string(
+                'admin/partials/food_table_rows.html',
+                {'foods': foods_list},
+                request=request
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'html': html,
+                'total': foods_list.count(),
+            })
+        
+        return render(
+            request,
+            self.template_name,
+            {"foods": foods_list}
+        )
+    
+    def post(self, request):
+        if "add_food" in request.POST:
+            try:
+                # دریافت داده‌ها از فرم
+                food_name = request.POST.get("food_name")
+                food_image = request.FILES.get("food_image")
+                
+                # اعتبارسنجی
+                if not food_name or food_name.strip() == "":
+                    messages.error(request, "لطفاً نام غذا را وارد کنید.")
+                    return redirect("menu:food_management")
+                
+                # بررسی تکراری نبودن
+                if Food.objects.filter(food_name__iexact=food_name.strip()).exists():
+                    messages.error(request, f"غذایی با نام '{food_name}' قبلاً ثبت شده است.")
+                    return redirect("menu:food_management")
+                
+                # ایجاد غذا
+                food = Food.objects.create(
+                    food_name=food_name.strip(),
+                    food_image=food_image,
+                )
+                
+                messages.success(request, f"غذای {food.food_name} با موفقیت اضافه شد.")
+                
+            except Exception as e:
+                messages.error(request, f"خطا در ایجاد غذا: {str(e)}")
+        
+        return redirect("menu:food_management")
+
+
+class FoodDeleteView(LoginRequiredMixin, UserPassesTestMixin, View):
+    
+    def test_func(self):
+        return self.request.user.is_staff
+    
+    def post(self, request):
+        try:
+            food_id = request.POST.get('food_id')
+            if not food_id:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'شناسه غذا ارسال نشده است.'
+                })
+            
+            food = get_object_or_404(Food, id=food_id)
+            
+            # بررسی اینکه غذا در منوی روزانه استفاده نشده باشد
+            if DailyMenu.objects.filter(food=food).exists():
+                return JsonResponse({
+                    'success': False,
+                    'message': 'این غذا در منوی روزانه استفاده شده است. ابتدا آن را از منو حذف کنید.'
+                })
+            
+            food.delete()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'غذا با موفقیت حذف شد.'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'خطا در حذف غذا: {str(e)}'
+            })
+
+
 class CalendarView(LoginRequiredMixin, TemplateView):
     template_name = "menu/calendar.html"
 

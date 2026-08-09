@@ -24,7 +24,7 @@
                             <i class="bi bi-key"></i> تغییر رمز عبور
                         </a>
                         <a class="dropdown-item" href="#" id="manageFoods">
-                            <i class="bi bi-egg-fried"></i> تعریف غذا
+                            <i class="bi bi-egg"></i> تعریف غذا
                         </a>
                         <a class="dropdown-item" href="#" id="editFoods">
                             <i class="bi bi-pencil-square"></i> ویرایش غذاها
@@ -34,6 +34,9 @@
                         </a>
                         <a class="dropdown-item" href="{% url 'accounts:user_management' %}">
                             <i class="bi bi-people"></i> کاربران
+                        </a>
+                        <a class="dropdown-item" href="{% url 'menu:food_management' %}">
+                            <i class="bi bi-egg-fried"></i> مدیریت غذاها
                         </a>
                     </li>
                     <li><hr class="dropdown-divider"></li>
