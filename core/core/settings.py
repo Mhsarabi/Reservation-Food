@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'reservations.apps.ReservationsConfig',
     'menu.apps.MenuConfig',
-    'django_cleanup.apps.CleanupConfig'
+    'django_cleanup.apps.CleanupConfig',
+    'django_jalali',
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,41 @@
+{% load jformat %}
+
+{% for reservation in reservations %}
+<tr id="reservation-row-{{ reservation.id }}" class="reservation-row">
+    <td>
+        <span class="view-mode">{{ reservation.user.first_name }}</span>
+    </td>
+    <td>
+        <span class="view-mode">{{ reservation.user.last_name }}</span>
+    </td>
+    <td>
+        <span class="view-mode">{{ reservation.user.national_code }}</span>
+    </td>
+    <td>
+        <span class="view-mode">{{ reservation.menu.food.food_name }}</span>
+    </td>
+    <td>
+        <span class="view-mode">{{ reservation.reserve_time|jformat:"%Y/%m/%d %H:%M" }}</span>
+    </td>
+    <td>
+        <span class="view-mode">{{ reservation.menu.food_date|jformat:"%Y/%m/%d" }}</span>
+    </td>
+    <td>
+        <div class="btn-group btn-group-sm" role="group">
+            <button type="button"
+                    class="btn btn-outline-danger delete-reservation-btn"
+                    data-reservation-id="{{ reservation.id }}"
+                    data-reservation-info="{{ reservation.user.first_name }} {{ reservation.user.last_name }} - {{ reservation.menu.food.food_name }}">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="7" class="text-center py-4">
+        <i class="bi bi-inbox display-4 text-muted"></i>
+        <p class="text-muted mt-2">هیچ رزروی با این فیلترها یافت نشد.</p>
+    </td>
+</tr>
+{% endfor %}

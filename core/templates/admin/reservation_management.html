@@ -1,0 +1,390 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>مدیریت رزروها | الوان</title>
+
+    <!-- Bootstrap RTL -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <link rel="stylesheet" href="{% static 'css/reservation_management.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- HEADER و MODALS                                              -->
+<!-- ============================================================ -->
+{% include 'includes/admin_header.html' %}
+{% include 'includes/admin_modals.html' %}
+
+<!-- ============================================================ -->
+<!-- MAIN CONTENT – مدیریت رزروها                                 -->
+<!-- ============================================================ -->
+<div class="container-fluid mt-4">
+    <div class="card shadow">
+        <div class="card-header">
+            <h4><i class="bi bi-calendar-check"></i> مدیریت رزروهای سامانه</h4>
+        </div>
+        <div class="card-body">
+
+            <!-- ============================================================ -->
+            <!-- تب‌ها                                                       -->
+            <!-- ============================================================ -->
+            <ul class="nav nav-tabs mb-3" id="reservationTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" 
+                            id="reservations-tab" 
+                            data-bs-toggle="tab" 
+                            data-bs-target="#reservations-tab-pane" 
+                            type="button" 
+                            role="tab">
+                        <i class="bi bi-list-ul"></i> لیست رزروها
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" 
+                            id="report-tab" 
+                            data-bs-toggle="tab" 
+                            data-bs-target="#report-tab-pane" 
+                            type="button" 
+                            role="tab">
+                        <i class="bi bi-bar-chart"></i> گزارش تعداد رزرو
+                    </button>
+                </li>
+            </ul>
+
+            <!-- ============================================================ -->
+            <!-- محتوای تب‌ها                                                 -->
+            <!-- ============================================================ -->
+            <div class="tab-content" id="reservationTabsContent">
+
+                <!-- ============================================================ -->
+                <!-- تب 1: لیست رزروها                                            -->
+                <!-- ============================================================ -->
+                <div class="tab-pane fade show active" 
+                     id="reservations-tab-pane" 
+                     role="tabpanel" 
+                     aria-labelledby="reservations-tab">
+
+                    <!-- نمایش پیام‌های خطا و موفقیت -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                <i class="bi {% if message.tags == 'error' %}bi-exclamation-circle{% else %}bi-check-circle{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- فیلترهای تاریخ -->
+                    <form method="GET" action="{% url 'reservations:reservation_management' %}" id="dateFilterForm" class="row g-1 mb-3 align-items-end">
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-calendar3"></i> سال
+                            </label>
+                            <input type="text" 
+                                name="year"
+                                id="filterYear"
+                                class="form-control form-control-sm"
+                                value="{{ request.GET.year }}"
+                                placeholder="سال را وارد کنید..."
+                                list="yearList"
+                                autocomplete="off">
+                            <datalist id="yearList">
+                                {% for year in years %}
+                                    <option value="{{ year }}">
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-calendar-month"></i> ماه
+                            </label>
+                            <select name="month" id="filterMonth" class="form-select form-select-sm">
+                                <option value="">همه ماه‌ها</option>
+                                <option value="1" {% if request.GET.month == '1' %}selected{% endif %}>فروردین</option>
+                                <option value="2" {% if request.GET.month == '2' %}selected{% endif %}>اردیبهشت</option>
+                                <option value="3" {% if request.GET.month == '3' %}selected{% endif %}>خرداد</option>
+                                <option value="4" {% if request.GET.month == '4' %}selected{% endif %}>تیر</option>
+                                <option value="5" {% if request.GET.month == '5' %}selected{% endif %}>مرداد</option>
+                                <option value="6" {% if request.GET.month == '6' %}selected{% endif %}>شهریور</option>
+                                <option value="7" {% if request.GET.month == '7' %}selected{% endif %}>مهر</option>
+                                <option value="8" {% if request.GET.month == '8' %}selected{% endif %}>آبان</option>
+                                <option value="9" {% if request.GET.month == '9' %}selected{% endif %}>آذر</option>
+                                <option value="10" {% if request.GET.month == '10' %}selected{% endif %}>دی</option>
+                                <option value="11" {% if request.GET.month == '11' %}selected{% endif %}>بهمن</option>
+                                <option value="12" {% if request.GET.month == '12' %}selected{% endif %}>اسفند</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-calendar-start"></i> از تاریخ
+                            </label>
+                            <input type="text" 
+                                name="from_date"
+                                id="filterFromDate"
+                                class="form-control form-control-sm datepicker" 
+                                value="{{ request.GET.from_date }}"
+                                autocomplete="off"
+                                placeholder="از تاریخ...">
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-calendar-end"></i> تا تاریخ
+                            </label>
+                            <input type="text" 
+                                name="to_date"
+                                id="filterToDate"
+                                class="form-control form-control-sm datepicker" 
+                                value="{{ request.GET.to_date }}"
+                                autocomplete="off"
+                                placeholder="تا تاریخ...">
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="visibility: hidden;">
+                                <i class="bi bi-search"></i> عملیات
+                            </label>
+                            <div class="d-flex gap-1">
+                                <button type="submit" class="btn btn-primary btn-sm flex-fill">
+                                    <i class="bi bi-search"></i> اعمال فیلتر
+                                </button>
+                                <a href="{% url 'reservations:reservation_management' %}" class="btn btn-outline-danger btn-sm flex-fill">
+                                    <i class="bi bi-x-circle"></i> حذف فیلتر
+                                </a>
+                                <a href="#" 
+                                    class="btn btn-success btn-sm flex-fill"
+                                    title="دانلود لیست رزروها به صورت فایل اکسل"
+                                    id="exportExcelBtn">
+                                    <i class="bi bi-file-earmark-excel"></i> اکسل
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- جدول رزروها -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered reservation-table" id="reservationTable">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        نام
+                                        <input type="text" 
+                                               name="first_name"
+                                               class="form-control form-control-sm filter-input" 
+                                               value="{{ request.GET.first_name }}"
+                                               autocomplete="off"
+                                               data-filter="first_name"
+                                               placeholder="نام...">
+                                    </th>
+                                    <th>
+                                        نام خانوادگی
+                                        <input type="text" 
+                                               name="last_name"
+                                               class="form-control form-control-sm filter-input" 
+                                               value="{{ request.GET.last_name }}"
+                                               autocomplete="off"
+                                               data-filter="last_name"
+                                               placeholder="نام خانوادگی...">
+                                    </th>
+                                    <th>
+                                        کد ملی
+                                        <input type="text" 
+                                               name="national_code"
+                                               class="form-control form-control-sm filter-input" 
+                                               value="{{ request.GET.national_code }}"
+                                               autocomplete="off"
+                                               data-filter="national_code"
+                                               placeholder="کد ملی...">
+                                    </th>
+                                    <th>
+                                        غذا
+                                        <input type="text" 
+                                               name="food_name"
+                                               class="form-control form-control-sm filter-input" 
+                                               value="{{ request.GET.food_name }}"
+                                               autocomplete="off"
+                                               data-filter="food_name"
+                                               placeholder="نام غذا...">
+                                    </th>
+                                    <th>
+                                        تاریخ رزرو
+                                        <span class="d-block text-muted small">&nbsp;</span>
+                                    </th>
+                                    <th>
+                                        تاریخ ارائه غذا
+                                        <span class="d-block text-muted small">&nbsp;</span>
+                                    </th>
+                                    <th>
+                                        عملیات
+                                        <span class="d-block text-muted small">&nbsp;</span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="reservationTableBody">
+                                {% if reservations %}
+                                    {% include 'admin/partials/reservation_table_rows.html' %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4">
+                                            <i class="bi bi-inbox display-4 text-muted"></i>
+                                            <p class="text-muted mt-2">هیچ رزروی یافت نشد.</p>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="new-reservation">
+                                    <form method="POST" action="{% url 'reservations:reservation_management' %}" id="addReservationForm" novalidate>
+                                        {% csrf_token %}
+                                        <td>
+                                            <select name="user_id" class="form-select form-select-sm user-select" required style="width:100%;">
+                                                <option value="">جستجوی کاربر...</option>
+                                                {% for user in users %}
+                                                    <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }} ({{ user.national_code }})</option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted small">به صورت خودکار</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted small">به صورت خودکار</span>
+                                        </td>
+                                        <td>
+                                            <select name="menu_id" class="form-select form-select-sm" required>
+                                                <option value="">انتخاب غذا</option>
+                                                {% for menu in menus %}
+                                                    <option value="{{ menu.id }}">{{ menu.food.food_name }} - {{ menu.food_date|date:"Y/m/d" }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted small">به صورت خودکار</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted small">تاریخ منو</span>
+                                        </td>
+                                        <td>
+                                            <button type="submit" class="btn btn-success btn-sm" name="add_reservation">
+                                                <i class="bi bi-plus-lg"></i> افزودن رزرو
+                                            </button>
+                                        </td>
+                                    </form>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- تب 2: گزارش تعداد رزرو کاربران                               -->
+                <!-- ============================================================ -->
+                <div class="tab-pane fade" 
+                     id="report-tab-pane" 
+                     role="tabpanel" 
+                     aria-labelledby="report-tab">
+
+                    <!-- فیلترهای گزارش -->
+                    <div class="row g-2 mb-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-calendar3"></i> سال
+                            </label>
+                            <input type="number" 
+                                   id="reportYear" 
+                                   class="form-control form-control-sm" 
+                                   value="{{ current_year }}"
+                                   min="1400"
+                                   max="1500">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-calendar-month"></i> ماه
+                            </label>
+                            <select id="reportMonth" class="form-select form-select-sm">
+                                <option value="1" {% if current_month == 1 %}selected{% endif %}>فروردین</option>
+                                <option value="2" {% if current_month == 2 %}selected{% endif %}>اردیبهشت</option>
+                                <option value="3" {% if current_month == 3 %}selected{% endif %}>خرداد</option>
+                                <option value="4" {% if current_month == 4 %}selected{% endif %}>تیر</option>
+                                <option value="5" {% if current_month == 5 %}selected{% endif %}>مرداد</option>
+                                <option value="6" {% if current_month == 6 %}selected{% endif %}>شهریور</option>
+                                <option value="7" {% if current_month == 7 %}selected{% endif %}>مهر</option>
+                                <option value="8" {% if current_month == 8 %}selected{% endif %}>آبان</option>
+                                <option value="9" {% if current_month == 9 %}selected{% endif %}>آذر</option>
+                                <option value="10" {% if current_month == 10 %}selected{% endif %}>دی</option>
+                                <option value="11" {% if current_month == 11 %}selected{% endif %}>بهمن</option>
+                                <option value="12" {% if current_month == 12 %}selected{% endif %}>اسفند</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" 
+                                    id="generateReportBtn" 
+                                    class="btn btn-primary btn-sm w-100">
+                                <i class="bi bi-search"></i> نمایش گزارش
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" 
+                                    id="exportReportExcelBtn" 
+                                    class="btn btn-success btn-sm w-100">
+                                <i class="bi bi-file-earmark-excel"></i> خروجی اکسل
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- جدول گزارش -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered report-table" id="reportTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>نام</th>
+                                    <th>نام خانوادگی</th>
+                                    <th>کد ملی</th>
+                                    <th>تعداد رزرو</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody">
+                                <!-- داده‌ها توسط JS پر می‌شود -->
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">در حال بارگذاری...</span>
+                                        </div>
+                                        <p class="text-muted mt-2">در حال دریافت گزارش...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCRIPTS                                                      -->
+<!-- ============================================================ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+<script src="{% static 'js/admin_toolBar.js' %}"></script>
+<script src="{% static 'js/reservation_management.js' %}"></script>
+
+</body>
+</html>
