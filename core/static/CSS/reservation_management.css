@@ -8,7 +8,7 @@
 .card-header {
     background: white;
     padding: 8px 16px !important;
-    border-bottom: none;  /* ✅ این خط را اضافه کنید یا به none تغییر دهید */
+    border-bottom: none;
 }
 
 .card-header h4 {
@@ -25,6 +25,7 @@
     color: #2563eb;
     font-size: 1.3rem;
 }
+
 /* ============================================================
    2. استایل‌های card-body
    ============================================================ */
@@ -33,69 +34,42 @@
 }
 
 /* ============================================================
-   3. فیلترهای تاریخ (بالای جدول) - ارتفاع کمتر
+   3. فیلترهای تاریخ (بالای جدول)
    ============================================================ */
 #dateFilterForm {
     background: #f8f9fa;
-    padding: 2px 12px !important;  /* ✅ کاهش padding از 12px به 6px */
+    padding: 2px 10px 4px 10px !important;
     border-radius: 8px;
     border: 1px solid #e9ecef;
-    margin-bottom: 10px;  /* ✅ کاهش margin */
-}
-
-#dateFilterForm .form-label {
-    font-size: 0.75rem;  /* ✅ کوچک‌تر */
-    color: #495057;
-    font-weight: 600;
-    margin-bottom: 2px !important;  /* ✅ کاهش فاصله */
-}
-
-#dateFilterForm .form-control-sm {
-    font-size: 0.75rem;
-    height: 24px !important;  /* ✅ کاهش ارتفاع */
-    padding: 2px 6px !important;  /* ✅ کاهش padding */
-}
-
-#dateFilterForm .btn-sm {
-    font-size: 0.75rem;
-    height: 24px !important;  /* ✅ کاهش ارتفاع */
-    padding: 2px 8px !important;  /* ✅ کاهش padding */
-}
-
-#dateFilterForm .col-md-3,
-#dateFilterForm .col-md-2 {
-    margin-bottom: 0 !important;  /* ✅ حذف فاصله بین ستون‌ها */
-}
-
-#dateFilterForm .row {
-    margin: 0 !important;
-}
-
-#dateFilterForm .badge {
-    font-size: 0.7rem;
-    padding: 3px 8px;
+    margin-bottom: 6px !important;
 }
 
 #dateFilterForm .form-label {
     font-size: 0.85rem;
     color: #495057;
     font-weight: 600;
+    margin-bottom: 2px !important;
 }
 
 #dateFilterForm .form-control-sm {
     font-size: 0.8rem;
     height: 32px;
+    padding: 2px 6px !important;
 }
 
 #dateFilterForm .btn-sm {
     font-size: 0.8rem;
     height: 32px;
+    padding: 2px 8px !important;
 }
 
-#dateFilterForm{
-    background:#f8f9fa;
-    padding:2px 10px 4px 10px !important;
-    margin-bottom:6px !important;
+#dateFilterForm .col-md-3,
+#dateFilterForm .col-md-2 {
+    margin-bottom: 0 !important;
+}
+
+#dateFilterForm .row {
+    margin: 0 !important;
 }
 
 /* ============================================================
@@ -108,87 +82,68 @@
 }
 
 .reservation-table thead th {
-    background: #2563eb !important;  
+    background: #2563eb !important;
     color: white !important;
     font-weight: 600 !important;
-    padding: 4px 6px !important;
+    padding: 6px 8px !important;  /* ✅ افزایش padding */
     white-space: nowrap;
-    font-size: 0.85rem;
+    font-size: 0.9rem;  /* ✅ افزایش فونت */
     vertical-align: middle !important;
     height: auto;
-    min-height: 28px;
-    border: 1px solid #1a1a2e !important;  
+    min-height: 32px;  /* ✅ افزایش ارتفاع */
+    border: 1px solid #1a1a2e !important;
 }
 
 .reservation-table td {
-    padding: 4px 6px !important;
+    padding: 6px 8px !important;  /* ✅ افزایش padding */
     vertical-align: middle;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
 }
 
 /* ============================================================
-   تنظیمات هدرهای جدول گزارش - هماهنگ با جدول اول
+   5. فیلترهای داخل جدول
    ============================================================ */
-#reportTable thead th {
-    background: #2563eb !important;  
-    color: white !important;
-    font-weight: 600 !important;
-    padding: 4px 6px !important;
-    white-space: nowrap;
-    font-size: 0.85rem;
-    vertical-align: middle !important;
-    height: auto;
-    min-height: 28px;
-    text-align: center !important;
-    border: 1px solid #1a1a2e !important; 
-}
-
-/* ============================================================
-   5. فیلترهای داخل جدول - رنگ عادی (بدون آبی)
-   ============================================================ */
-.reservation-table th .filter-input {
+.reservation-table thead th .filter-input {
     display: block;
     width: 100%;
-    margin-top: 2px;
-    font-size: 0.7rem !important;
-    padding: 2px 4px !important;
-    height: 22px !important;
-    min-width: 50px !important;
-    border-radius: 4px;
-    /* ✅ حذف رنگ آبی و تنظیم رنگ عادی */
-    background: white !important;  /* پس‌زمینه سفید */
-    border: 1px solid #ced4da !important;  /* حاشیه خاکستری */
-    color: #212529 !important;  /* متن مشکی */
-}
-
-.reservation-table th .filter-input:focus {
-    background: white !important;
-    border-color: #86b7fe !important;
-    outline: 0;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
-
-.reservation-table th .filter-input::placeholder {
-    color: #6c757d !important;  /* رنگ placeholder خاکستری */
-    opacity: 1;
-}
-
-/* اگر select هم دارید */
-.reservation-table th .filter-select {
-    display: block;
-    width: 100%;
-    margin-top: 2px;
-    font-size: 0.7rem !important;
-    padding: 2px 4px !important;
-    height: 22px !important;
-    min-width: 50px !important;
+    margin-top: 4px;
+    font-size: 0.8rem !important;  /* ✅ افزایش فونت */
+    padding: 4px 6px !important;  /* ✅ افزایش padding */
+    height: 28px !important;  /* ✅ افزایش ارتفاع */
+    min-width: 70px !important;  /* ✅ افزایش عرض */
     border-radius: 4px;
     background: white !important;
     border: 1px solid #ced4da !important;
     color: #212529 !important;
 }
 
-.reservation-table th .filter-select:focus {
+.reservation-table thead th .filter-input:focus {
+    background: white !important;
+    border-color: #86b7fe !important;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.reservation-table thead th .filter-input::placeholder {
+    color: #6c757d !important;
+    opacity: 1;
+}
+
+.reservation-table thead th .filter-select {
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+    font-size: 0.8rem !important;
+    padding: 4px 6px !important;
+    height: 28px !important;
+    min-width: 70px !important;
+    border-radius: 4px;
+    background: white !important;
+    border: 1px solid #ced4da !important;
+    color: #212529 !important;
+}
+
+.reservation-table thead th .filter-select:focus {
     border-color: #86b7fe !important;
     outline: 0;
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
@@ -264,17 +219,17 @@
         margin-bottom: 8px;
     }
     
-    .reservation-table th,
+    .reservation-table thead th,
     .reservation-table td {
         padding: 4px 4px !important;
         font-size: 0.75rem;
     }
     
-    .reservation-table th .filter-input {
-        font-size: 0.6rem !important;
-        height: 18px !important;
-        padding: 1px 3px !important;
-        min-width: 30px !important;
+    .reservation-table thead th .filter-input {
+        font-size: 0.7rem !important;
+        height: 22px !important;
+        padding: 2px 4px !important;
+        min-width: 50px !important;
     }
 }
 
@@ -327,7 +282,6 @@
     background-color: #2563eb !important;
 }
 
-/* invalid state for select2 */
 .select2-container.is-invalid .select2-selection {
     border-color: #dc3545 !important;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
@@ -345,76 +299,59 @@
 }
 
 /* ============================================================
-   استایل‌های جدول گزارش - هماهنگ با جدول اول
+   11. استایل‌های جدول گزارش - هماهنگ با جدول اول
    ============================================================ */
 
-/* جدول گزارش از کلاس reservation-table استفاده می‌کند */
-/* بنابراین تمام استایل‌های reservation-table قبلاً اعمال شده */
-
-/* تنظیمات اضافی برای ستون ردیف */
-#reportTable th:first-child {
-    width: 50px !important;
-    min-width: 50px !important;
-    max-width: 50px !important;
+#reportTable th,
+#reportTable td {
+    padding: 6px 8px !important;
+    vertical-align: middle !important;
+    font-size: 0.9rem !important;
+    text-align: center !important;
 }
 
-/* تنظیمات برای ستون تعداد رزرو */
-#reportTable th:last-child {
-    width: 100px !important;
-    min-width: 100px !important;
-    max-width: 100px !important;
+#reportTable thead th {
+    background: #2563eb !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 6px 8px !important;
+    white-space: nowrap;
+    font-size: 0.9rem !important;
+    vertical-align: middle !important;
+    height: auto;
+    min-height: 32px;
+    text-align: center !important;
+    border: 1px solid #1a1a2e !important;
 }
 
-/* استایل خاص برای فیلترهای جدول گزارش */
-#reportTable .filter-input {
+#reportTable .report-filter-input,
+#reportTable .report-filter-select {
     display: block;
     width: 100%;
-    margin-top: 2px;
-    font-size: 0.7rem !important;
-    padding: 2px 4px !important;
-    height: 22px !important;
-    min-width: 50px !important;
+    margin-top: 4px;
+    font-size: 0.8rem !important;
+    padding: 4px 6px !important;
+    height: 28px !important;
+    min-width: 70px !important;
     border-radius: 4px;
     background: white !important;
     border: 1px solid #ced4da !important;
     color: #212529 !important;
 }
 
-#reportTable .filter-input:focus {
+#reportTable .report-filter-input:focus,
+#reportTable .report-filter-select:focus {
     background: white !important;
     border-color: #86b7fe !important;
     outline: 0;
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
-#reportTable .filter-input::placeholder {
+#reportTable .report-filter-input::placeholder {
     color: #6c757d !important;
     opacity: 1;
 }
 
-/* تنظیمات هدرهای جدول گزارش برای هماهنگی */
-#reportTable th {
-    background: #2563eb !important;
-    color: white !important;
-    font-weight: 600 !important;
-    padding: 4px 6px !important;
-    white-space: nowrap;
-    font-size: 0.85rem;
-    vertical-align: middle !important;
-    height: auto;
-    min-height: 28px;
-    text-align: center !important;
-    border: 1px solid #1a4f8b !important;
-}
-
-#reportTable td {
-    padding: 4px 6px !important;
-    vertical-align: middle !important;
-    font-size: 0.85rem !important;
-    text-align: center !important;
-}
-
-/* سطرهای زوج و فرد برای جدول گزارش */
 #reportTable tbody tr:nth-child(even) {
     background-color: #f8f9fa !important;
 }
@@ -423,7 +360,6 @@
     background-color: #e9ecef !important;
 }
 
-/* استایل پیام خالی برای جدول گزارش */
 #reportTable .text-center.py-4 {
     background-color: #ffffff !important;
 }
@@ -436,45 +372,28 @@
     color: #6c757d !important;
 }
 
-/* استایل دکمه‌های داخل جدول گزارش (اگر وجود داشته باشند) */
-#reportTable .btn-sm {
-    font-size: 0.75rem !important;
-    padding: 4px 10px !important;
-}
-
-/* استایل فیلترهای جدول گزارش در حالت کوچک */
 @media (max-width: 768px) {
-    #reportTable th,
+    #reportTable thead th,
     #reportTable td {
         padding: 4px 4px !important;
         font-size: 0.75rem !important;
     }
     
-    #reportTable .filter-input {
-        font-size: 0.6rem !important;
-        height: 18px !important;
-        padding: 1px 3px !important;
-        min-width: 30px !important;
-    }
-    
-    #reportTable th:first-child {
-        width: 30px !important;
-        min-width: 30px !important;
-        max-width: 30px !important;
-    }
-    
-    #reportTable th:last-child {
-        width: 60px !important;
-        min-width: 60px !important;
-        max-width: 60px !important;
+    #reportTable .report-filter-input,
+    #reportTable .report-filter-select {
+        font-size: 0.7rem !important;
+        height: 22px !important;
+        padding: 2px 4px !important;
+        min-width: 50px !important;
     }
 }
 
-/* استایل برای فیلترهای جدول گزارش - هماهنگ با کلاس filter-input */
-#reportTable .filter-input.is-invalid {
+#reportTable .report-filter-input.is-invalid,
+#reportTable .report-filter-select.is-invalid {
     border-color: #dc3545 !important;
 }
 
-#reportTable .filter-input.is-invalid:focus {
+#reportTable .report-filter-input.is-invalid:focus,
+#reportTable .report-filter-select.is-invalid:focus {
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
 }

@@ -54,7 +54,7 @@
             <form method="GET" action="{% url 'reservations:reservation_management' %}" id="dateFilterForm" class="row g-2 mb-3 align-items-end">
                 <div class="col-md-2">
                     <label class="form-label fw-bold"><i class="bi bi-calendar3"></i> سال</label>
-                    <input type="text" name="year" id="filterYear" class="form-control form-control-sm" value="{{ request.GET.year }}" placeholder="سال..." list="yearList" autocomplete="off">
+                    <input type="text" name="year" id="filterYear" class="form-control form-control-sm" value="{{ request.GET.year }}" list="yearList" autocomplete="off">
                     <datalist id="yearList">
                         {% for year in years %}
                             <option value="{{ year }}">
@@ -83,12 +83,12 @@
                 
                 <div class="col-md-2">
                     <label class="form-label fw-bold"><i class="bi bi-calendar-event"></i> از تاریخ</label>
-                    <input type="text" name="from_date" id="filterFromDate" class="form-control form-control-sm datepicker" value="{{ request.GET.from_date }}" autocomplete="off" placeholder="از تاریخ...">
+                    <input type="text" name="from_date" id="filterFromDate" class="form-control form-control-sm datepicker" value="{{ request.GET.from_date }}" autocomplete="off">
                 </div>
                 
                 <div class="col-md-2">
                     <label class="form-label fw-bold"><i class="bi bi-calendar-event-fill"></i> تا تاریخ</label>
-                    <input type="text" name="to_date" id="filterToDate" class="form-control form-control-sm datepicker" value="{{ request.GET.to_date }}" autocomplete="off" placeholder="تا تاریخ...">
+                    <input type="text" name="to_date" id="filterToDate" class="form-control form-control-sm datepicker" value="{{ request.GET.to_date }}" autocomplete="off">
                 </div>
                 
                 <div class="col-md-4">
@@ -112,19 +112,19 @@
                             <tr>
                                 <th>
                                     نام
-                                    <input type="text" name="first_name" class="form-control form-control-sm filter-input" value="{{ request.GET.first_name }}" placeholder="نام...">
+                                    <input type="text" name="first_name" class="form-control form-control-sm filter-input" value="{{ request.GET.first_name }}">
                                 </th>
                                 <th>
                                     نام خانوادگی
-                                    <input type="text" name="last_name" class="form-control form-control-sm filter-input" value="{{ request.GET.last_name }}" placeholder="نام خانوادگی...">
+                                    <input type="text" name="last_name" class="form-control form-control-sm filter-input" value="{{ request.GET.last_name }}">
                                 </th>
                                 <th>
                                     کد ملی
-                                    <input type="text" name="national_code" class="form-control form-control-sm filter-input" value="{{ request.GET.national_code }}" placeholder="کد ملی...">
+                                    <input type="text" name="national_code" class="form-control form-control-sm filter-input" value="{{ request.GET.national_code }}">
                                 </th>
                                 <th>
                                     غذا
-                                    <input type="text" name="food_name" class="form-control form-control-sm filter-input" value="{{ request.GET.food_name }}" placeholder="نام غذا...">
+                                    <input type="text" name="food_name" class="form-control form-control-sm filter-input" value="{{ request.GET.food_name }}">
                                 </th>
                                 <th>تاریخ رزرو</th>
                                 <th>تاریخ ارائه غذا</th>

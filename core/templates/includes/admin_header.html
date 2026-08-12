@@ -19,32 +19,66 @@
                     admin
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
+                    
+                    <!-- ========================================================== -->
+                    <!-- Quick Access  -->
+                    <!-- ========================================================== -->
+                    <li class="dropdown-header text-muted small px-3 py-1">
+                        <i class="bi bi-lightning-fill text-warning"></i> دسترسی‌های سریع
+                    </li>
                     <li>
                         <a class="dropdown-item" href="#" id="changePassword">
                             <i class="bi bi-key"></i> تغییر رمز عبور
                         </a>
+                    </li>
+                    <li>
                         <a class="dropdown-item" href="#" id="manageFoods">
                             <i class="bi bi-egg"></i> تعریف غذا
                         </a>
+                    </li>
+                    <li>
                         <a class="dropdown-item" href="#" id="editFoods">
                             <i class="bi bi-pencil-square"></i> ویرایش غذاها
                         </a>
+                    </li>
+                    <li>
                         <a class="dropdown-item" href="#" id="monthlyReport">
-                            <i class="bi bi-file-earmark-bar-graph"></i> گزارش گیری
+                            <i class="bi bi-file-earmark-bar-graph"></i> گزارش‌گیری
                         </a>
+                    </li>
+                    
+                    <li><hr class="dropdown-divider"></li>
+                    
+                    <!-- ========================================================== -->
+                    <!--  Full manage    -->
+                    <!-- ========================================================== -->
+                    <li class="dropdown-header text-muted small px-3 py-1">
+                        <i class="bi bi-grid-3x3-gap-fill text-primary"></i> مدیریت
+                    </li>
+                    <li>
                         <a class="dropdown-item" href="{% url 'reservations:user_report' %}">
-                             <i class="bi bi-bar-chart"></i> گزارش کاربران
+                            <i class="bi bi-bar-chart"></i> گزارش کاربران
                         </a>
+                    </li>
+                    <li>
                         <a class="dropdown-item" href="{% url 'reservations:reservation_management' %}">
                             <i class="bi bi-calendar-check"></i> مدیریت رزروها
                         </a>
+                    </li>
+                    <li>
                         <a class="dropdown-item" href="{% url 'accounts:user_management' %}">
-                            <i class="bi bi-people"></i> کاربران
+                            <i class="bi bi-people"></i> مدیریت کاربران
                         </a>
+                    </li>
+                    <li>
                         <a class="dropdown-item" href="{% url 'menu:food_management' %}">
                             <i class="bi bi-egg-fried"></i> مدیریت غذاها
                         </a>
                     </li>
+                    
+                    <!-- ========================================================== -->
+                    <!-- جداکننده و خروج                                           -->
+                    <!-- ========================================================== -->
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">

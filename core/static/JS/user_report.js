@@ -1,10 +1,8 @@
 // ============================================================
-// User Report JS - گزارش کاربران (صفحه جداگانه)
+// User Report JS
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", function() {
-
-    console.log("🚀 User Report DOM ready");
 
     const reportTableBody = document.getElementById("reportTableBody");
     const reportFilterForm = document.getElementById("userReportFilterForm");
@@ -15,13 +13,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const exportReportExcel = document.getElementById("exportReportExcel");
     const clearReportFilter = document.getElementById("clearReportFilter");
 
-    if (!reportTableBody) {
-        console.log("ℹ️ Report table not found");
-        return;
-    }
-
     // --------------------------------------------
-    // ساخت پارامترهای فیلتر
+    // Get filter parameters
     // --------------------------------------------
 
     function getReportFilters() {
@@ -30,12 +23,15 @@ document.addEventListener("DOMContentLoaded", function() {
         if (reportYear && reportYear.value.trim()) {
             params.set("year", reportYear.value.trim());
         }
+
         if (reportMonth && reportMonth.value) {
             params.set("month", reportMonth.value);
         }
+
         if (reportFromDate && reportFromDate.value.trim()) {
             params.set("from_date", reportFromDate.value.trim());
         }
+
         if (reportToDate && reportToDate.value.trim()) {
             params.set("to_date", reportToDate.value.trim());
         }
@@ -47,11 +43,18 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
+        document.querySelectorAll(".report-filter-select").forEach(function(select) {
+            const value = select.value.trim();
+            if (value) {
+                params.set(select.name, value);
+            }
+        });
+
         return params;
     }
 
     // --------------------------------------------
-    // دریافت AJAX گزارش
+    // Fetch report via AJAX
     // --------------------------------------------
 
     async function fetchUserReport() {
@@ -61,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!year && !month) {
             reportTableBody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center py-4">
+                    <td colspan="8" class="text-center py-4">
                         <i class="bi bi-inbox display-4 text-muted"></i>
                         <p class="text-muted mt-2">برای مشاهده گزارش، سال و ماه را انتخاب کنید.</p>
                     </td>
@@ -71,12 +74,11 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         const params = getReportFilters();
-        console.log("📤 FILTER PARAMS:", params.toString());
         const url = `/reservations/Alvan/user-report/?${params.toString()}`;
 
         reportTableBody.innerHTML = `
             <tr>
-                <td colspan="9" class="text-center py-4">
+                <td colspan="8" class="text-center py-4">
                     <div class="spinner-border text-primary" role="status"></div>
                     <p class="text-muted mt-2 mb-0">در حال دریافت گزارش...</p>
                 </td>
@@ -94,18 +96,17 @@ document.addEventListener("DOMContentLoaded", function() {
             });
 
             if (!response.ok) {
-                throw new Error(`خطای HTTP ${response.status}`);
+                throw new Error(`HTTP Error: ${response.status}`);
             }
 
             const data = await response.json();
 
             if (data.success && data.html) {
                 reportTableBody.innerHTML = data.html;
-                console.log("✅ Report updated successfully");
             } else {
                 reportTableBody.innerHTML = `
                     <tr>
-                        <td colspan="9" class="text-center py-4">
+                        <td colspan="8" class="text-center py-4">
                             <i class="bi bi-inbox display-4 text-muted"></i>
                             <p class="text-muted mt-2">داده‌ای یافت نشد.</p>
                         </td>
@@ -117,7 +118,7 @@ document.addEventListener("DOMContentLoaded", function() {
             console.error("❌ Error:", error);
             reportTableBody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center py-4 text-danger">
+                    <td colspan="8" class="text-center py-4 text-danger">
                         <i class="bi bi-exclamation-triangle display-4"></i>
                         <p class="mt-3 mb-1">خطا در دریافت گزارش</p>
                     </td>
@@ -127,10 +128,86 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // --------------------------------------------
-    // رویدادها
+    // Download Excel without page refresh
     // --------------------------------------------
 
-    // Submit فرم
+    async function downloadExcel() {
+        const params = getReportFilters();
+        params.set("export", "excel");
+        const url = `/reservations/Alvan/user-report/?${params.toString()}`;
+
+        if (exportReportExcel) {
+            exportReportExcel.disabled = true;
+            exportReportExcel.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                credentials: "same-origin"
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status}`);
+            }
+
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'گزارش.xlsx';
+
+            if (contentDisposition) {
+                const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+                if (utf8Match && utf8Match[1]) {
+                    try {
+                        filename = decodeURIComponent(utf8Match[1]);
+                    } catch (e) {
+                        filename = utf8Match[1];
+                    }
+                } else {
+                    const match = contentDisposition.match(/filename="([^"]+)"/);
+                    if (match && match[1]) {
+                        let raw = match[1];
+                        if (raw.includes('%')) {
+                            try {
+                                filename = decodeURIComponent(raw);
+                            } catch (e) {
+                                filename = raw;
+                            }
+                        } else {
+                            filename = raw;
+                        }
+                    }
+                }
+            }
+
+            const blob = await response.blob();
+            const urlBlob = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = urlBlob;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(urlBlob);
+
+        } catch (error) {
+            console.error('❌ Excel download error:', error);
+            alert('خطا در دانلود فایل اکسل. لطفاً مجدداً تلاش کنید.');
+        } finally {
+            // Restore button state
+            if (exportReportExcel) {
+                exportReportExcel.disabled = false;
+                exportReportExcel.innerHTML = '<i class="bi bi-file-earmark-excel me-1"></i> اکسل';
+            }
+        }
+    }
+
+    // --------------------------------------------
+    // Event listeners
+    // --------------------------------------------
+
     if (reportFilterForm) {
         reportFilterForm.addEventListener("submit", function(event) {
             event.preventDefault();
@@ -138,7 +215,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // تغییر سال - بارگذاری خودکار
     if (reportYear) {
         reportYear.addEventListener("change", function() {
             if (reportYear.value.trim() && reportMonth && reportMonth.value) {
@@ -147,17 +223,14 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // تغییر ماه - بارگذاری خودکار
     if (reportMonth) {
         reportMonth.addEventListener("change", function() {
-            console.log("🟢 MONTH CHANGED:", reportMonth.value);
             if (reportMonth.value && reportYear && reportYear.value.trim()) {
                 fetchUserReport();
             }
         });
     }
 
-    // فیلتر لحظه‌ای متنی
     let searchTimeout = null;
     document.querySelectorAll(".report-filter-input").forEach(function(input) {
         input.addEventListener("input", function() {
@@ -166,22 +239,33 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // حذف فیلتر
+    document.querySelectorAll(".report-filter-select").forEach(function(select) {
+        select.addEventListener("change", function() {
+            fetchUserReport();
+        });
+    });
+
     if (clearReportFilter) {
         clearReportFilter.addEventListener("click", function(event) {
             event.preventDefault();
+
             if (reportYear) reportYear.value = "";
             if (reportMonth) reportMonth.value = "";
+
             if (reportFromDate) reportFromDate.value = "";
             if (reportToDate) reportToDate.value = "";
+
             document.querySelectorAll(".report-filter-input").forEach(function(input) {
                 input.value = "";
             });
-            
-            // بعد از پاک کردن، پیام اولیه را نشان بده
+
+            document.querySelectorAll(".report-filter-select").forEach(function(select) {
+                select.value = "";
+            });
+
             reportTableBody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center py-4">
+                    <td colspan="8" class="text-center py-4">
                         <i class="bi bi-inbox display-4 text-muted"></i>
                         <p class="text-muted mt-2">برای مشاهده گزارش، سال و ماه را انتخاب کنید.</p>
                     </td>
@@ -190,18 +274,15 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // خروجی Excel
     if (exportReportExcel) {
         exportReportExcel.addEventListener("click", function(event) {
             event.preventDefault();
-            const params = getReportFilters();
-            params.set("export", "excel");
-            window.location.href = `/reservations/Alvan/user-report/?${params.toString()}`;
+            downloadExcel();
         });
     }
 
     // --------------------------------------------
-    // Datepicker
+    // Persian Datepicker initialization
     // --------------------------------------------
 
     if (typeof $ !== "undefined" && $.fn.persianDatepicker) {
@@ -215,13 +296,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // --------------------------------------------
-    // بارگذاری اولیه گزارش
+    // Initial load - auto fetch if year and month have values
     // --------------------------------------------
 
-    // اگر سال و ماه مقدار دارند (که در ویو مقداردهی شده‌اند)، گزارش را بارگذاری کن
     if (reportYear && reportYear.value.trim() && reportMonth && reportMonth.value) {
-        console.log("📅 Loading initial report for:", reportYear.value, reportMonth.value);
-        // با تاخیر کوتاه برای اطمینان از آماده بودن DOM
         setTimeout(fetchUserReport, 300);
     }
 

@@ -23,7 +23,7 @@
 {% include 'includes/admin_modals.html' %}
 
 <!-- ============================================================ -->
-<!-- MAIN CONTENT – لیست غذاها                                    -->
+<!-- MAIN CONTENT – list of foods                                 -->
 <!-- ============================================================ -->
 <div class="container-fluid mt-4">
     <div class="card shadow">
@@ -41,10 +41,9 @@
                     {% endfor %}
                 {% endif %}
                 
-     <!-- ================= جدول غذاها ================= -->
+     <!-- ================= Table of food ================= -->
      <div class="table-responsive">
 
-        <!-- فرم افزودن غذا -->
         <form method="POST"
             action="{% url 'menu:food_management' %}"
             id="addFoodForm"
@@ -152,16 +151,9 @@
 <!-- SCRIPTS                                                      -->
 <!-- ============================================================ -->
 
-<!-- 1. Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- 2. jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-<!-- 3. admin_toolbar.js -->
 <script src="{% static 'js/admin_toolbar.js' %}"></script>
-
-<!-- 4. food_management.js -->
 <script src="{% static 'js/food_management.js' %}"></script>
 
 </body>

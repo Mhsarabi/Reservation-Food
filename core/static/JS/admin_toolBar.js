@@ -233,7 +233,6 @@ function initDatepickers() {
 // راه‌اندازی اولیه
 // ===========================
 document.addEventListener("DOMContentLoaded", function() {
-    console.log("✅ Admin ToolBar JS loaded!");
     
     // ============================================================
     // ✅ مدیریت بسته شدن همه مودال‌ها (مهم!)
@@ -792,20 +791,56 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (!response.ok) {
                     throw new Error(`خطا: ${response.status}`);
                 }
-                return response.blob();
+                
+                // دریافت نام فایل از هدر
+                const contentDisposition = response.headers.get("Content-Disposition");
+                console.log("📄 Content-Disposition:", contentDisposition); // برای دیباگ
+                
+                let filename = `گزارش_${year}_${month}.xlsx`;
+
+                if (contentDisposition) {
+                    // ✅ روش صحیح: ابتدا filename معمولی را بگیر و decode کن
+                    const match = contentDisposition.match(/filename="([^"]+)"/);
+                    if (match && match[1]) {
+                        let rawFilename = match[1];
+                        // اگر شامل % بود، decode کن
+                        if (rawFilename.includes('%')) {
+                            try {
+                                filename = decodeURIComponent(rawFilename);
+                            } catch (e) {
+                                filename = rawFilename;
+                            }
+                        } else {
+                            filename = rawFilename;
+                        }
+                    }
+                    
+                    // اگر filename* هم بود (UTF-8)، آن را در نظر بگیر
+                    const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+                    if (utf8Match && utf8Match[1]) {
+                        try {
+                            filename = decodeURIComponent(utf8Match[1]);
+                        } catch (e) {
+                            // اگر نشد، همان را نگه دار
+                        }
+                    }
+                }
+                
+                console.log("📄 Extracted filename:", filename); // برای دیباگ
+                
+                return response.blob().then(blob => ({ blob, filename }));
             })
-            .then(blob => {
+            .then(({ blob, filename }) => {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `monthly_report_${year}_${month}.xlsx`;
+                a.download = filename;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);
             })
             .catch(error => {
-                console.error('❌ Error:', error);
                 alert(`❌ خطا در دریافت گزارش: ${error.message}`);
             })
             .finally(() => {
@@ -814,9 +849,9 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         });
     }
-    
+
     // ============================================================
-    // 14. رویداد: گزارش بازه زمانی
+    // 14. رویداد: گزارش بازه زمانی (اصلاح شده)
     // ============================================================
     const generateRangeReportBtn = document.getElementById("generateRangeReport");
     if (generateRangeReportBtn) {
@@ -835,6 +870,7 @@ document.addEventListener("DOMContentLoaded", function() {
             
             const csrfToken = getCSRFToken();
             
+            // ✅ استفاده از fetch با response.blob() مانند گزارش ماهانه
             fetch('/reservations/report-range/', {
                 method: 'POST',
                 headers: {
@@ -850,21 +886,43 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (!response.ok) {
                     throw new Error(`خطا: ${response.status}`);
                 }
-                return response.blob();
+                
+                const contentDisposition = response.headers.get("Content-Disposition");
+
+                let filename = `گزارش_${fromDate.replace(/\//g, "-")}_تا_${toDate.replace(/\//g, "-")}.xlsx`;
+
+                if (contentDisposition) {
+
+                    const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+
+                    if (utf8Match) {
+
+                        filename = decodeURIComponent(utf8Match[1]);
+
+                    } else {
+
+                        const asciiMatch = contentDisposition.match(/filename="?([^"]+)"?/i);
+
+                        if (asciiMatch) {
+                            filename = asciiMatch[1];
+                        }
+
+                    }
+                }
+                
+                return response.blob().then(blob => ({ blob, filename }));
             })
-            .then(blob => {
+            .then(({ blob, filename }) => {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                const cleanFrom = fromDate.replace(/\//g, '-');
-                const cleanTo = toDate.replace(/\//g, '-');
-                a.download = `range_report_${cleanFrom}_to_${cleanTo}.xlsx`;
+                a.download = filename;
+                document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);
             })
             .catch(error => {
-                console.error('❌ Error:', error);
                 alert(`❌ خطا در دریافت گزارش: ${error.message}`);
             })
             .finally(() => {
@@ -879,5 +937,4 @@ document.addEventListener("DOMContentLoaded", function() {
     // ============================================================
     initDatepickers();
     
-    console.log("✅ Admin ToolBar initialized!");
 });

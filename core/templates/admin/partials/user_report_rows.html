@@ -1,6 +1,5 @@
 {% for item in user_report %}
 <tr>
-    <td>{{ forloop.counter }}</td>
     <td>{{ item.first_name|default:"-" }}</td>
     <td>{{ item.last_name|default:"-" }}</td>
     <td>{{ item.username|default:"-" }}</td>
@@ -16,7 +15,7 @@
 </tr>
 {% empty %}
 <tr>
-    <td colspan="9" class="text-center py-4">
+    <td colspan="8" class="text-center py-4">
         <i class="bi bi-inbox display-4 text-muted"></i>
         <p class="text-muted mt-2">هیچ رزروی در بازه انتخاب شده یافت نشد.</p>
     </td>

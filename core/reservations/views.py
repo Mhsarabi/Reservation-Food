@@ -11,6 +11,7 @@ from datetime import datetime, time, timedelta, date
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from jalaali import Jalaali
+from urllib.parse import quote
 
 from menu.models import DailyMenu
 from accounts.models import User
@@ -285,7 +286,7 @@ class ReservationManagementView(LoginRequiredMixin, UserPassesTestMixin, View):
         wb = Workbook()
         ws = wb.active
         ws.sheet_view.rightToLeft = True
-        ws.title = "لیست رزروها"
+        # ws.title = "لیست رزروها"
 
         headers = ["ردیف", "نام", "نام خانوادگی", "کد ملی", "غذا", "تاریخ رزرو", "تاریخ ارائه غذا"]
 
@@ -354,10 +355,20 @@ class ReservationManagementView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         if request.GET.get("export") == "reservation":
             wb = self.export_excel(reservations)
+            year = request.GET.get("year", "")
+            month = request.GET.get("month", "")
+            
+            if year and month:
+                filename = f"گزارش_{year}_{month}.xlsx"
+            elif year:
+                filename = f"گزارش_{year}.xlsx"
+            else:
+                filename = "گزارش.xlsx"
+            encoded_filename = quote(filename)
             response = HttpResponse(
                 content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
-            response["Content-Disposition"] = 'attachment; filename="reservations.xlsx"'
+            response["Content-Disposition"] = f'attachment;  filename="{encoded_filename}"'
             wb.save(response)
             return response
 
@@ -548,19 +559,19 @@ class UserReportView(LoginRequiredMixin, UserPassesTestMixin, View):
         if from_date and to_date:
             clean_from = from_date.replace("/", "-")
             clean_to = to_date.replace("/", "-")
-            filename = f"user_report_{clean_from}_to_{clean_to}.xlsx"
+            filename = f"گزارش_{clean_from}_to_{clean_to}.xlsx"
         elif year and month:
-            filename = f"user_report_{year}_{month}.xlsx"
+            filename = f"گزارش_{year}_{month}.xlsx"
         elif year:
-            filename = f"user_report_{year}.xlsx"
+            filename = f"گزارش_{year}.xlsx"
         else:
-            filename = "user_report.xlsx"
+            filename = "گزارش.xlsx"
 
-        response = HttpResponse(
-            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        encoded_filename = quote(filename)
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = f'attachment; filename="{encoded_filename}"'
         wb.save(response)
+
         return response
 
     def get(self, request):
@@ -647,10 +658,13 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
 
             report.sort(key=lambda x: x["reservation_count"], reverse=True)
 
+            year_str = request.POST.get("year", "")
+            month_str = request.POST.get("month", "")
+
             wb = Workbook()
             ws = wb.active
             ws.sheet_view.rightToLeft = True
-            ws.title = f"Report_{year}_{month}"
+            ws.title = f"گزارش_{year_str}_{month_str}"
 
             headers = ["ردیف", "نام", "نام خانوادگی", "نام کاربری", "کد ملی", "کد پرسنلی", "تعداد رزرو", "سایت", "دپارتمان"]
 
@@ -678,10 +692,17 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
             for column, width in widths.items():
                 ws.column_dimensions[column].width = width
 
-            response = HttpResponse(
-                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-            response["Content-Disposition"] = f'attachment; filename="monthly_report_{year}_{month}.xlsx"'
+            
+            if year and month:
+                filename = f"گزارش ماهانه_{year}_{month}.xlsx"
+            elif year:
+                filename = f"گزارش ماهانه_{year}.xlsx"
+            else:
+                filename = "گزارش ماهانه.xlsx"
+            
+            encoded_filename = quote(filename)
+            response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            response["Content-Disposition"] = f'attachment; filename="{encoded_filename}"'
             wb.save(response)
             return response
 
@@ -737,7 +758,7 @@ class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
             wb = Workbook()
             ws = wb.active
             ws.sheet_view.rightToLeft = True
-            ws.title = "Range Report"
+            ws.title = f"گزارش_بازه_{from_date}_تا_{to_date}"
 
             headers = ["ردیف", "نام", "نام خانوادگی", "نام کاربری", "کد ملی", "کد پرسنلی", "تعداد رزرو", "سایت", "دپارتمان"]
 
@@ -767,11 +788,13 @@ class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
 
             clean_from = from_date.replace("/", "-")
             clean_to = to_date.replace("/", "-")
+            filename = f"گزارش_بازه_{clean_from}_تا_{clean_to}.xlsx"
+            encoded_filename = quote(filename)
 
             response = HttpResponse(
                 content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
-            response["Content-Disposition"] = f'attachment; filename="range_report_{clean_from}_to_{clean_to}.xlsx"'
+            response["Content-Disposition"] = f'attachment; filename="{encoded_filename}"'
             wb.save(response)
             return response
 
