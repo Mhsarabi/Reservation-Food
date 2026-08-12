@@ -63,7 +63,7 @@
 
 
 /* ==========================================================
-   3. Table
+   3. Table - با حاشیه تیره بین سلول‌های هدر
    ========================================================== */
 
 .table-responsive{
@@ -79,60 +79,46 @@
 
 
 /* حذف padding پیش فرض Bootstrap */
-
 .table.user-table>:not(caption)>*>*{
     padding:2px 5px !important;
     vertical-align:middle !important;
 }
 
 
-/* Header */
-
 .user-table thead th{
-
-    background:#2563eb;
-    color:#fff;
-
-    font-size:.82rem;
-    font-weight:600;
-
-    line-height:1.15;
-
-    white-space:nowrap;
+    background: #2563eb !important;
+    color: #fff !important;
+    font-size: .82rem !important;
+    font-weight: 600 !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+    border: 1px solid #1a1a2e !important; 
 }
 
 
 /* Body */
-
 .user-table tbody td{
-
     font-size:.82rem;
     line-height:1.15;
 }
 
 
 /* Footer */
-
 .user-table tfoot td{
-
     background:#f8f9fa;
 }
 
 
 /* ارتفاع ردیف‌ها */
-
 .user-table thead tr{
-
     height:44px;
 }
 
 .user-table tbody tr{
-
     height:34px;
 }
 
 .user-table tfoot tr{
-
     height:34px;
 }
 
@@ -143,35 +129,41 @@
 
 .user-table .form-control-sm,
 .user-table .form-select-sm{
-
     height:24px !important;
-
     min-height:24px !important;
-
     padding:0 6px !important;
-
     font-size:.75rem !important;
-
     line-height:1;
 }
 
 
 /* ==========================================================
-   5. Header Filters
+   5. Header Filters - با زمینه سفید
    ========================================================== */
 
 .filter-input,
 .filter-select{
-
     margin-top:2px;
-
     height:20px !important;
-
     min-height:20px !important;
-
     padding:0 4px !important;
-
     font-size:.68rem !important;
+    background: white !important;
+    border: 1px solid #ced4da !important;
+    color: #212529 !important;
+}
+
+.filter-input:focus,
+.filter-select:focus{
+    background: white !important;
+    border-color: #86b7fe !important;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.filter-input::placeholder{
+    color: #6c757d !important;
+    opacity: 1;
 }
 
 
@@ -180,12 +172,10 @@
    ========================================================== */
 
 .new-user{
-
     background:#f8f9fa;
 }
 
 .new-user td{
-
     padding:2px 4px !important;
 }
 
@@ -195,44 +185,34 @@
    ========================================================== */
 
 .user-row .edit-mode{
-
     display:none;
 }
 
 .user-row .view-mode{
-
     display:block;
 }
 
 .user-row.editing{
-
     background:#fff8e1;
 }
 
 .user-row.editing .view-mode{
-
     display:none;
 }
 
 .user-row.editing .edit-mode{
-
     display:block;
 }
 
 .user-row.editing td{
-
     padding:2px 4px !important;
 }
 
 .user-row .edit-mode input,
 .user-row .edit-mode select{
-
     height:22px;
-
     min-height:22px;
-
     padding:0 4px;
-
     font-size:.74rem;
 }
 
@@ -243,16 +223,12 @@
 
 .btn-sm,
 .btn-group-sm .btn{
-
     padding:2px 7px !important;
-
     font-size:.75rem !important;
-
     line-height:1.15;
 }
 
 .btn-group-sm .btn i{
-
     font-size:.8rem;
 }
 
@@ -262,11 +238,8 @@
    ========================================================== */
 
 .badge{
-
     padding:4px 8px;
-
     font-size:.72rem;
-
     border-radius:20px;
 }
 
@@ -276,65 +249,44 @@
    ========================================================== */
 
 @media(max-width:992px){
-
     .user-table{
-
         font-size:.78rem;
     }
-
     .user-table .form-control-sm,
     .user-table .form-select-sm{
-
         height:22px !important;
     }
-
 }
 
 
 @media(max-width:768px){
-
     .user-table{
-
         font-size:.72rem;
     }
-
     .table.user-table>:not(caption)>*>*{
-
         padding:2px 3px !important;
     }
-
     .btn-sm,
     .btn-group-sm .btn{
-
         padding:2px 5px !important;
     }
-
 }
 
 
 @media(max-width:576px){
-
     .user-table{
-
         font-size:.65rem;
     }
-
     .user-table .form-control-sm,
     .user-table .form-select-sm{
-
         height:20px !important;
-
         font-size:.65rem !important;
     }
-
     .filter-input,
     .filter-select{
-
         height:18px !important;
-
         font-size:.6rem !important;
     }
-
 }
 
 /* ==========================================================
@@ -371,22 +323,28 @@
     width: 120px;
 }
 
-/* نام کاربری */
+/* سایت */
 .user-table th:nth-child(6),
 .user-table td:nth-child(6){
     width: 110px;
 }
 
-/* نام کاربری */
+/* واحد */
 .user-table th:nth-child(7),
 .user-table td:nth-child(7){
     width: 120px;
 }
 
-/* نام کاربری */
+/* وضعیت */
 .user-table th:nth-child(8),
 .user-table td:nth-child(8){
     width: 145px;
+}
+
+/* عملیات */
+.user-table th:nth-child(9),
+.user-table td:nth-child(9){
+    width: 120px;
 }
 
 /* ==========================================================
@@ -404,7 +362,6 @@
     height: 28px;
     padding: 2px 10px !important;
     font-size: .75rem !important;
-
     display: flex;
     align-items: center;
     justify-content: center;
@@ -415,10 +372,10 @@
 ========================================================== */
 
 .user-table tfoot .btn-success {
-    min-width: 120px !important;  /* عرض بیشتر */
-    height: 32px !important;      /* ارتفاع بیشتر */
-    padding: 4px 16px !important; /* padding بیشتر */
-    font-size: 0.85rem !important; /* فونت بزرگ‌تر */
+    min-width: 120px !important;
+    height: 32px !important;
+    padding: 4px 16px !important;
+    font-size: 0.85rem !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;

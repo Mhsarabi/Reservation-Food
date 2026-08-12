@@ -3,7 +3,6 @@
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", function() {
-    console.log("✅ User Management JS loaded!");
     
     // ============================================================
     // 1. اعتبارسنجی فرم افزودن کاربر جدید

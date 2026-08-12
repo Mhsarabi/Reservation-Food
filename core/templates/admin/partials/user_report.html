@@ -1,0 +1,116 @@
+<!-- تب 2: گزارش تعداد رزرو کاربران -->
+<div class="tab-pane fade" id="report-tab-pane" role="tabpanel">
+
+    <!-- فیلترهای تاریخ گزارش -->
+    <form method="GET" action="{% url 'reservations:user_report' %}" id="userReportFilterForm" class="row g-2 mb-3 align-items-end">
+
+        <div class="col-md-2">
+            <label class="form-label fw-bold"><i class="bi bi-calendar3"></i> سال</label>
+            <input type="text" name="year" id="reportYear" class="form-control form-control-sm" value="{{ request.GET.year }}" placeholder="سال..." list="reportYearList" autocomplete="off">
+            <datalist id="reportYearList">
+                {% for year in years %}
+                    <option value="{{ year }}">
+                {% endfor %}
+            </datalist>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label fw-bold"><i class="bi bi-calendar-month"></i> ماه</label>
+            <select name="month" id="reportMonth" class="form-select form-select-sm">
+                <option value="">همه ماه‌ها</option>
+                <option value="1" {% if request.GET.month == '1' %}selected{% endif %}>فروردین</option>
+                <option value="2" {% if request.GET.month == '2' %}selected{% endif %}>اردیبهشت</option>
+                <option value="3" {% if request.GET.month == '3' %}selected{% endif %}>خرداد</option>
+                <option value="4" {% if request.GET.month == '4' %}selected{% endif %}>تیر</option>
+                <option value="5" {% if request.GET.month == '5' %}selected{% endif %}>مرداد</option>
+                <option value="6" {% if request.GET.month == '6' %}selected{% endif %}>شهریور</option>
+                <option value="7" {% if request.GET.month == '7' %}selected{% endif %}>مهر</option>
+                <option value="8" {% if request.GET.month == '8' %}selected{% endif %}>آبان</option>
+                <option value="9" {% if request.GET.month == '9' %}selected{% endif %}>آذر</option>
+                <option value="10" {% if request.GET.month == '10' %}selected{% endif %}>دی</option>
+                <option value="11" {% if request.GET.month == '11' %}selected{% endif %}>بهمن</option>
+                <option value="12" {% if request.GET.month == '12' %}selected{% endif %}>اسفند</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label fw-bold"><i class="bi bi-calendar-event"></i> از تاریخ</label>
+            <input type="text" name="from_date" id="reportFromDate" class="form-control form-control-sm datepicker" value="{{ request.GET.from_date }}" autocomplete="off" placeholder="از تاریخ...">
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label fw-bold"><i class="bi bi-calendar-event-fill"></i> تا تاریخ</label>
+            <input type="text" name="to_date" id="reportToDate" class="form-control form-control-sm datepicker" value="{{ request.GET.to_date }}" autocomplete="off" placeholder="تا تاریخ...">
+        </div>
+
+        <div class="col-md-4">
+            <div class="d-flex gap-1">
+                <button type="submit" class="btn btn-primary btn-sm flex-fill" id="applyReportFilter">
+                    <i class="bi bi-search"></i> اعمال فیلتر
+                </button>
+                <a href="{% url 'reservations:reservation_management' %}?tab=report" class="btn btn-outline-danger btn-sm flex-fill" id="clearReportFilter">
+                    <i class="bi bi-x-circle"></i> حذف فیلتر
+                </a>
+                <button type="button" class="btn btn-success btn-sm flex-fill" id="exportReportExcel">
+                    <i class="bi bi-file-earmark-excel"></i> اکسل
+                </button>
+            </div>
+        </div>
+
+    </form>
+
+    <!-- جدول گزارش کاربران -->
+    <div class="table-responsive">
+        <table class="table table-bordered reservation-table" id="reportTable">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>
+                        نام
+                        <input type="text" name="first_name" class="form-control form-control-sm report-filter-input" value="{{ request.GET.first_name }}" placeholder="نام...">
+                    </th>
+                    <th>
+                        نام خانوادگی
+                        <input type="text" name="last_name" class="form-control form-control-sm report-filter-input" value="{{ request.GET.last_name }}" placeholder="نام خانوادگی...">
+                    </th>
+                    <th>
+                        نام کاربری
+                        <input type="text" name="username" class="form-control form-control-sm report-filter-input" value="{{ request.GET.username }}" placeholder="نام کاربری...">
+                    </th>
+                    <th>
+                        کد ملی
+                        <input type="text" name="national_code" class="form-control form-control-sm report-filter-input" value="{{ request.GET.national_code }}" placeholder="کد ملی...">
+                    </th>
+                    <th>
+                        کد پرسنلی
+                        <input type="text" name="personnel_code" class="form-control form-control-sm report-filter-input" value="{{ request.GET.personnel_code }}" placeholder="کد پرسنلی...">
+                    </th>
+                    <th>
+                        سایت
+                        <input type="text" name="site" class="form-control form-control-sm report-filter-input" value="{{ request.GET.site }}" placeholder="سایت...">
+                    </th>
+                    <th>
+                        دپارتمان
+                        <input type="text" name="department" class="form-control form-control-sm report-filter-input" value="{{ request.GET.department }}" placeholder="دپارتمان...">
+                    </th>
+                    <th>تعداد رزرو</th>
+                </tr>
+            </thead>
+            <tbody id="reportTableBody">
+                {% if user_report %}
+                    {% include 'admin/partials/user_report_rows.html' %}
+                {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4">
+                            <i class="bi bi-inbox display-4 text-muted"></i>
+                            <p class="text-muted mt-2">
+                                برای مشاهده گزارش، سال و ماه را انتخاب کنید.
+                            </p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+</div>

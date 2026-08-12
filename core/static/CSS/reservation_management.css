@@ -107,22 +107,40 @@
     font-size: 0.9rem;
 }
 
-.reservation-table th {
-    background: #2563eb;
-    color: white;
-    font-weight: 600;
+.reservation-table thead th {
+    background: #2563eb !important;  
+    color: white !important;
+    font-weight: 600 !important;
     padding: 4px 6px !important;
     white-space: nowrap;
     font-size: 0.85rem;
     vertical-align: middle !important;
     height: auto;
     min-height: 28px;
+    border: 1px solid #1a1a2e !important;  
 }
 
 .reservation-table td {
     padding: 4px 6px !important;
     vertical-align: middle;
     font-size: 0.85rem;
+}
+
+/* ============================================================
+   تنظیمات هدرهای جدول گزارش - هماهنگ با جدول اول
+   ============================================================ */
+#reportTable thead th {
+    background: #2563eb !important;  
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 4px 6px !important;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    vertical-align: middle !important;
+    height: auto;
+    min-height: 28px;
+    text-align: center !important;
+    border: 1px solid #1a1a2e !important; 
 }
 
 /* ============================================================
@@ -324,4 +342,139 @@
 .select2-container--default[dir="rtl"] .select2-selection--single .select2-selection__clear {
     margin-left: 0 !important;
     margin-right: 8px !important;
+}
+
+/* ============================================================
+   استایل‌های جدول گزارش - هماهنگ با جدول اول
+   ============================================================ */
+
+/* جدول گزارش از کلاس reservation-table استفاده می‌کند */
+/* بنابراین تمام استایل‌های reservation-table قبلاً اعمال شده */
+
+/* تنظیمات اضافی برای ستون ردیف */
+#reportTable th:first-child {
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+}
+
+/* تنظیمات برای ستون تعداد رزرو */
+#reportTable th:last-child {
+    width: 100px !important;
+    min-width: 100px !important;
+    max-width: 100px !important;
+}
+
+/* استایل خاص برای فیلترهای جدول گزارش */
+#reportTable .filter-input {
+    display: block;
+    width: 100%;
+    margin-top: 2px;
+    font-size: 0.7rem !important;
+    padding: 2px 4px !important;
+    height: 22px !important;
+    min-width: 50px !important;
+    border-radius: 4px;
+    background: white !important;
+    border: 1px solid #ced4da !important;
+    color: #212529 !important;
+}
+
+#reportTable .filter-input:focus {
+    background: white !important;
+    border-color: #86b7fe !important;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+#reportTable .filter-input::placeholder {
+    color: #6c757d !important;
+    opacity: 1;
+}
+
+/* تنظیمات هدرهای جدول گزارش برای هماهنگی */
+#reportTable th {
+    background: #2563eb !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 4px 6px !important;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    vertical-align: middle !important;
+    height: auto;
+    min-height: 28px;
+    text-align: center !important;
+    border: 1px solid #1a4f8b !important;
+}
+
+#reportTable td {
+    padding: 4px 6px !important;
+    vertical-align: middle !important;
+    font-size: 0.85rem !important;
+    text-align: center !important;
+}
+
+/* سطرهای زوج و فرد برای جدول گزارش */
+#reportTable tbody tr:nth-child(even) {
+    background-color: #f8f9fa !important;
+}
+
+#reportTable tbody tr:hover {
+    background-color: #e9ecef !important;
+}
+
+/* استایل پیام خالی برای جدول گزارش */
+#reportTable .text-center.py-4 {
+    background-color: #ffffff !important;
+}
+
+#reportTable .text-center.py-4 i {
+    color: #adb5bd !important;
+}
+
+#reportTable .text-center.py-4 p {
+    color: #6c757d !important;
+}
+
+/* استایل دکمه‌های داخل جدول گزارش (اگر وجود داشته باشند) */
+#reportTable .btn-sm {
+    font-size: 0.75rem !important;
+    padding: 4px 10px !important;
+}
+
+/* استایل فیلترهای جدول گزارش در حالت کوچک */
+@media (max-width: 768px) {
+    #reportTable th,
+    #reportTable td {
+        padding: 4px 4px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    #reportTable .filter-input {
+        font-size: 0.6rem !important;
+        height: 18px !important;
+        padding: 1px 3px !important;
+        min-width: 30px !important;
+    }
+    
+    #reportTable th:first-child {
+        width: 30px !important;
+        min-width: 30px !important;
+        max-width: 30px !important;
+    }
+    
+    #reportTable th:last-child {
+        width: 60px !important;
+        min-width: 60px !important;
+        max-width: 60px !important;
+    }
+}
+
+/* استایل برای فیلترهای جدول گزارش - هماهنگ با کلاس filter-input */
+#reportTable .filter-input.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+#reportTable .filter-input.is-invalid:focus {
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
 }

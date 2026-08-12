@@ -25,4 +25,4 @@ class Reservation(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user.full_name} - {self.menu.food_date}"
+        return f"{self.user.last_name} - {self.menu.food_date}"

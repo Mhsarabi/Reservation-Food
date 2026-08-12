@@ -1,0 +1,142 @@
+<!-- تب 1: لیست رزروها -->
+<div class="tab-pane fade show active" id="reservations-tab-pane" role="tabpanel">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                <i class="bi {% if message.tags == 'error' %}bi-exclamation-circle{% else %}bi-check-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- فیلترهای تاریخ -->
+    <form method="GET" action="{% url 'reservations:reservation_management' %}" id="dateFilterForm" class="row g-2 mb-3 align-items-end">
+        <div class="col-md-2">
+            <label class="form-label fw-bold"><i class="bi bi-calendar3"></i> سال</label>
+            <input type="text" name="year" id="filterYear" class="form-control form-control-sm" value="{{ request.GET.year }}" placeholder="سال..." list="yearList" autocomplete="off">
+            <datalist id="yearList">
+                {% for year in years %}
+                    <option value="{{ year }}">
+                {% endfor %}
+            </datalist>
+        </div>
+        
+        <div class="col-md-2">
+            <label class="form-label fw-bold"><i class="bi bi-calendar-month"></i> ماه</label>
+            <select name="month" id="filterMonth" class="form-select form-select-sm">
+                <option value="">همه ماه‌ها</option>
+                <option value="1" {% if request.GET.month == '1' %}selected{% endif %}>فروردین</option>
+                <option value="2" {% if request.GET.month == '2' %}selected{% endif %}>اردیبهشت</option>
+                <option value="3" {% if request.GET.month == '3' %}selected{% endif %}>خرداد</option>
+                <option value="4" {% if request.GET.month == '4' %}selected{% endif %}>تیر</option>
+                <option value="5" {% if request.GET.month == '5' %}selected{% endif %}>مرداد</option>
+                <option value="6" {% if request.GET.month == '6' %}selected{% endif %}>شهریور</option>
+                <option value="7" {% if request.GET.month == '7' %}selected{% endif %}>مهر</option>
+                <option value="8" {% if request.GET.month == '8' %}selected{% endif %}>آبان</option>
+                <option value="9" {% if request.GET.month == '9' %}selected{% endif %}>آذر</option>
+                <option value="10" {% if request.GET.month == '10' %}selected{% endif %}>دی</option>
+                <option value="11" {% if request.GET.month == '11' %}selected{% endif %}>بهمن</option>
+                <option value="12" {% if request.GET.month == '12' %}selected{% endif %}>اسفند</option>
+            </select>
+        </div>
+        
+        <div class="col-md-2">
+            <label class="form-label fw-bold"><i class="bi bi-calendar-event"></i> از تاریخ</label>
+            <input type="text" name="from_date" id="filterFromDate" class="form-control form-control-sm datepicker" value="{{ request.GET.from_date }}" autocomplete="off" placeholder="از تاریخ...">
+        </div>
+        
+        <div class="col-md-2">
+            <label class="form-label fw-bold"><i class="bi bi-calendar-event-fill"></i> تا تاریخ</label>
+            <input type="text" name="to_date" id="filterToDate" class="form-control form-control-sm datepicker" value="{{ request.GET.to_date }}" autocomplete="off" placeholder="تا تاریخ...">
+        </div>
+        
+        <div class="col-md-4">
+            <div class="d-flex gap-1">
+                <button type="submit" class="btn btn-primary btn-sm flex-fill" id="applyReservationFilter">
+                    <i class="bi bi-search"></i> اعمال فیلتر
+                </button>
+                <a href="{% url 'reservations:reservation_management' %}" class="btn btn-outline-danger btn-sm flex-fill" id="clearReservationFilter">
+                    <i class="bi bi-x-circle"></i> حذف فیلتر
+                </a>
+                <a href="#" class="btn btn-success btn-sm flex-fill" title="دانلود اکسل" id="exportReservationExcel">
+                    <i class="bi bi-file-earmark-excel"></i> اکسل
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <!-- جدول رزروها -->
+    <form method="POST" action="{% url 'reservations:reservation_management' %}" id="addReservationForm">
+        {% csrf_token %}
+        <div class="table-responsive">
+            <table class="table table-bordered reservation-table" id="reservationTable">
+                <thead>
+                    <tr>
+                        <th>
+                            نام
+                            <input type="text" name="first_name" class="form-control form-control-sm filter-input" value="{{ request.GET.first_name }}" placeholder="نام...">
+                        </th>
+                        <th>
+                            نام خانوادگی
+                            <input type="text" name="last_name" class="form-control form-control-sm filter-input" value="{{ request.GET.last_name }}" placeholder="نام خانوادگی...">
+                        </th>
+                        <th>
+                            کد ملی
+                            <input type="text" name="national_code" class="form-control form-control-sm filter-input" value="{{ request.GET.national_code }}" placeholder="کد ملی...">
+                        </th>
+                        <th>
+                            غذا
+                            <input type="text" name="food_name" class="form-control form-control-sm filter-input" value="{{ request.GET.food_name }}" placeholder="نام غذا...">
+                        </th>
+                        <th>تاریخ رزرو</th>
+                        <th>تاریخ ارائه غذا</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody id="reservationTableBody">
+                    {% if reservations %}
+                        {% include 'admin/partials/reservation_table_rows.html' %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <i class="bi bi-inbox display-4 text-muted"></i>
+                                <p class="text-muted mt-2">هیچ رزروی یافت نشد.</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+                <tfoot>
+                    <tr class="new-reservation table-light">
+                        <td>
+                            <select name="user_id" class="form-select form-select-sm user-select" required style="width:100%;">
+                                <option value="">جستجوی کاربر...</option>
+                                {% for user in users %}
+                                    <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }} ({{ user.national_code }})</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><span class="text-muted small">خودکار</span></td>
+                        <td><span class="text-muted small">خودکار</span></td>
+                        <td>
+                            <select name="menu_id" class="form-select form-select-sm" required>
+                                <option value="">انتخاب غذا</option>
+                                {% for menu in menus %}
+                                    <option value="{{ menu.id }}">{{ menu.food.food_name }} - {{ menu.food_date|date:"Y/m/d" }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><span class="text-muted small">خودکار</span></td>
+                        <td><span class="text-muted small">تاریخ منو</span></td>
+                        <td>
+                            <button type="submit" class="btn btn-success btn-sm w-100" name="add_reservation">
+                                <i class="bi bi-plus-lg"></i> افزودن
+                            </button>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </form>
+</div>

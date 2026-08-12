@@ -1,815 +1,779 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.template.loader import render_to_string
 from django.http import JsonResponse, HttpResponse
 from django.views import View
-from menu.models import DailyMenu
-from .models import Reservation
-from datetime import datetime, time, timedelta, date
-from django.utils import timezone
 from django.contrib import messages
-from django.db import models
-from jalaali import Jalaali
+from django.utils import timezone
+
+from datetime import datetime, time, timedelta, date
+
 from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from jalaali import Jalaali
+
+from menu.models import DailyMenu
 from accounts.models import User
+from .models import Reservation
 
 
 # ============================================================
-# توابع کمکی جلالی (یکپارچه)
+# Date functions
 # ============================================================
 
-def jalali_to_gregorian(year, month, day):
-    """
-    تبدیل تاریخ شمسی به میلادی
-    ورودی: سال، ماه، روز شمسی
-    خروجی: datetime.date میلادی
-    """
+def to_gregorian(year, month, day):
     result = Jalaali.to_gregorian(year, month, day)
-    return date(
-        result['gy'],
-        result['gm'],
-        result['gd']
-    )
+    return date(result["gy"], result["gm"], result["gd"])
 
 
-def gregorian_to_jalali(year, month, day):
-    """
-    تبدیل تاریخ میلادی به شمسی
-    ورودی: سال، ماه، روز میلادی
-    خروجی: dict با کلیدهای jy, jm, jd
-    """
+def to_jalali(year, month, day):
     return Jalaali.to_jalaali(year, month, day)
 
 
-def get_jalali_month_last_day(year, month):
-    """
-    دریافت آخرین روز ماه شمسی
-    ورودی: سال و ماه شمسی
-    خروجی: تعداد روزهای آن ماه
-    """
+def get_month_last_day(year, month):
     if month <= 6:
         return 31
-    elif month <= 11:
+    if month <= 11:
         return 30
-    else:  # اسفند
-        if Jalaali.is_leap_jalaali_year(year):
-            return 30
-        return 29
+    return 30 if Jalaali.is_leap_jalaali_year(year) else 29
 
 
-def jalali_month_range(year, month):
-    """
-    دریافت بازه کامل یک ماه شمسی
-    ورودی: سال و ماه شمسی
-    خروجی: (تاریخ شروع میلادی, تاریخ پایان میلادی)
-    """
-    start = jalali_to_gregorian(year, month, 1)
-    last_day = get_jalali_month_last_day(year, month)
-    end = jalali_to_gregorian(year, month, last_day)
+def get_month_range(year, month):
+    start = to_gregorian(year, month, 1)
+    end = to_gregorian(year, month, get_month_last_day(year, month))
     return start, end
 
 
-def jalali_year_range(year):
-    """
-    دریافت بازه کامل یک سال شمسی
-    ورودی: سال شمسی
-    خروجی: (تاریخ شروع میلادی, تاریخ پایان میلادی)
-    """
-    start = jalali_to_gregorian(year, 1, 1)
-    last_day = get_jalali_month_last_day(year, 12)
-    end = jalali_to_gregorian(year, 12, last_day)
+def get_year_range(year):
+    start = to_gregorian(year, 1, 1)
+    end = to_gregorian(year, 12, get_month_last_day(year, 12))
     return start, end
 
 
-def parse_jalali_date(jalali_date_str):
-    """
-    تبدیل رشته تاریخ شمسی (1403/05/12) به datetime.date
-    ورودی: رشته تاریخ شمسی با فرمت YYYY/MM/DD
-    خروجی: datetime.date میلادی
-    """
+def parse_jalali_date(date_str):
     try:
-        year, month, day = map(int, jalali_date_str.strip().split('/'))
-        return jalali_to_gregorian(year, month, day)
+        year, month, day = map(int, date_str.strip().replace("-", "/").split("/"))
+        return to_gregorian(year, month, day)
     except (ValueError, TypeError, KeyError):
         return None
 
 
-def get_jalali_years_from_db():
-    """
-    دریافت لیست سال‌های شمسی موجود در دیتابیس
-    خروجی: لیست سال‌های شمسی به صورت مرتب شده
-    """
-    gregorian_years = (
-        DailyMenu.objects
-        .dates('food_date', 'year')
-        .values_list('food_date__year', flat=True)
-        .distinct()
-        .order_by('-food_date__year')
-    )
-    
+def get_current_jalali():
+    today = date.today()
+    result = to_jalali(today.year, today.month, today.day)
+    return result["jy"], result["jm"]
+
+
+def get_available_years():
     years = set()
-    for gregorian_year in gregorian_years:
+    menu_dates = DailyMenu.objects.dates("food_date", "year").values_list("food_date__year", flat=True)
+    for gregorian_year in menu_dates:
         try:
-            jalali_year = gregorian_to_jalali(gregorian_year, 1, 1)['jy']
+            jalali_year = to_jalali(gregorian_year, 1, 1)["jy"]
             years.add(jalali_year)
         except Exception:
-            pass
-    
+            continue
     if not years:
-        # اگر سالی وجود نداشت، سال جاری را اضافه کن
-        today = date.today()
-        jalali_today = gregorian_to_jalali(today.year, today.month, today.day)
-        years = {jalali_today['jy']}
-    
+        years.add(get_current_jalali()[0])
     return sorted(years, reverse=True)
 
 
-# ============================================================
-# توابع کمکی
-# ============================================================
-
-def reservation_is_closed(menu):
-    """بررسی بسته بودن زمان رزرو"""
-    deadline = datetime.combine(
-        menu.food_date - timedelta(days=1),
-        time(23, 59, 59)
-    )
+def is_reservation_closed(menu):
+    deadline = datetime.combine(menu.food_date - timedelta(days=1), time(23, 59, 59))
     deadline = timezone.make_aware(deadline)
     return timezone.now() >= deadline
 
 
 # ============================================================
-# ویوهای کاربر
+# Excel styling function
+# ============================================================
+
+def apply_border(cell, border_style='thin'):
+    side = Side(border_style=border_style, color='000000')
+    cell.border = Border(
+        left=side,
+        right=side,
+        top=side,
+        bottom=side
+    )
+    return cell
+
+
+def apply_header_style(cell):
+    cell.fill = PatternFill(
+        start_color="366092",
+        end_color="366092",
+        fill_type="solid"
+    )
+    cell.font = Font(
+        color="FFFFFF",
+        bold=True
+    )
+    cell.alignment = Alignment(
+        horizontal="center",
+        vertical="center"
+    )
+    apply_border(cell)
+    return cell
+
+
+def apply_cell_style(cell):
+    cell.alignment = Alignment(
+        horizontal="center",
+        vertical="center"
+    )
+    apply_border(cell)
+    return cell
+
+
+# ============================================================
+# filter for date
+# ============================================================
+
+def apply_date_filters(qs, request, date_field):
+    year = request.GET.get("year")
+    month = request.GET.get("month")
+
+    if year:
+        try:
+            year = int(year)
+            if month:
+                month = int(month)
+                start, end = get_month_range(year, month)
+                qs = qs.filter(**{f"{date_field}__range": [start, end]})
+            else:
+                start, end = get_year_range(year)
+                qs = qs.filter(**{f"{date_field}__range": [start, end]})
+        except (ValueError, TypeError):
+            pass
+
+    from_date = request.GET.get("from_date")
+    if from_date:
+        start_date = parse_jalali_date(from_date)
+        if start_date:
+            qs = qs.filter(**{f"{date_field}__gte": start_date})
+
+    to_date = request.GET.get("to_date")
+    if to_date:
+        end_date = parse_jalali_date(to_date)
+        if end_date:
+            qs = qs.filter(**{f"{date_field}__lte": end_date})
+
+    return qs
+
+
+# ============================================================
+# Operations for reserve
 # ============================================================
 
 class ReservationToggleView(LoginRequiredMixin, View):
     def post(self, request):
         food_date = request.POST.get("food_date")
-        
         if not food_date:
-            return JsonResponse({
-                "success": False,
-                "message": "تاریخ ارسال نشده است."
-            })
-        
+            return JsonResponse({"success": False, "message": "تاریخ ارسال نشده است."})
+
         try:
             menu = DailyMenu.objects.get(food_date=food_date)
         except DailyMenu.DoesNotExist:
-            return JsonResponse({
-                "success": False,
-                "message": "برای این روز غذایی ثبت نشده است."
-            })
-        
-        if reservation_is_closed(menu):
-            return JsonResponse({
-                "success": False,
-                "message": "مهلت رزرو این غذا به پایان رسیده است."
-            })
-        
+            return JsonResponse({"success": False, "message": "برای این روز غذایی ثبت نشده است."})
+
+        if is_reservation_closed(menu):
+            return JsonResponse({"success": False, "message": "مهلت رزرو به پایان رسیده است."})
+
         if Reservation.objects.filter(user=request.user, menu=menu).exists():
-            return JsonResponse({
-                "success": False,
-                "message": "شما قبلاً این غذا را رزرو کرده‌اید."
-            })
-        
+            return JsonResponse({"success": False, "message": "شما قبلاً این غذا را رزرو کرده‌اید."})
+
         Reservation.objects.create(user=request.user, menu=menu)
-        
-        return JsonResponse({
-            "success": True,
-            "reserved": True,
-            "message": "غذا با موفقیت رزرو شد."
-        })
+        return JsonResponse({"success": True, "reserved": True, "message": "غذا با موفقیت رزرو شد."})
 
 
 class ReservationDeleteView(LoginRequiredMixin, View):
     def post(self, request):
         food_date = request.POST.get("food_date")
-        
         if not food_date:
-            return JsonResponse({
-                "success": False,
-                "message": "تاریخ ارسال نشده است."
-            })
-        
+            return JsonResponse({"success": False, "message": "تاریخ ارسال نشده است."})
+
         try:
             menu = DailyMenu.objects.get(food_date=food_date)
-            
-            if reservation_is_closed(menu):
-                return JsonResponse({
-                    "success": False,
-                    "message": "مهلت لغو رزرو به پایان رسیده است."
-                })
-            
-            reservation = Reservation.objects.get(
-                user=request.user,
-                menu=menu
-            )
-            
         except DailyMenu.DoesNotExist:
-            return JsonResponse({
-                "success": False,
-                "message": "برای این روز غذایی ثبت نشده است."
-            })
+            return JsonResponse({"success": False, "message": "برای این روز غذایی ثبت نشده است."})
+
+        if is_reservation_closed(menu):
+            return JsonResponse({"success": False, "message": "مهلت لغو رزرو به پایان رسیده است."})
+
+        try:
+            reservation = Reservation.objects.get(user=request.user, menu=menu)
+            reservation.delete()
+            return JsonResponse({"success": True, "message": "رزرو با موفقیت لغو شد."})
         except Reservation.DoesNotExist:
-            return JsonResponse({
-                "success": False,
-                "message": "رزروی برای حذف وجود ندارد."
-            })
-        
-        reservation.delete()
-        
-        return JsonResponse({
-            "success": True,
-            "message": "رزرو با موفقیت لغو شد."
-        })
+            return JsonResponse({"success": False, "message": "رزروی برای حذف وجود ندارد."})
 
 
 class ReservationReserveMonthView(LoginRequiredMixin, View):
     def post(self, request):
         start_date = request.POST.get("start_date")
         end_date = request.POST.get("end_date")
-        
         if not start_date or not end_date:
-            return JsonResponse({
-                "success": False,
-                "message": "سال یا ماه ارسال نشده است."
-            })
-        
-        menus = DailyMenu.objects.filter(
-            food_date__range=[start_date, end_date]
-        )
+            return JsonResponse({"success": False, "message": "بازه تاریخ ارسال نشده است."})
+
+        menus = DailyMenu.objects.filter(food_date__range=[start_date, end_date])
         created = 0
-        
         for menu in menus:
-            if reservation_is_closed(menu):
+            if is_reservation_closed(menu):
                 continue
-            
-            _, is_created = Reservation.objects.get_or_create(
-                user=request.user,
-                menu=menu
-            )
-            
+            _, is_created = Reservation.objects.get_or_create(user=request.user, menu=menu)
             if is_created:
                 created += 1
-        
-        return JsonResponse({
-            "success": True,
-            "created": created,
-            "message": "رزروهای ماه با موفقیت انجام شد."
-        })
+
+        return JsonResponse({"success": True, "created": created, "message": "رزروهای ماه با موفقیت انجام شد."})
 
 
 class ReservationCancelMonthView(LoginRequiredMixin, View):
     def post(self, request):
         start_date = request.POST.get("start_date")
         end_date = request.POST.get("end_date")
-        
         if not start_date or not end_date:
-            return JsonResponse({
-                "success": False,
-                "message": "بازه تاریخ ارسال نشده است."
-            })
-        
+            return JsonResponse({"success": False, "message": "بازه تاریخ ارسال نشده است."})
+
         reservations = Reservation.objects.filter(
             user=request.user,
             menu__food_date__range=[start_date, end_date]
         )
         deleted = 0
-        
         for reservation in reservations:
-            if reservation_is_closed(reservation.menu):
+            if is_reservation_closed(reservation.menu):
                 continue
             reservation.delete()
             deleted += 1
-        
-        return JsonResponse({
-            "success": True,
-            "deleted": deleted,
-            "message": "رزروهای ماه لغو شد."
-        })
+
+        return JsonResponse({"success": True, "deleted": deleted, "message": "رزروهای ماه لغو شد."})
 
 
 # ============================================================
-# ویوهای مدیریتی (ادمین)
+# Reserve manage
 # ============================================================
 
 class ReservationManagementView(LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = "admin/reservation_management.html"
-    
+
     def test_func(self):
         return self.request.user.is_staff
 
-    # ============================================================
-    # تبدیل تاریخ میلادی به شمسی
-    # ============================================================
-    @staticmethod
-    def gregorian_to_jalali(gregorian_date):
-        """تبدیل تاریخ میلادی به تاریخ شمسی"""
-
-        result = Jalaali.to_jalaali(
-            gregorian_date.year,
-            gregorian_date.month,
-            gregorian_date.day
-        )
-
-        return (
-            f"{result['jy']:04d}/"
-            f"{result['jm']:02d}/"
-            f"{result['jd']:02d}"
-        )
-    # ============================================================
-    # تبدیل تاریخ و ساعت میلادی به شمسی
-    # ============================================================
-    @staticmethod
-    def gregorian_datetime_to_jalali(gregorian_datetime):
-        """تبدیل تاریخ و ساعت میلادی به شمسی"""
-
-        result = Jalaali.to_jalaali(
-            gregorian_datetime.year,
-            gregorian_datetime.month,
-            gregorian_datetime.day
-        )
-
-        return (
-            f"{result['jy']:04d}/"
-            f"{result['jm']:02d}/"
-            f"{result['jd']:02d} "
-            f"{gregorian_datetime.hour:02d}:"
-            f"{gregorian_datetime.minute:02d}"
-        )
-    
-    # ============================================================
-    # دریافت رزروهای فیلتر شده
-    # ============================================================
     def get_filtered_reservations(self, request):
-        """دریافت لیست رزروها با اعمال فیلترها"""
-        reservations_list = (
-            Reservation.objects
-            .all()
-            .select_related('user', 'menu', 'menu__food')
-            .order_by('-reserve_time')
-        )
-        
-        # ========================================================
-        # فیلتر بر اساس اطلاعات کاربر
-        # ========================================================
-        user_filter = models.Q()
-        has_user_filter = False
-        
-        first_name = request.GET.get('first_name')
+        reservations = Reservation.objects.select_related("user", "menu", "menu__food").order_by("-reserve_time")
+
+        first_name = request.GET.get("first_name")
         if first_name:
-            user_filter &= models.Q(user__first_name__icontains=first_name)
-            has_user_filter = True
-        
-        last_name = request.GET.get('last_name')
+            reservations = reservations.filter(user__first_name__icontains=first_name)
+
+        last_name = request.GET.get("last_name")
         if last_name:
-            user_filter &= models.Q(user__last_name__icontains=last_name)
-            has_user_filter = True
-        
-        national_code = request.GET.get('national_code')
+            reservations = reservations.filter(user__last_name__icontains=last_name)
+
+        national_code = request.GET.get("national_code")
         if national_code:
-            user_filter &= models.Q(user__national_code__icontains=national_code)
-            has_user_filter = True
-        
-        if has_user_filter:
-            reservations_list = reservations_list.filter(user_filter)
-        
-        # ========================================================
-        # فیلتر بر اساس غذا
-        # ========================================================
-        food_name = request.GET.get('food_name')
+            reservations = reservations.filter(user__national_code__icontains=national_code)
+
+        food_name = request.GET.get("food_name")
         if food_name:
-            reservations_list = reservations_list.filter(
-                menu__food__food_name__icontains=food_name
-            )
-        
-        # ========================================================
-        #  فیلتر بر اساس سال و ماه شمسی
-        # ========================================================
-        year = request.GET.get('year')
-        month = request.GET.get('month')
-        
-        try:
-            if year and month:
-                start_date, end_date = jalali_month_range(int(year), int(month))
-                reservations_list = reservations_list.filter(
-                    menu__food_date__range=[start_date, end_date]
-                )
-            elif year:
-                start_date, end_date = jalali_year_range(int(year))
-                reservations_list = reservations_list.filter(
-                    menu__food_date__range=[start_date, end_date]
-                )
-        except (ValueError, TypeError):
-            pass
-        
-        # ========================================================
-        #  فیلتر بر اساس بازه زمانی (از تاریخ - تا تاریخ)
-        # ========================================================
-        from_date = request.GET.get('from_date')
-        to_date = request.GET.get('to_date')
-        
-        if from_date:
-            from_greg = parse_jalali_date(from_date)
-            if from_greg:
-                reservations_list = reservations_list.filter(
-                    menu__food_date__gte=from_greg
-                )
-        
-        if to_date:
-            to_greg = parse_jalali_date(to_date)
-            if to_greg:
-                reservations_list = reservations_list.filter(
-                    menu__food_date__lte=to_greg
-                )
-        
-        return reservations_list
-    
-    # ============================================================
-    # تولید فایل اکسل
-    # ============================================================
-    def export_to_excel(self, reservations):
-        """تولید فایل اکسل از لیست رزروها"""
+            reservations = reservations.filter(menu__food__food_name__icontains=food_name)
+
+        reservations = apply_date_filters(reservations, request, "menu__food_date")
+        return reservations
+
+    def export_excel(self, reservations):
         wb = Workbook()
         ws = wb.active
         ws.sheet_view.rightToLeft = True
         ws.title = "لیست رزروها"
-        
-        # ستون‌های هماهنگ با تمپلیت
-        headers = ['ردیف', 'نام', 'نام خانوادگی', 'کد ملی', 'غذا', 'تاریخ رزرو', 'تاریخ ارائه غذا']
-        header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
-        header_font = Font(color="FFFFFF", bold=True)
-        
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.fill = header_fill
-            cell.font = header_font
-            cell.alignment = Alignment(horizontal='center', vertical='center')
-        
+
+        headers = ["ردیف", "نام", "نام خانوادگی", "کد ملی", "غذا", "تاریخ رزرو", "تاریخ ارائه غذا"]
+
+        for column, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=column, value=header)
+            apply_header_style(cell)
+
         for row, reservation in enumerate(reservations, 2):
-            ws.cell(row=row, column=1, value=row-1)
-            ws.cell(row=row, column=2, value=reservation.user.first_name)
-            ws.cell(row=row, column=3, value=reservation.user.last_name)
-            ws.cell(row=row, column=4, value=reservation.user.national_code)
-            ws.cell(row=row, column=5, value=reservation.menu.food.food_name)
-            # ========================================================
-            # تبدیل تاریخ‌ها به شمسی
-            # ========================================================
-            reserve_time_jalali = self.gregorian_datetime_to_jalali(reservation.reserve_time)
+            cell = ws.cell(row=row, column=1, value=row - 1)
+            apply_cell_style(cell)
 
-            food_date_jalali = self.gregorian_to_jalali(reservation.menu.food_date)
+            cell = ws.cell(row=row, column=2, value=reservation.user.first_name)
+            apply_cell_style(cell)
 
-            ws.cell(row=row,column=6,value=reserve_time_jalali)
+            cell = ws.cell(row=row, column=3, value=reservation.user.last_name)
+            apply_cell_style(cell)
 
-            ws.cell(row=row,column=7,value=food_date_jalali)
-            
-            for col in range(1, 8):
-                ws.cell(row=row, column=col).alignment = Alignment(horizontal='center', vertical='center')
-        
-        # تنظیم عرض ستون‌ها
-        ws.column_dimensions['A'].width = 6
-        ws.column_dimensions['B'].width = 20
-        ws.column_dimensions['C'].width = 20
-        ws.column_dimensions['D'].width = 15
-        ws.column_dimensions['E'].width = 25
-        ws.column_dimensions['F'].width = 20
-        ws.column_dimensions['G'].width = 20
-        
-        return wb
-    
-    # ============================================================
-    # GET
-    # ============================================================
-    def get(self, request):
-        # بررسی درخواست اکسل
-        if request.GET.get('export') == 'excel':
-            reservations = self.get_filtered_reservations(request)
-            wb = self.export_to_excel(reservations)
-            
-            response = HttpResponse(
-                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            cell = ws.cell(row=row, column=4, value=reservation.user.national_code)
+            apply_cell_style(cell)
+
+            cell = ws.cell(row=row, column=5, value=reservation.menu.food.food_name)
+            apply_cell_style(cell)
+
+            j_reserve = to_jalali(
+                reservation.reserve_time.year,
+                reservation.reserve_time.month,
+                reservation.reserve_time.day
             )
-            filename = f"reservations_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            cell = ws.cell(
+                row=row,
+                column=6,
+                value=(
+                    f"{j_reserve['jy']:04d}/"
+                    f"{j_reserve['jm']:02d}/"
+                    f"{j_reserve['jd']:02d} "
+                    f"{reservation.reserve_time.hour:02d}:"
+                    f"{reservation.reserve_time.minute:02d}"
+                )
+            )
+            apply_cell_style(cell)
+
+            j_food = to_jalali(
+                reservation.menu.food_date.year,
+                reservation.menu.food_date.month,
+                reservation.menu.food_date.day
+            )
+            cell = ws.cell(
+                row=row,
+                column=7,
+                value=(
+                    f"{j_food['jy']:04d}/"
+                    f"{j_food['jm']:02d}/"
+                    f"{j_food['jd']:02d}"
+                )
+            )
+            apply_cell_style(cell)
+
+        widths = {"A": 6, "B": 20, "C": 20, "D": 15, "E": 25, "F": 20, "G": 20}
+        for column, width in widths.items():
+            ws.column_dimensions[column].width = width
+
+        return wb
+
+    def get(self, request):
+        reservations = self.get_filtered_reservations(request)
+
+        if request.GET.get("export") == "reservation":
+            wb = self.export_excel(reservations)
+            response = HttpResponse(
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+            response["Content-Disposition"] = 'attachment; filename="reservations.xlsx"'
             wb.save(response)
             return response
-        
-        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-        
-        # دریافت رزروهای فیلتر شده
-        reservations_list = self.get_filtered_reservations(request)
-        
-        # داده‌های مورد نیاز برای فرم‌ها
-        users = (
-            User.objects
-            .filter(is_active=True)
-            .order_by('first_name', 'last_name')
-        )
-        
-        menus = (
-            DailyMenu.objects
-            .select_related('food')
-            .order_by('-food_date')
-        )
-        
-        years = get_jalali_years_from_db()
-        
-        # پاسخ AJAX
-        if is_ajax:
-            html = render_to_string(
-                'admin/partials/reservation_table_rows.html',
-                {
-                    'reservations': reservations_list,
-                    'users': users,
-                    'menus': menus
-                },
-                request=request
-            )
-            
+
+        users = User.objects.filter(is_active=True).order_by("first_name", "last_name")
+        menus = DailyMenu.objects.select_related("food").order_by("-food_date")
+        years = get_available_years()
+        current_year, current_month = get_current_jalali()
+
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JsonResponse({
-                'success': True,
-                'html': html,
-                'total': reservations_list.count(),
+                "success": True,
+                "reservation_html": render_to_string(
+                    "admin/partials/reservation_table_rows.html",
+                    {"reservations": reservations},
+                    request=request
+                )
             })
-        
-        return render(
-            request,
-            self.template_name,
-            {
-                'reservations': reservations_list,
-                'users': users,
-                'menus': menus,
-                'years': years,
-            }
-        )
-    
-    # ============================================================
-    # POST
-    # ============================================================
+
+        return render(request, self.template_name, {
+            "reservations": reservations,
+            "users": users,
+            "menus": menus,
+            "years": years,
+            "current_year": current_year,
+            "current_month": current_month,
+        })
+
     def post(self, request):
         if "add_reservation" in request.POST:
             try:
                 user_id = request.POST.get("user_id")
                 menu_id = request.POST.get("menu_id")
-                
+
                 if not user_id or not menu_id:
-                    messages.error(
-                        request,
-                        "لطفاً کاربر و تاریخ را انتخاب کنید."
-                    )
+                    messages.error(request, "لطفاً کاربر و غذا را انتخاب کنید.")
                     return redirect("reservations:reservation_management")
-                
-                if Reservation.objects.filter(
-                    user_id=user_id,
-                    menu_id=menu_id
-                ).exists():
-                    messages.error(
-                        request,
-                        "این کاربر قبلاً برای این تاریخ رزرو کرده است."
-                    )
+
+                if Reservation.objects.filter(user_id=user_id, menu_id=menu_id).exists():
+                    messages.error(request, "این کاربر قبلاً برای این تاریخ رزرو کرده است.")
                     return redirect("reservations:reservation_management")
-                
-                Reservation.objects.create(
-                    user_id=user_id,
-                    menu_id=menu_id
-                )
+
+                Reservation.objects.create(user_id=user_id, menu_id=menu_id)
                 messages.success(request, "رزرو با موفقیت اضافه شد.")
-                
             except Exception as e:
-                messages.error(request, f"خطا در ایجاد رزرو: {str(e)}")
-        
+                messages.error(request, f"خطا: {e}")
+
         return redirect("reservations:reservation_management")
-    
-class DeleteReservationView(LoginRequiredMixin, UserPassesTestMixin, View):
-    def test_func(self):
-        return self.request.user.is_staff
-    
-    def post(self, request):
-        try:
-            reservation_id = request.POST.get('reservation_id')
-            reservation = get_object_or_404(Reservation, id=reservation_id)
-            reservation.delete()
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'رزرو با موفقیت حذف شد.'
-            })
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': f'خطا: {str(e)}'
-            })
 
 
 # ============================================================
-# ویوهای گزارش‌گیری
+# Delete reserve
+# ============================================================
+
+class DeleteReservationView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def post(self, request):
+        try:
+            reservation = get_object_or_404(Reservation, id=request.POST.get("reservation_id"))
+            reservation.delete()
+            return JsonResponse({"success": True, "message": "رزرو حذف شد."})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+
+
+# ============================================================
+# count reserve report
+# ============================================================
+
+class UserReportView(LoginRequiredMixin, UserPassesTestMixin, View):
+    template_name = "admin/user_report.html"
+    report_rows_template = "admin/partials/user_report_rows.html"
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get_report_data(self, request):
+        reservations = Reservation.objects.select_related("user", "menu", "menu__food")
+        reservations = apply_date_filters(reservations, request, "menu__food_date")
+
+        user_ids_with_reservations = reservations.values_list("user_id", flat=True).distinct()
+        if not user_ids_with_reservations:
+            return []
+
+        users = User.objects.filter(id__in=user_ids_with_reservations, is_active=True).order_by("first_name", "last_name")
+
+        first_name = request.GET.get("first_name")
+        if first_name:
+            users = users.filter(first_name__icontains=first_name)
+
+        last_name = request.GET.get("last_name")
+        if last_name:
+            users = users.filter(last_name__icontains=last_name)
+
+        username = request.GET.get("username")
+        if username:
+            users = users.filter(username__icontains=username)
+
+        national_code = request.GET.get("national_code")
+        if national_code:
+            users = users.filter(national_code__icontains=national_code)
+
+        personnel_code = request.GET.get("personnel_code")
+        if personnel_code:
+            users = users.filter(personnel_code__icontains=personnel_code)
+
+        site = request.GET.get("site")
+        if site:
+            users = users.filter(site__icontains=site)
+
+        department = request.GET.get("department")
+        if department:
+            users = users.filter(department__icontains=department)
+
+        report_data = []
+        for user in users:
+            count = reservations.filter(user=user).count()
+            if count > 0:
+                report_data.append({
+                    "first_name": user.first_name or "-",
+                    "last_name": user.last_name or "-",
+                    "username": user.username or "-",
+                    "national_code": user.national_code or "-",
+                    "personnel_code": user.personnel_code or "-",
+                    "site": user.site or "-",
+                    "department": user.department or "-",
+                    "reservation_count": count,
+                })
+
+        report_data.sort(key=lambda item: item["reservation_count"], reverse=True)
+        return report_data
+
+    def export_excel(self, request):
+        report = self.get_report_data(request)
+
+        if not report:
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "گزارش کاربران"
+            ws.sheet_view.rightToLeft = True
+            cell = ws.cell(row=1, column=1, value="هیچ رزروی در بازه انتخاب شده یافت نشد.")
+            apply_cell_style(cell)
+
+            response = HttpResponse(
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+            response["Content-Disposition"] = 'attachment; filename="empty_report.xlsx"'
+            wb.save(response)
+            return response
+
+        year = request.GET.get("year")
+        month = request.GET.get("month")
+        from_date = request.GET.get("from_date")
+        to_date = request.GET.get("to_date")
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "گزارش کاربران"
+        ws.sheet_view.rightToLeft = True
+
+        headers = ["ردیف", "نام", "نام خانوادگی", "نام کاربری", "کد ملی", "کد پرسنلی", "تعداد رزرو", "سایت", "دپارتمان"]
+
+        for column, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=column, value=header)
+            apply_header_style(cell)
+
+        for row, data in enumerate(report, 2):
+            row_data = [
+                (row - 1, 1),
+                (data["first_name"], 2),
+                (data["last_name"], 3),
+                (data["username"], 4),
+                (data["national_code"], 5),
+                (data["personnel_code"], 6),
+                (data["reservation_count"], 7),
+                (data["site"], 8),
+                (data["department"], 9),
+            ]
+            for value, col in row_data:
+                cell = ws.cell(row=row, column=col, value=value)
+                apply_cell_style(cell)
+
+        widths = {"A": 6, "B": 20, "C": 20, "D": 20, "E": 20, "F": 15, "G": 15, "H": 20, "I": 20}
+        for column, width in widths.items():
+            ws.column_dimensions[column].width = width
+
+        if from_date and to_date:
+            clean_from = from_date.replace("/", "-")
+            clean_to = to_date.replace("/", "-")
+            filename = f"user_report_{clean_from}_to_{clean_to}.xlsx"
+        elif year and month:
+            filename = f"user_report_{year}_{month}.xlsx"
+        elif year:
+            filename = f"user_report_{year}.xlsx"
+        else:
+            filename = "user_report.xlsx"
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        wb.save(response)
+        return response
+
+    def get(self, request):
+        if request.GET.get("export") == "excel":
+            return self.export_excel(request)
+
+        current_year, current_month = get_current_jalali()
+
+        selected_year = request.GET.get("year")
+        selected_month = request.GET.get("month")
+
+        if not selected_year:
+            selected_year = str(current_year)
+        if not selected_month:
+            selected_month = str(current_month)
+
+        from_date = request.GET.get("from_date", "")
+        to_date = request.GET.get("to_date", "")
+
+        report = self.get_report_data(request)
+        years = get_available_years()
+
+        context = {
+            "user_report": report,
+            "years": years,
+            "current_year": current_year,
+            "current_month": current_month,
+            "selected_year": selected_year,
+            "selected_month": selected_month,
+            "from_date": from_date,
+            "to_date": to_date,
+            "first_name": request.GET.get("first_name", ""),
+            "last_name": request.GET.get("last_name", ""),
+            "username": request.GET.get("username", ""),
+            "national_code": request.GET.get("national_code", ""),
+            "personnel_code": request.GET.get("personnel_code", ""),
+            "site": request.GET.get("site", ""),
+            "department": request.GET.get("department", ""),
+        }
+
+        is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        if is_ajax:
+            html = render_to_string(self.report_rows_template, context, request=request)
+            return JsonResponse({"success": True, "html": html})
+
+        return render(request, self.template_name, context)
+
+
+# ============================================================
+# month report
 # ============================================================
 
 class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self):
         return self.request.user.is_staff
-    
+
     def post(self, request):
         try:
-            year = int(request.POST.get('year'))
-            month = int(request.POST.get('month'))
-            
+            year = int(request.POST.get("year"))
+            month = int(request.POST.get("month"))
+
             if not year or not month:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'لطفاً سال و ماه را انتخاب کنید.'
-                })
-            
-            # استفاده از توابع یکپارچه جلالی
-            start_date = jalali_to_gregorian(year, month, 1)
-            last_day = get_jalali_month_last_day(year, month)
-            end_date = jalali_to_gregorian(year, month, last_day)
-            
+                return JsonResponse({"success": False, "message": "سال و ماه را انتخاب کنید."})
+
+            start, end = get_month_range(year, month)
+
+            reservations = Reservation.objects.filter(menu__food_date__range=[start, end])
             users = User.objects.filter(is_active=True)
-            
-            reservations = Reservation.objects.filter(
-                menu__food_date__range=[start_date, end_date]
-            ).select_related('user', 'menu__food')
-            
-            report_data = []
+
+            report = []
             for user in users:
-                user_reservations = reservations.filter(user=user)
-                count = user_reservations.count()
-                
-                report_data.append({
-                    'first_name': user.first_name,
-                    'last_name': user.last_name,
-                    'username': user.username,
-                    'national_code': user.national_code,
-                    'personnel_code': user.personnel_code,
-                    'site': user.site or '-',
-                    'department': user.department or '-',
-                    'reservation_count': count,
-                })
-            
-            report_data.sort(key=lambda x: x['national_code'], reverse=True)
-            
-            # ایجاد فایل اکسل
+                count = reservations.filter(user=user).count()
+                if count > 0:
+                    report.append({
+                        "first_name": user.first_name,
+                        "last_name": user.last_name,
+                        "username": user.username,
+                        "national_code": user.national_code,
+                        "personnel_code": user.personnel_code,
+                        "site": user.site or "-",
+                        "department": user.department or "-",
+                        "reservation_count": count,
+                    })
+
+            report.sort(key=lambda x: x["reservation_count"], reverse=True)
+
             wb = Workbook()
             ws = wb.active
             ws.sheet_view.rightToLeft = True
-            ws.title = f"Monthly_Report_{year}_{month}"
-            
-            headers = ['ردیف', 'نام', 'نام خانوادگی', 'نام کاربری', 'کد ملی', 'کد پرسنلی', 'سایت', 'دپارتمان', 'تعداد رزرو']
-            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
-            header_font = Font(color="FFFFFF", bold=True)
-            
-            for col, header in enumerate(headers, 1):
-                cell = ws.cell(row=1, column=col, value=header)
-                cell.fill = header_fill
-                cell.font = header_font
-                cell.alignment = Alignment(horizontal='center')
-            
-            for row, data in enumerate(report_data, 2):
-                ws.cell(row=row, column=1, value=row-1)
-                ws.cell(row=row, column=2, value=data['first_name'])
-                ws.cell(row=row, column=3, value=data['last_name'])
-                ws.cell(row=row, column=4, value=data['username'])
-                ws.cell(row=row, column=5, value=data['national_code'])
-                ws.cell(row=row, column=6, value=data['personnel_code'])
-                ws.cell(row=row, column=7, value=data['site'])
-                ws.cell(row=row, column=8, value=data['department'])
-                ws.cell(row=row, column=9, value=data['reservation_count'])
-            
-            ws.column_dimensions['A'].width = 6
-            ws.column_dimensions['B'].width = 20
-            ws.column_dimensions['C'].width = 20
-            ws.column_dimensions['D'].width = 20
-            ws.column_dimensions['E'].width = 20
-            ws.column_dimensions['F'].width = 15
-            ws.column_dimensions['G'].width = 15
-            ws.column_dimensions['H'].width = 15
-            ws.column_dimensions['I'].width = 20
-            
+            ws.title = f"Report_{year}_{month}"
+
+            headers = ["ردیف", "نام", "نام خانوادگی", "نام کاربری", "کد ملی", "کد پرسنلی", "تعداد رزرو", "سایت", "دپارتمان"]
+
+            for column, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=column, value=header)
+                apply_header_style(cell)
+
+            for row, data in enumerate(report, 2):
+                row_data = [
+                    (row - 1, 1),
+                    (data["first_name"], 2),
+                    (data["last_name"], 3),
+                    (data["username"], 4),
+                    (data["national_code"], 5),
+                    (data["personnel_code"], 6),
+                    (data["reservation_count"], 7),
+                    (data["site"], 8),
+                    (data["department"], 9),
+                ]
+                for value, col in row_data:
+                    cell = ws.cell(row=row, column=col, value=value)
+                    apply_cell_style(cell)
+
+            widths = {"A": 6, "B": 20, "C": 20, "D": 20, "E": 20, "F": 15, "G": 15, "H": 15, "I": 20}
+            for column, width in widths.items():
+                ws.column_dimensions[column].width = width
+
             response = HttpResponse(
-                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
-            filename = f"monthly_report_{year}_{month}.xlsx"
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            
+            response["Content-Disposition"] = f'attachment; filename="monthly_report_{year}_{month}.xlsx"'
             wb.save(response)
             return response
-            
-        except Exception as e:
-            print(f"error: {str(e)}")
-            return JsonResponse({
-                'success': False,
-                'message': f'خطا در ایجاد گزارش: {str(e)}'
-            })
 
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+
+
+# ============================================================
+# Range Report
+# ============================================================
 
 class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self):
         return self.request.user.is_staff
-    
+
     def post(self, request):
         try:
-            from_date = request.POST.get('from_date')
-            to_date = request.POST.get('to_date')
-            
+            from_date = request.POST.get("from_date")
+            to_date = request.POST.get("to_date")
+
             if not from_date or not to_date:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'لطفاً بازه زمانی را مشخص کنید.'
-                })
-            
-            # تبدیل تاریخ‌های شمسی به میلادی
-            start_date = parse_jalali_date(from_date)
-            end_date = parse_jalali_date(to_date)
-            
-            if not start_date or not end_date:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'فرمت تاریخ وارد شده صحیح نیست.'
-                })
-            
-            if start_date > end_date:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'تاریخ شروع نباید از تاریخ پایان بزرگتر باشد.'
-                })
-            
-            users = User.objects.filter(is_active=True)
-            
-            reservations = Reservation.objects.filter(
-                menu__food_date__range=[start_date, end_date]
-            ).select_related('user', 'menu__food')
-            
-            report_data = []
+                return JsonResponse({"success": False, "message": "بازه زمانی را مشخص کنید."})
+
+            start = parse_jalali_date(from_date)
+            end = parse_jalali_date(to_date)
+
+            if not start or not end:
+                return JsonResponse({"success": False, "message": "فرمت تاریخ صحیح نیست."})
+
+            if start > end:
+                return JsonResponse({"success": False, "message": "تاریخ شروع نباید از پایان بزرگتر باشد."})
+
+            reservations = Reservation.objects.filter(menu__food_date__range=[start, end])
+            user_ids_with_reservations = reservations.values_list("user_id", flat=True).distinct()
+            users = User.objects.filter(id__in=user_ids_with_reservations, is_active=True)
+
+            report = []
             for user in users:
-                user_reservations = reservations.filter(user=user)
-                count = user_reservations.count()
-                
-                report_data.append({
-                    'first_name': user.first_name,
-                    'last_name': user.last_name,
-                    'username': user.username,
-                    'national_code': user.national_code,
-                    'personnel_code': user.personnel_code,
-                    'site': user.site or '-',
-                    'department': user.department or '-',
-                    'reservation_count': count,
+                count = reservations.filter(user=user).count()
+                report.append({
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "username": user.username,
+                    "national_code": user.national_code,
+                    "personnel_code": user.personnel_code,
+                    "site": user.site or "-",
+                    "department": user.department or "-",
+                    "reservation_count": count,
                 })
-            
-            report_data.sort(key=lambda x: x['national_code'], reverse=True)
-            
-            # ایجاد فایل اکسل
+
+            report.sort(key=lambda x: x["reservation_count"], reverse=True)
+
             wb = Workbook()
             ws = wb.active
             ws.sheet_view.rightToLeft = True
-            
-            headers = ['ردیف', 'نام', 'نام خانوادگی', 'نام کاربری', 'کد ملی', 'کد پرسنلی', 'سایت', 'دپارتمان', 'تعداد رزرو']
-            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
-            header_font = Font(color="FFFFFF", bold=True)
-            
-            for col, header in enumerate(headers, 1):
-                cell = ws.cell(row=1, column=col, value=header)
-                cell.fill = header_fill
-                cell.font = header_font
-                cell.alignment = Alignment(horizontal='center')
-            
-            for row, data in enumerate(report_data, 2):
-                ws.cell(row=row, column=1, value=row-1)
-                ws.cell(row=row, column=2, value=data['first_name'])
-                ws.cell(row=row, column=3, value=data['last_name'])
-                ws.cell(row=row, column=4, value=data['username'])
-                ws.cell(row=row, column=5, value=data['national_code'])
-                ws.cell(row=row, column=6, value=data['personnel_code'])
-                ws.cell(row=row, column=7, value=data['site'])
-                ws.cell(row=row, column=8, value=data['department'])
-                ws.cell(row=row, column=9, value=data['reservation_count'])
-            
-            ws.column_dimensions['A'].width = 6
-            ws.column_dimensions['B'].width = 20
-            ws.column_dimensions['C'].width = 20
-            ws.column_dimensions['D'].width = 20
-            ws.column_dimensions['E'].width = 20
-            ws.column_dimensions['F'].width = 15
-            ws.column_dimensions['G'].width = 15
-            ws.column_dimensions['H'].width = 15
-            ws.column_dimensions['I'].width = 20
-            
+            ws.title = "Range Report"
+
+            headers = ["ردیف", "نام", "نام خانوادگی", "نام کاربری", "کد ملی", "کد پرسنلی", "تعداد رزرو", "سایت", "دپارتمان"]
+
+            for column, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=column, value=header)
+                apply_header_style(cell)
+
+            for row, data in enumerate(report, 2):
+                row_data = [
+                    (row - 1, 1),
+                    (data["first_name"], 2),
+                    (data["last_name"], 3),
+                    (data["username"], 4),
+                    (data["national_code"], 5),
+                    (data["personnel_code"], 6),
+                    (data["reservation_count"], 7),
+                    (data["site"], 8),
+                    (data["department"], 9),
+                ]
+                for value, col in row_data:
+                    cell = ws.cell(row=row, column=col, value=value)
+                    apply_cell_style(cell)
+
+            widths = {"A": 6, "B": 20, "C": 20, "D": 20, "E": 20, "F": 15, "G": 15, "H": 20, "I": 20}
+            for column, width in widths.items():
+                ws.column_dimensions[column].width = width
+
+            clean_from = from_date.replace("/", "-")
+            clean_to = to_date.replace("/", "-")
+
             response = HttpResponse(
-                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
-            clean_from = from_date.replace('/', '-')
-            clean_to = to_date.replace('/', '-')
-            ws.title = f"Range_Report_{clean_from}_to_{clean_to}"
-            filename = f"range_report_{clean_from}_to_{clean_to}.xlsx"
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            
+            response["Content-Disposition"] = f'attachment; filename="range_report_{clean_from}_to_{clean_to}.xlsx"'
             wb.save(response)
             return response
-            
+
         except Exception as e:
-            print(f"error: {str(e)}")
-            return JsonResponse({
-                'success': False,
-                'message': f'خطا در ایجاد گزارش: {str(e)}'
-            })
+            return JsonResponse({"success": False, "message": str(e)})
