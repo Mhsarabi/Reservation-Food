@@ -299,6 +299,16 @@ document.addEventListener("DOMContentLoaded", function() {
                 handleResetPassword(e, target);
             }
         });
+        
+        // ============================================================
+        // ✅ دکمه مجوز رزرو اضافه (جدید)
+        // ============================================================
+        userTable.addEventListener("click", function(e) {
+            const target = e.target.closest(".extra-reservation-btn");
+            if (target) {
+                handleExtraReservation(e, target);
+            }
+        });
     }
 
     // ============================================================
@@ -552,7 +562,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ============================================================
-    // دکمه ورودی اکسل - فقط باز کردن مودال
+    // 9. دکمه ورودی اکسل - فقط باز کردن مودال
     // ============================================================
     const importUsersBtn = document.getElementById('importUsersBtn');
     if (importUsersBtn) {
@@ -566,6 +576,58 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.error('❌ مودال importUsersModal پیدا نشد!');
             }
         });
+    }
+
+    // ============================================================
+    // 10. ✅ هندلر مجوز رزرو اضافه (جدید)
+    // ============================================================
+    function handleExtraReservation(e, btn) {
+        const userId = btn.dataset.userId;
+        const username = btn.dataset.username;
+        const currentStatus = btn.dataset.canExtra === 'true';
+        const newStatus = !currentStatus;
+        const action = newStatus ? "فعال" : "غیرفعال";
+        const icon = newStatus ? "bi-plus-circle-fill text-success" : "bi-plus-circle";
+
+        showConfirmModal(
+            `تغییر مجوز رزرو اضافه`,
+            `
+            <div class="text-center">
+                <i class="bi ${icon}" style="font-size: 4rem;"></i>
+                <p class="mt-3">آیا از <strong>${action}</strong> کردن مجوز رزرو اضافه</p>
+                <p class="fw-bold text-primary fs-5">"${username}"</p>
+                <p class="text-muted small">اطمینان دارید؟</p>
+                <p class="text-muted small">
+                    کاربر با مجوز رزرو اضافه می‌تواند برای هر روز <strong>یک رزرو اضافه</strong> ثبت کند.
+                </p>
+            </div>
+            `,
+            function() {
+                fetch("/Alvan/toggle-extra-reservation", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCSRFToken(),
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({
+                        user_id: userId,
+                        can_extra: newStatus ? "true" : "false"
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage(`مجوز رزرو اضافه برای کاربر ${username} با موفقیت ${action} شد.`, "success");
+                        fetchUsers();
+                    } else {
+                        showMessage(data.message || `خطا در ${action} کردن مجوز.`, "danger");
+                    }
+                })
+                .catch(error => {
+                    showMessage("خطا در ارتباط با سرور.", "danger");
+                });
+            }
+        );
     }
 
 });

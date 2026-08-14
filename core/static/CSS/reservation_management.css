@@ -7,7 +7,7 @@
    ============================================================ */
 .card-header {
     background: white;
-    padding: 8px 16px !important;
+    padding: 4px 12px !important;
     border-bottom: none;
 }
 
@@ -15,7 +15,7 @@
     margin: 0;
     color: #2563eb;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -23,14 +23,14 @@
 
 .card-header h4 i {
     color: #2563eb;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
 }
 
 /* ============================================================
    2. استایل‌های card-body
    ============================================================ */
 .card-body {
-    padding: 12px 16px 16px 16px !important;
+    padding: 6px 12px 12px 12px !important;
 }
 
 /* ============================================================
@@ -38,29 +38,23 @@
    ============================================================ */
 #dateFilterForm {
     background: #f8f9fa;
-    padding: 2px 10px 4px 10px !important;
-    border-radius: 8px;
+    padding: 2px 6px 2px 6px !important;
+    border-radius: 6px;
     border: 1px solid #e9ecef;
-    margin-bottom: 6px !important;
-}
-
-#dateFilterForm .form-label {
-    font-size: 0.85rem;
-    color: #495057;
-    font-weight: 600;
     margin-bottom: 2px !important;
 }
 
-#dateFilterForm .form-control-sm {
-    font-size: 0.8rem;
-    height: 32px;
-    padding: 2px 6px !important;
+#dateFilterForm .form-label {
+    font-size: 0.7rem;
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 1px !important;
 }
 
-#dateFilterForm .btn-sm {
-    font-size: 0.8rem;
-    height: 32px;
-    padding: 2px 8px !important;
+#dateFilterForm .form-control-sm {
+    font-size: 0.75rem;
+    height: 26px;
+    padding: 1px 4px !important;
 }
 
 #dateFilterForm .col-md-3,
@@ -73,71 +67,70 @@
 }
 
 /* ============================================================
-   4. جدول رزروها
+   4. جدول رزروها - کاهش ارتفاع ردیف‌ها
    ============================================================ */
 .reservation-table {
     vertical-align: middle;
     text-align: center;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
 }
 
 .reservation-table thead th {
     background: #2563eb !important;
     color: white !important;
     font-weight: 600 !important;
-    padding: 6px 8px !important;  /* ✅ افزایش padding */
+    padding: 3px 5px !important;
     white-space: nowrap;
-    font-size: 0.9rem;  /* ✅ افزایش فونت */
+    font-size: 0.75rem;
     vertical-align: middle !important;
     height: auto;
-    min-height: 32px;  /* ✅ افزایش ارتفاع */
+    min-height: 24px;
     border: 1px solid #1a1a2e !important;
 }
 
 .reservation-table td {
-    padding: 6px 8px !important;  /* ✅ افزایش padding */
+    padding: 2px 4px !important;
     vertical-align: middle;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
 }
 
 /* ============================================================
-   5. فیلترهای داخل جدول
+   5. فیلترهای داخل جدول - کوچک‌تر
    ============================================================ */
 .reservation-table thead th .filter-input {
     display: block;
     width: 100%;
-    margin-top: 4px;
-    font-size: 0.8rem !important;  /* ✅ افزایش فونت */
-    padding: 4px 6px !important;  /* ✅ افزایش padding */
-    height: 28px !important;  /* ✅ افزایش ارتفاع */
-    min-width: 70px !important;  /* ✅ افزایش عرض */
-    border-radius: 4px;
+    margin-top: 1px;
+    font-size: 0.65rem !important;
+    padding: 1px 3px !important;
+    height: 20px !important;
+    min-width: 50px !important;
+    border-radius: 3px;
     background: white !important;
     border: 1px solid #ced4da !important;
     color: #212529 !important;
 }
 
 .reservation-table thead th .filter-input:focus {
-    background: white !important;
     border-color: #86b7fe !important;
     outline: 0;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
 .reservation-table thead th .filter-input::placeholder {
     color: #6c757d !important;
-    opacity: 1;
+    font-size: 0.6rem;
 }
 
 .reservation-table thead th .filter-select {
     display: block;
     width: 100%;
-    margin-top: 4px;
-    font-size: 0.8rem !important;
-    padding: 4px 6px !important;
-    height: 28px !important;
-    min-width: 70px !important;
-    border-radius: 4px;
+    margin-top: 1px;
+    font-size: 0.65rem !important;
+    padding: 1px 3px !important;
+    height: 20px !important;
+    min-width: 50px !important;
+    border-radius: 3px;
     background: white !important;
     border: 1px solid #ced4da !important;
     color: #212529 !important;
@@ -146,43 +139,111 @@
 .reservation-table thead th .filter-select:focus {
     border-color: #86b7fe !important;
     outline: 0;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
 /* ============================================================
-   6. ردیف افزودن رزرو
+   6. ردیف افزودن رزرو - کوچک‌تر
    ============================================================ */
-.new-reservation {
-    background: #f8f9fa;
-}
-
 .new-reservation td {
-    padding: 4px 6px !important;
+    padding: 2px 4px !important;
     vertical-align: middle;
 }
 
 .new-reservation .form-control-sm,
 .new-reservation .form-select-sm {
-    font-size: 0.8rem !important;
-    padding: 4px 6px !important;
-    height: 30px !important;
-    min-width: 70px !important;
+    font-size: 0.7rem !important;
+    padding: 1px 3px !important;
+    height: 24px !important;
+    min-width: 60px !important;
 }
 
 /* ============================================================
-   7. دکمه‌ها
+   7. دکمه‌ها - کوچک‌تر
    ============================================================ */
 .btn-group-sm .btn {
-    padding: 4px 8px !important;
-    font-size: 0.8rem !important;
+    padding: 1px 4px !important;
+    font-size: 0.65rem !important;
 }
 
 .btn-group-sm .btn i {
-    font-size: 0.9rem !important;
+    font-size: 0.7rem !important;
+}
+
+.new-reservation .btn-sm {
+    padding: 1px 4px !important;
+    font-size: 0.65rem !important;
+    height: 24px !important;
 }
 
 /* ============================================================
-   8. Invalid feedback
+   8. Select2 Custom Styles - کوچک‌تر
+   ============================================================ */
+.select2-container--default .select2-selection--single {
+    height: 24px !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+    font-size: 0.7rem;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 22px !important;
+    padding-right: 6px !important;
+    font-size: 0.7rem;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 22px !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    margin-left: 6px !important;
+}
+
+.select2-container .select2-selection--single .select2-selection__rendered {
+    padding-left: 16px !important;
+}
+
+.select2-dropdown {
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+    font-size: 0.7rem;
+}
+
+.select2-search--dropdown .select2-search__field {
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+    font-size: 0.7rem;
+}
+
+.select2-results__option {
+    padding: 4px 8px !important;
+    font-size: 0.7rem;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #2563eb !important;
+}
+
+.select2-container.is-invalid .select2-selection {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.select2-container--default[dir="rtl"] .select2-selection--single .select2-selection__rendered {
+    padding-right: 6px !important;
+    padding-left: 16px !important;
+    text-align: right;
+}
+
+.select2-container--default[dir="rtl"] .select2-selection--single .select2-selection__clear {
+    margin-left: 0 !important;
+    margin-right: 6px !important;
+}
+
+/* ============================================================
+   9. Invalid feedback
    ============================================================ */
 .is-invalid {
     border-color: #dc3545 !important;
@@ -193,7 +254,7 @@
 }
 
 /* ============================================================
-   9. انیمیشن‌ها
+   10. انیمیشن‌ها
    ============================================================ */
 .alert {
     animation: slideDown 0.3s ease-out;
@@ -211,102 +272,14 @@
 }
 
 /* ============================================================
-   10. Responsive
-   ============================================================ */
-@media (max-width: 768px) {
-    #dateFilterForm .col-md-3,
-    #dateFilterForm .col-md-2 {
-        margin-bottom: 8px;
-    }
-    
-    .reservation-table thead th,
-    .reservation-table td {
-        padding: 4px 4px !important;
-        font-size: 0.75rem;
-    }
-    
-    .reservation-table thead th .filter-input {
-        font-size: 0.7rem !important;
-        height: 22px !important;
-        padding: 2px 4px !important;
-        min-width: 50px !important;
-    }
-}
-
-/* ============================================================
-   Select2 Custom Styles
-   ============================================================ */
-.select2-container--default .select2-selection--single {
-    height: 30px !important;
-    border: 1px solid #ced4da !important;
-    border-radius: 4px !important;
-    font-size: 0.8rem;
-}
-
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 28px !important;
-    padding-right: 8px !important;
-    font-size: 0.8rem;
-}
-
-.select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 28px !important;
-}
-
-.select2-container--default .select2-selection--single .select2-selection__clear {
-    margin-left: 8px !important;
-}
-
-.select2-container .select2-selection--single .select2-selection__rendered {
-    padding-left: 20px !important;
-}
-
-.select2-dropdown {
-    border: 1px solid #ced4da !important;
-    border-radius: 4px !important;
-}
-
-.select2-search--dropdown .select2-search__field {
-    border: 1px solid #ced4da !important;
-    border-radius: 4px !important;
-    padding: 4px 8px !important;
-    font-size: 0.8rem;
-}
-
-.select2-results__option {
-    padding: 6px 12px !important;
-    font-size: 0.8rem;
-}
-
-.select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background-color: #2563eb !important;
-}
-
-.select2-container.is-invalid .select2-selection {
-    border-color: #dc3545 !important;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
-}
-
-.select2-container--default[dir="rtl"] .select2-selection--single .select2-selection__rendered {
-    padding-right: 8px !important;
-    padding-left: 20px !important;
-    text-align: right;
-}
-
-.select2-container--default[dir="rtl"] .select2-selection--single .select2-selection__clear {
-    margin-left: 0 !important;
-    margin-right: 8px !important;
-}
-
-/* ============================================================
    11. استایل‌های جدول گزارش - هماهنگ با جدول اول
    ============================================================ */
 
 #reportTable th,
 #reportTable td {
-    padding: 6px 8px !important;
+    padding: 2px 4px !important;
     vertical-align: middle !important;
-    font-size: 0.9rem !important;
+    font-size: 0.8rem !important;
     text-align: center !important;
 }
 
@@ -314,12 +287,12 @@
     background: #2563eb !important;
     color: white !important;
     font-weight: 600 !important;
-    padding: 6px 8px !important;
+    padding: 2px 4px !important;
     white-space: nowrap;
-    font-size: 0.9rem !important;
+    font-size: 0.75rem !important;
     vertical-align: middle !important;
     height: auto;
-    min-height: 32px;
+    min-height: 24px;
     text-align: center !important;
     border: 1px solid #1a1a2e !important;
 }
@@ -328,12 +301,12 @@
 #reportTable .report-filter-select {
     display: block;
     width: 100%;
-    margin-top: 4px;
-    font-size: 0.8rem !important;
-    padding: 4px 6px !important;
-    height: 28px !important;
-    min-width: 70px !important;
-    border-radius: 4px;
+    margin-top: 1px;
+    font-size: 0.65rem !important;
+    padding: 1px 3px !important;
+    height: 20px !important;
+    min-width: 50px !important;
+    border-radius: 3px;
     background: white !important;
     border: 1px solid #ced4da !important;
     color: #212529 !important;
@@ -344,12 +317,12 @@
     background: white !important;
     border-color: #86b7fe !important;
     outline: 0;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
 #reportTable .report-filter-input::placeholder {
     color: #6c757d !important;
-    opacity: 1;
+    font-size: 0.6rem;
 }
 
 #reportTable tbody tr:nth-child(even) {
@@ -360,32 +333,16 @@
     background-color: #e9ecef !important;
 }
 
-#reportTable .text-center.py-4 {
+#reportTable .text-center.py-3 {
     background-color: #ffffff !important;
 }
 
-#reportTable .text-center.py-4 i {
+#reportTable .text-center.py-3 i {
     color: #adb5bd !important;
 }
 
-#reportTable .text-center.py-4 p {
+#reportTable .text-center.py-3 p {
     color: #6c757d !important;
-}
-
-@media (max-width: 768px) {
-    #reportTable thead th,
-    #reportTable td {
-        padding: 4px 4px !important;
-        font-size: 0.75rem !important;
-    }
-    
-    #reportTable .report-filter-input,
-    #reportTable .report-filter-select {
-        font-size: 0.7rem !important;
-        height: 22px !important;
-        padding: 2px 4px !important;
-        min-width: 50px !important;
-    }
 }
 
 #reportTable .report-filter-input.is-invalid,
@@ -396,4 +353,187 @@
 #reportTable .report-filter-input.is-invalid:focus,
 #reportTable .report-filter-select.is-invalid:focus {
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* ============================================================
+   12. دکمه‌های فیلتر در جلو فیلدها (کوچک‌تر)
+   ============================================================ */
+
+#dateFilterForm .btn-sm {
+    font-size: 0.7rem !important;
+    height: 24px !important;
+    padding: 1px 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+}
+
+#dateFilterForm .btn:not(.btn-sm) {
+    font-size: 0.85rem !important;
+    height: 32px !important;
+    padding: 4px 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+#dateFilterForm .btn-success:not(.btn-sm):hover {
+    background-color: #218838 !important;
+    border-color: #1e7e34 !important;
+}
+
+#dateFilterForm .btn-secondary:not(.btn-sm) {
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+    color: white !important;
+}
+
+#dateFilterForm .btn-secondary:not(.btn-sm):hover {
+    background-color: #5a6268 !important;
+    border-color: #545b62 !important;
+}
+
+#dateFilterForm .btn-primary.btn-sm {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: white !important;
+}
+
+#dateFilterForm .btn-primary.btn-sm:hover {
+    background-color: #1d4ed8 !important;
+    border-color: #1e40af !important;
+}
+
+#dateFilterForm .btn-outline-danger.btn-sm {
+    border-color: #dc3545 !important;
+    color: #dc3545 !important;
+}
+
+#dateFilterForm .btn-outline-danger.btn-sm:hover {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+#dateFilterForm .d-flex.gap-1 {
+    gap: 3px !important;
+}
+
+#dateFilterForm .d-flex.gap-2 {
+    gap: 12px !important;
+}
+
+#dateFilterForm .d-flex.align-items-center {
+    padding-top: 16px !important;
+}
+
+.separator {
+    width: 8px;
+    display: inline-block;
+}
+
+/* ============================================================
+   13. تنظیمات پاسخگو (Responsive)
+   ============================================================ */
+
+@media (max-width: 992px) {
+    #dateFilterForm .d-flex.align-items-center {
+        padding-top: 0 !important;
+        flex-wrap: wrap !important;
+        gap: 4px !important;
+    }
+    
+    #dateFilterForm .d-flex.gap-2 {
+        gap: 4px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    #dateFilterForm .col-md-3,
+    #dateFilterForm .col-md-2 {
+        margin-bottom: 6px;
+    }
+    
+    .reservation-table thead th,
+    .reservation-table td {
+        padding: 2px 3px !important;
+        font-size: 0.7rem;
+    }
+    
+    .reservation-table thead th .filter-input {
+        font-size: 0.6rem !important;
+        height: 18px !important;
+        padding: 0 2px !important;
+        min-width: 40px !important;
+    }
+    
+    #reportTable thead th,
+    #reportTable td {
+        padding: 2px 3px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    #reportTable .report-filter-input,
+    #reportTable .report-filter-select {
+        font-size: 0.6rem !important;
+        height: 18px !important;
+        padding: 0 2px !important;
+        min-width: 40px !important;
+    }
+    
+    #dateFilterForm .form-label {
+        font-size: 0.65rem !important;
+    }
+    
+    #dateFilterForm .form-control-sm {
+        font-size: 0.7rem !important;
+        height: 22px !important;
+    }
+    
+    #dateFilterForm .btn-sm {
+        font-size: 0.65rem !important;
+        height: 20px !important;
+        padding: 0 4px !important;
+    }
+    
+    #dateFilterForm .btn:not(.btn-sm) {
+        font-size: 0.75rem !important;
+        height: 26px !important;
+        padding: 2px 8px !important;
+    }
+    
+    .separator {
+        width: 4px;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-header {
+        padding: 2px 8px !important;
+    }
+    
+    .card-header h4 {
+        font-size: 0.8rem !important;
+    }
+    
+    .card-body {
+        padding: 4px 8px 8px 8px !important;
+    }
+    
+    #dateFilterForm {
+        padding: 2px 4px !important;
+    }
+    
+    #dateFilterForm .d-flex.align-items-center {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    
+    #dateFilterForm .d-flex.gap-1,
+    #dateFilterForm .d-flex.gap-2 {
+        justify-content: center !important;
+    }
+    
+    .separator {
+        display: none !important;
+    }
 }

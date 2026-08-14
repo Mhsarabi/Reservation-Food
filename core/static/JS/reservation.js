@@ -16,30 +16,24 @@ function fetchMenuData() {
         },
     })
     .then(response => {
-        console.log('📡 وضعیت پاسخ:', response.status);
         if (!response.ok) {
             throw new Error(`خطا در دریافت داده‌ها: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
-        console.log('📡 داده‌های دریافتی:', data);
         
-        // ✅ استفاده از window.menuData
         if (typeof window.menuData === 'undefined') {
             window.menuData = {};
         }
         
-        // پاک کردن menuData قبلی
         for (let key in window.menuData) {
             delete window.menuData[key];
         }
-        // اضافه کردن داده‌های جدید
         Object.assign(window.menuData, data);
         
         const count = Object.keys(window.menuData).length;
         console.log(`✅ ${count} روز با غذا دریافت شد.`);
-        console.log('📅 window.menuData:', window.menuData);
         
         return window.menuData;
     })
@@ -68,9 +62,7 @@ if (todayDateEl) {
 // ===========================
 // Calendar
 // ===========================
-console.log('📅 ایجاد تقویم...');
 const calendar = new PersianCalendar("calendarGrid", false);
-console.log('📅 تقویم ایجاد شد.');
 
 // ===========================
 // Update Reserve Button
@@ -106,13 +98,12 @@ function updateReserveButton(status) {
 }
 
 // ===========================
-// Update Reserved Count
+// Update Reserved Count (با پشتیبانی از رزرو اضافه)
 // ===========================
 function updateReservedCount() {
     let count = 0;
+    let extraCount = 0;
 
-    console.log('📊 محاسبه تعداد رزروها...');
-    console.log('📊 window.menuData:', window.menuData);
 
     if (window.menuData) {
         Object.entries(window.menuData).forEach(([key, menu]) => {
@@ -125,15 +116,20 @@ function updateReservedCount() {
                 menu.reserved
             ) {
                 count++;
+                if (menu.has_extra_reservation) {
+                    extraCount++;
+                }
             }
         });
     }
 
-    console.log(`📊 تعداد رزروهای این ماه: ${count}`);
-
     const reservedCountEl = document.getElementById("reservedCount");
     if (reservedCountEl) {
-        reservedCountEl.textContent = `تعداد غذاهای رزرو شده این ماه: ${count}`;
+        let text = `تعداد غذاهای رزرو شده این ماه: ${count}`;
+        if (extraCount > 0) {
+            text += ` (${extraCount} رزرو اضافه)`;
+        }
+        reservedCountEl.textContent = text;
     }
 }
 
@@ -141,14 +137,11 @@ function updateReservedCount() {
 // بارگذاری اولیه
 // ===========================
 function initApp() {
-    console.log('🚀 شروع بارگذاری برنامه...');
     
     fetchMenuData()
         .then(() => {
-            console.log('✅ menuData پر شد، رندر تقویم...');
             calendar.render();
             updateReservedCount();
-            console.log('✅ تقویم بارگذاری شد.');
         })
         .catch(error => {
             console.error('❌ خطا در بارگذاری:', error);
@@ -159,7 +152,7 @@ function initApp() {
 initApp();
 
 // ===========================
-// Reserve Month
+// Reserve Month (رزرو همه روزهای ماه)
 // ===========================
 document.getElementById("reserveMonthBtn")?.addEventListener("click", async () => {
     const start = calendar.getMonthStartGregorian();
@@ -200,7 +193,7 @@ document.getElementById("reserveMonthBtn")?.addEventListener("click", async () =
 });
 
 // ===========================
-// Cancel Month
+// Cancel Month (لغو همه روزهای ماه)
 // ===========================
 document.getElementById("cancelMonthBtn")?.addEventListener("click", async () => {
     const start = calendar.getMonthStartGregorian();
@@ -247,7 +240,6 @@ const originalNextMonth = calendar.nextMonth;
 const originalPreviousMonth = calendar.previousMonth;
 
 calendar.nextMonth = function() {
-    console.log('📅 رفتن به ماه بعد...');
     originalNextMonth.call(this);
     fetchMenuData().then(() => {
         this.render();
@@ -256,10 +248,119 @@ calendar.nextMonth = function() {
 };
 
 calendar.previousMonth = function() {
-    console.log('📅 رفتن به ماه قبل...');
     originalPreviousMonth.call(this);
     fetchMenuData().then(() => {
         this.render();
         updateReservedCount();
     });
+};
+
+// ===========================
+// اضافه کردن رزرو اضافه (دکمه +)
+// ===========================
+calendar.addExtraReservation = async function(day) {
+    const g = jalaali.toGregorian(
+        this.currentYear,
+        this.currentMonth,
+        day
+    );
+
+    const key =
+        `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
+
+    const menu = this.menuData[key];
+    if (!menu) {
+        alert("غذایی برای این روز ثبت نشده است.");
+        return;
+    }
+
+    const csrfToken = document.getElementById("csrf-token")?.value || '';
+
+    try {
+        const response = await fetch("/reservations/add-extra/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+                food_date: key,
+            }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            this.menuData[key].has_extra_reservation = true;
+            this.menuData[key].reserved = true;
+            this.render();
+            if (typeof updateReservedCount === 'function') {
+                updateReservedCount();
+            }
+            alert(data.message);
+        } else {
+            alert(data.message);
+        }
+    } catch (error) {
+        console.error('❌ Error in addExtraReservation:', error);
+        alert("خطا در ارتباط با سرور");
+    }
+};
+
+// ===========================
+// حذف رزرو (با پشتیبانی از حذف رزرو اضافه)
+// ===========================
+calendar.removeReservation = async function(day) {
+    const g = jalaali.toGregorian(
+        this.currentYear,
+        this.currentMonth,
+        day
+    );
+
+    const key =
+        `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
+
+    const menu = this.menuData[key];
+    if (!menu) return;
+
+    const csrfToken = document.getElementById("csrf-token")?.value || '';
+
+    try {
+        const response = await fetch("/reservations/delete/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+                food_date: key,
+            }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            this.menuData[key].reserved = false;
+            this.menuData[key].has_extra_reservation = false;
+            this.render();
+            if (typeof updateReservedCount === 'function') {
+                updateReservedCount();
+            }
+
+            const foodImage = document.getElementById("foodImage");
+            const foodName = document.getElementById("foodName");
+            const selectedDate = document.getElementById("selectedDate");
+
+            if (foodImage) foodImage.src = "/static/images/no-food.png";
+            if (foodName) foodName.textContent = "-";
+            if (selectedDate) selectedDate.textContent = "تاریخی انتخاب نشده است.";
+            
+            alert(data.message);
+        } else {
+            alert(data.message);
+        }
+    } catch (error) {
+        console.error('❌ Error in removeReservation:', error);
+        alert("خطا در ارتباط با سرور");
+    }
 };

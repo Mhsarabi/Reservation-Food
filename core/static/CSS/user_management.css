@@ -17,13 +17,6 @@
     padding-bottom:2px;
 }
 
-.navbar-logo{
-    width:42px;
-    height:42px;
-    object-fit:contain;
-    margin-left:10px;
-}
-
 .container-fluid.mt-4{
     margin-top:8px !important;
 }
@@ -109,7 +102,6 @@
 }
 
 
-/* ارتفاع ردیف‌ها */
 .user-table thead tr{
     height:44px;
 }

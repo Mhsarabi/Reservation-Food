@@ -80,6 +80,8 @@ def get_available_years():
 
 
 def is_reservation_closed(menu):
+    if not menu.food_date:
+      return True
     deadline = datetime.combine(menu.food_date - timedelta(days=1), time(23, 59, 59))
     deadline = timezone.make_aware(deadline)
     return timezone.now() >= deadline
@@ -168,6 +170,7 @@ def apply_date_filters(qs, request, date_field):
 # ============================================================
 
 class ReservationToggleView(LoginRequiredMixin, View):
+
     def post(self, request):
         food_date = request.POST.get("food_date")
         if not food_date:
@@ -181,14 +184,15 @@ class ReservationToggleView(LoginRequiredMixin, View):
         if is_reservation_closed(menu):
             return JsonResponse({"success": False, "message": "مهلت رزرو به پایان رسیده است."})
 
-        if Reservation.objects.filter(user=request.user, menu=menu).exists():
+        if Reservation.objects.filter(user=request.user, menu=menu, is_extra=False).exists():
             return JsonResponse({"success": False, "message": "شما قبلاً این غذا را رزرو کرده‌اید."})
 
-        Reservation.objects.create(user=request.user, menu=menu)
+        Reservation.objects.create(user=request.user, menu=menu, is_extra=False)
         return JsonResponse({"success": True, "reserved": True, "message": "غذا با موفقیت رزرو شد."})
 
-
+    
 class ReservationDeleteView(LoginRequiredMixin, View):
+    
     def post(self, request):
         food_date = request.POST.get("food_date")
         if not food_date:
@@ -202,14 +206,79 @@ class ReservationDeleteView(LoginRequiredMixin, View):
         if is_reservation_closed(menu):
             return JsonResponse({"success": False, "message": "مهلت لغو رزرو به پایان رسیده است."})
 
-        try:
-            reservation = Reservation.objects.get(user=request.user, menu=menu)
-            reservation.delete()
-            return JsonResponse({"success": True, "message": "رزرو با موفقیت لغو شد."})
-        except Reservation.DoesNotExist:
+        reservation = Reservation.objects.filter(
+            user=request.user,
+            menu=menu,
+            is_extra=False
+        ).first()
+        
+        if not reservation:
             return JsonResponse({"success": False, "message": "رزروی برای حذف وجود ندارد."})
+        
+        reservation.delete()
+        
+        extra_reservation = Reservation.objects.filter(
+            user=request.user,
+            menu=menu,
+            is_extra=True
+        ).first()
+        
+        if extra_reservation:
+            extra_reservation.delete()
+            message = "رزرو اصلی و رزرو اضافه با موفقیت لغو شدند."
+        else:
+            message = "رزرو با موفقیت لغو شد."
+        
+        return JsonResponse({
+            "success": True,
+            "message": message
+        })
+class DeleteExtraReservationView(LoginRequiredMixin, View):
+    
+    def post(self, request):
+        food_date = request.POST.get("food_date")
+        
+        if not food_date:
+            return JsonResponse({
+                "success": False,
+                "message": "تاریخ ارسال نشده است."
+            })
+        
+        try:
+            menu = DailyMenu.objects.get(food_date=food_date)
+        except DailyMenu.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "message": "برای این روز غذایی ثبت نشده است."
+            })
+        
+        extra_reservation = Reservation.objects.filter(
+            user=request.user,
+            menu=menu,
+            is_extra=True
+        ).first()
+        
+        if not extra_reservation:
+            return JsonResponse({
+                "success": False,
+                "message": "رزرو اضافه‌ای برای حذف وجود ندارد."
+            })
+        
+        extra_reservation.delete()
+        
+        has_main = Reservation.objects.filter(
+            user=request.user,
+            menu=menu,
+            is_extra=False
+        ).exists()
+        
+        return JsonResponse({
+            "success": True,
+            "message": "رزرو اضافه با موفقیت لغو شد.",
+            "has_main_reservation": has_main 
+        })
 
-
+        
 class ReservationReserveMonthView(LoginRequiredMixin, View):
     def post(self, request):
         start_date = request.POST.get("start_date")
@@ -248,6 +317,69 @@ class ReservationCancelMonthView(LoginRequiredMixin, View):
             deleted += 1
 
         return JsonResponse({"success": True, "deleted": deleted, "message": "رزروهای ماه لغو شد."})
+
+class AddExtraReservationView(LoginRequiredMixin, View):
+
+    def post(self, request):
+        food_date = request.POST.get("food_date")
+        
+        if not food_date:
+            return JsonResponse({
+                "success": False,
+                "message": "تاریخ ارسال نشده است."
+            })
+        
+        try:
+            menu = DailyMenu.objects.get(food_date=food_date)
+        except DailyMenu.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "message": "برای این روز غذایی ثبت نشده است."
+            })
+        
+        if is_reservation_closed(menu):
+            return JsonResponse({
+                "success": False,
+                "message": "مهلت رزرو این غذا به پایان رسیده است."
+            })
+        
+        if not request.user.can_extra_reservation:
+            return JsonResponse({
+                "success": False,
+                "message": "شما مجوز رزرو اضافه ندارید."
+            })
+        
+        existing = Reservation.objects.filter(
+            user=request.user,
+            menu=menu
+        ).first()
+        
+        if not existing:
+            return JsonResponse({
+                "success": False,
+                "message": "شما ابتدا باید رزرو اصلی را انجام دهید."
+            })
+        
+        if Reservation.objects.filter(
+            user=request.user,
+            menu=menu,
+            is_extra=True
+        ).exists():
+            return JsonResponse({
+                "success": False,
+                "message": "شما قبلاً برای این روز رزرو اضافه گرفته‌اید."
+            })
+        
+        extra_reservation = Reservation.objects.create(
+            user=request.user,
+            menu=menu,
+            is_extra=True  
+        )
+        
+        return JsonResponse({
+            "success": True,
+            "message": "رزرو اضافه با موفقیت انجام شد."
+        })
 
 
 # ============================================================

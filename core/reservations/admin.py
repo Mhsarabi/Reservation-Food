@@ -9,10 +9,12 @@ class ReservationAdmin(admin.ModelAdmin):
         "food_date",
         "food_name",
         "reserve_time",
+        "is_extra"
     )
 
     list_filter = (
         "menu__food_date",
+        "is_extra"
     )
 
     search_fields = (

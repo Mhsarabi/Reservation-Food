@@ -14,4 +14,5 @@ urlpatterns=[
     path("Alvan/delete/user",DeleteUserView.as_view(),name="delete_user"),
     path("Alvan/toggle-status/user",ToggleUserStatusView.as_view(),name="toggle_user_status"),
     path("Alvan/import-user",ImportUsersView.as_view(),name="import_users"),
+    path('Alvan/toggle-extra-reservation', ToggleExtraReservationView.as_view(), name='toggle_extra_reservation'),
 ]

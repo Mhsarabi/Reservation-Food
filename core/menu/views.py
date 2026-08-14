@@ -361,15 +361,23 @@ class DeleteDailyFoodView(LoginRequiredMixin, UserPassesTestMixin, View):
             })
 
 
-class DailyMenusAPIView(LoginRequiredMixin, View):    
-    def get(self, request):        
+class DailyMenusAPIView(LoginRequiredMixin, View):
+    def get(self, request):
         menus = DailyMenu.objects.select_related('food').all()
         
         reserved_ids = set(
             Reservation.objects.filter(
                 user=request.user
             ).values_list('menu_id', flat=True)
-        )        
+        )
+        
+        extra_reservation_ids = set(
+            Reservation.objects.filter(
+                user=request.user,
+                is_extra=True
+            ).values_list('menu_id', flat=True)
+        )
+        
         data = {}
         for menu in menus:
             key = menu.food_date.strftime('%Y-%m-%d')
@@ -377,7 +385,9 @@ class DailyMenusAPIView(LoginRequiredMixin, View):
                 'foodId': menu.food.id,
                 'foodName': menu.food.food_name,
                 'image': menu.food.food_image.url if menu.food.food_image else '/static/images/no-food.png',
-                'reserved': menu.id in reserved_ids,  
+                'reserved': menu.id in reserved_ids,
+                'can_extra_reservation': request.user.can_extra_reservation,
+                'has_extra_reservation': menu.id in extra_reservation_ids,
             }
         
         return JsonResponse(data)

@@ -12,6 +12,8 @@ urlpatterns = [
     path("delete/", ReservationDeleteView.as_view(), name="delete"),
     path("reserve-month/", ReservationReserveMonthView.as_view(), name="reserve_month"),
     path("cancel-month/", ReservationCancelMonthView.as_view(), name="cancel_month"),
+    path('add-extra/', AddExtraReservationView.as_view(), name='add_extra'),
+    path('delete-extra/', DeleteExtraReservationView.as_view(), name='delete_extra'),
 
     # ============================================================
     # گزارش‌گیری

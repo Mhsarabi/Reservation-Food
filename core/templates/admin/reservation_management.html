@@ -22,24 +22,29 @@
 </head>
 <body>
 
+<!-- ============================================================ -->
+<!-- HEADER و MODALS                                              -->
+<!-- ============================================================ -->
 {% include 'includes/admin_header.html' %}
 {% include 'includes/admin_modals.html' %}
 
-<div class="container-fluid mt-4">
-    <div class="card shadow">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h4 class="mb-0"><i class="bi bi-calendar-check me-2"></i>مدیریت رزروهای سامانه</h4>
-            <div class="d-flex gap-2 align-items-center">
-                <a href="#" class="btn btn-success btn-md" title="دانلود اکسل" id="exportExcelBtn" >
-                    <i class="bi bi-file-earmark-excel me-1"></i> اکسل
-                </a>
-                <a href="{% url 'reservations:user_report' %}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-bar-chart me-1"></i> تعداد رزرو کاربران
-                </a>
-            </div>
+<!-- ============================================================ -->
+<!-- MAIN CONTENT                                                 -->
+<!-- ============================================================ -->
+<div class="container-fluid mt-3">
+    <div class="card shadow-sm">
+        
+        <!-- ==================== CARD HEADER ==================== -->
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h4 class="mb-0">
+                <i class="bi bi-calendar-check me-2"></i>مدیریت رزروهای سامانه
+            </h4>
         </div>
+        
+        <!-- ==================== CARD BODY ==================== -->
         <div class="card-body">
-
+            
+            <!-- پیام‌ها -->
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
@@ -49,12 +54,21 @@
                     </div>
                 {% endfor %}
             {% endif %}
-
-            <!-- فیلترهای تاریخ -->
-            <form method="GET" action="{% url 'reservations:reservation_management' %}" id="dateFilterForm" class="row g-2 mb-3 align-items-end">
+            
+            <!-- ==================== فیلترها ==================== -->
+            <form method="GET" action="{% url 'reservations:reservation_management' %}" id="dateFilterForm" class="row g-1 mb-2 align-items-end">
+                
                 <div class="col-md-2">
-                    <label class="form-label fw-bold"><i class="bi bi-calendar3"></i> سال</label>
-                    <input type="text" name="year" id="filterYear" class="form-control form-control-sm" value="{{ request.GET.year }}" list="yearList" autocomplete="off">
+                    <label class="form-label fw-bold small">
+                        <i class="bi bi-calendar3"></i> سال
+                    </label>
+                    <input type="text" 
+                           name="year" 
+                           id="filterYear" 
+                           class="form-control form-control-sm" 
+                           value="{{ request.GET.year }}" 
+                           list="yearList" 
+                           autocomplete="off">
                     <datalist id="yearList">
                         {% for year in years %}
                             <option value="{{ year }}">
@@ -63,7 +77,9 @@
                 </div>
                 
                 <div class="col-md-2">
-                    <label class="form-label fw-bold"><i class="bi bi-calendar-month"></i> ماه</label>
+                    <label class="form-label fw-bold small">
+                        <i class="bi bi-calendar-month"></i> ماه
+                    </label>
                     <select name="month" id="filterMonth" class="form-select form-select-sm">
                         <option value="">همه ماه‌ها</option>
                         <option value="1" {% if request.GET.month == '1' %}selected{% endif %}>فروردین</option>
@@ -82,28 +98,59 @@
                 </div>
                 
                 <div class="col-md-2">
-                    <label class="form-label fw-bold"><i class="bi bi-calendar-event"></i> از تاریخ</label>
-                    <input type="text" name="from_date" id="filterFromDate" class="form-control form-control-sm datepicker" value="{{ request.GET.from_date }}" autocomplete="off">
+                    <label class="form-label fw-bold small">
+                        <i class="bi bi-calendar-event"></i> از تاریخ
+                    </label>
+                    <input type="text" 
+                           name="from_date" 
+                           id="filterFromDate" 
+                           class="form-control form-control-sm datepicker" 
+                           value="{{ request.GET.from_date }}" 
+                           autocomplete="off" 
+                           >
                 </div>
                 
                 <div class="col-md-2">
-                    <label class="form-label fw-bold"><i class="bi bi-calendar-event-fill"></i> تا تاریخ</label>
-                    <input type="text" name="to_date" id="filterToDate" class="form-control form-control-sm datepicker" value="{{ request.GET.to_date }}" autocomplete="off">
+                    <label class="form-label fw-bold small">
+                        <i class="bi bi-calendar-event-fill"></i> تا تاریخ
+                    </label>
+                    <input type="text" 
+                           name="to_date" 
+                           id="filterToDate" 
+                           class="form-control form-control-sm datepicker" 
+                           value="{{ request.GET.to_date }}" 
+                           autocomplete="off" 
+                           >
                 </div>
                 
+                <!-- ==================== چهار دکمه با هم‌ترازی کامل ==================== -->
                 <div class="col-md-4">
-                    <div class="d-flex gap-1">
-                        <button type="submit" class="btn btn-primary btn-sm flex-fill">
-                            <i class="bi bi-search"></i> اعمال فیلتر
-                        </button>
-                        <a href="{% url 'reservations:reservation_management' %}" class="btn btn-outline-danger btn-sm flex-fill" id="clearReservationFilter">
-                            <i class="bi bi-x-circle"></i> حذف فیلتر
-                        </a>
+                    <div class="d-flex gap-3 align-items-center" style="padding-top: 0;">
+                        <!-- گروه اول: دکمه‌های فیلتر (کوچک‌تر) -->
+                        <div class="d-flex gap-1">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-search"></i> اعمال فیلتر
+                            </button>
+                            <a href="{% url 'reservations:reservation_management' %}" class="btn btn-outline-danger btn-sm" id="clearReservationFilter">
+                                <i class="bi bi-x-circle"></i> حذف فیلتر
+                            </a>
+                        </div>
+                        
+                        <!-- گروه دوم: دکمه‌های اکسل و تعداد رزرو (بزرگ‌تر) -->
+                        <div class="d-flex gap-1">
+                            <a href="#" class="btn btn-success" id="exportExcelBtn">
+                                <i class="bi bi-file-earmark-excel me-1"></i> اکسل
+                            </a>
+                            <a href="{% url 'reservations:user_report' %}" class="btn btn-secondary">
+                                <i class="bi bi-bar-chart me-1"></i> تعداد رزرو کاربران
+                            </a>
+                        </div>
                     </div>
                 </div>
+                
             </form>
-
-            <!-- جدول رزروها -->
+            
+            <!-- ==================== جدول رزروها ==================== -->
             <form method="POST" action="{% url 'reservations:reservation_management' %}" id="addReservationForm">
                 {% csrf_token %}
                 <div class="table-responsive">
@@ -112,19 +159,35 @@
                             <tr>
                                 <th>
                                     نام
-                                    <input type="text" name="first_name" class="form-control form-control-sm filter-input" value="{{ request.GET.first_name }}">
+                                    <input type="text" 
+                                           name="first_name" 
+                                           class="form-control form-control-sm filter-input" 
+                                           value="{{ request.GET.first_name }}" 
+                                           >
                                 </th>
                                 <th>
                                     نام خانوادگی
-                                    <input type="text" name="last_name" class="form-control form-control-sm filter-input" value="{{ request.GET.last_name }}">
+                                    <input type="text" 
+                                           name="last_name" 
+                                           class="form-control form-control-sm filter-input" 
+                                           value="{{ request.GET.last_name }}" 
+                                           >
                                 </th>
                                 <th>
                                     کد ملی
-                                    <input type="text" name="national_code" class="form-control form-control-sm filter-input" value="{{ request.GET.national_code }}">
+                                    <input type="text" 
+                                           name="national_code" 
+                                           class="form-control form-control-sm filter-input" 
+                                           value="{{ request.GET.national_code }}" 
+                                           >
                                 </th>
                                 <th>
                                     غذا
-                                    <input type="text" name="food_name" class="form-control form-control-sm filter-input" value="{{ request.GET.food_name }}">
+                                    <input type="text" 
+                                           name="food_name" 
+                                           class="form-control form-control-sm filter-input" 
+                                           value="{{ request.GET.food_name }}" 
+                                           >
                                 </th>
                                 <th>تاریخ رزرو</th>
                                 <th>تاریخ ارائه غذا</th>
@@ -136,7 +199,7 @@
                                 {% include 'admin/partials/reservation_table_rows.html' %}
                             {% else %}
                                 <tr>
-                                    <td colspan="7" class="text-center py-4">
+                                    <td colspan="7" class="text-center py-3">
                                         <i class="bi bi-inbox display-4 text-muted"></i>
                                         <p class="text-muted mt-2">هیچ رزروی یافت نشد.</p>
                                     </td>
@@ -175,11 +238,14 @@
                     </table>
                 </div>
             </form>
-
+            
         </div>
     </div>
 </div>
 
+<!-- ============================================================ -->
+<!-- SCRIPTS                                                      -->
+<!-- ============================================================ -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>

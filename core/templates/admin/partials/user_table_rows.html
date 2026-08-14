@@ -1,6 +1,5 @@
 {% for user in users %}
 <tr id="user-row-{{ user.id }}" class="user-row">
-    <!-- ستون نام -->
     <td>
         <span class="view-mode">{{ user.first_name }}</span>
         <input type="text" 
@@ -10,7 +9,6 @@
                style="display:none;">
     </td>
     
-    <!-- ستون نام خانوادگی -->
     <td>
         <span class="view-mode">{{ user.last_name }}</span>
         <input type="text" 
@@ -20,7 +18,6 @@
                style="display:none;">
     </td>
     
-    <!-- ستون کد ملی -->
     <td>
         <span class="view-mode">{{ user.national_code }}</span>
         <input type="text" 
@@ -30,7 +27,6 @@
                style="display:none;">
     </td>
     
-    <!-- ستون کد پرسنلی -->
     <td>
         <span class="view-mode">{{ user.personnel_code }}</span>
         <input type="text" 
@@ -40,7 +36,6 @@
                style="display:none;">
     </td>
     
-    <!-- ستون نام کاربری -->
     <td>
         <span class="view-mode">{{ user.username }}</span>
         <input type="text" 
@@ -50,7 +45,6 @@
                style="display:none;">
     </td>
     
-    <!-- ستون سایت -->
     <td>
         <span class="view-mode">{{ user.site|default:"-" }}</span>
         <select name="site" class="form-select form-select-sm edit-mode" style="display:none;">
@@ -60,7 +54,6 @@
         </select>
     </td>
     
-    <!-- ستون واحد -->
     <td>
         <span class="view-mode">{{ user.department }}</span>
         <select name="department" class="form-select form-select-sm edit-mode" style="display:none;">
@@ -72,7 +65,21 @@
         </select>
     </td>
     
-    <!-- ستون وضعیت -->
+    <!-- ✅ ستون جدید: رزرو اضافه -->
+    <td>
+        <span class="view-mode">
+            {% if user.can_extra_reservation %}
+                <span class="badge bg-success">فعال</span>
+            {% else %}
+                <span class="badge" style="background-color: #8B0000; color: white;">غیرفعال</span>
+            {% endif %}
+        </span>
+        <select name="can_extra" class="form-select form-select-sm edit-mode" style="display:none;">
+            <option value="true" {% if user.can_extra_reservation %}selected{% endif %}>فعال</option>
+            <option value="false" {% if not user.can_extra_reservation %}selected{% endif %}>غیرفعال</option>
+        </select>
+    </td>
+    
     <td>
         <span class="view-mode">
             {% if user.is_active %}
@@ -87,7 +94,6 @@
         </select>
     </td>
     
-    <!-- ستون عملیات -->
     <td>
         <div class="btn-group btn-group-sm" role="group">
             <!-- دکمه تغییر وضعیت -->
@@ -111,7 +117,7 @@
             </button>
             {% endif %}
             
-            <!-- دکمه ویرایش (حالت عادی) -->
+            <!-- دکمه ویرایش -->
             <button type="button"
                     class="btn btn-outline-primary edit-toggle-btn"
                     data-user-id="{{ user.id }}"
@@ -119,7 +125,7 @@
                 <i class="bi bi-pencil"></i>
             </button>
             
-            <!-- دکمه ذخیره (در حالت ویرایش) -->
+            <!-- دکمه ذخیره -->
             <button type="button"
                     class="btn btn-outline-success save-edit-btn"
                     data-user-id="{{ user.id }}"
@@ -128,7 +134,7 @@
                 <i class="bi bi-check-lg"></i>
             </button>
             
-            <!-- دکمه لغو (در حالت ویرایش) -->
+            <!-- دکمه لغو -->
             <button type="button"
                     class="btn btn-outline-secondary cancel-edit-btn"
                     data-user-id="{{ user.id }}"
@@ -141,15 +147,32 @@
             <button type="button"
                     class="btn btn-outline-warning reset-password-btn"
                     data-user-id="{{ user.id }}"
+                    title="ریست رمز عبور"
                     data-username="{{ user.username }}"
                     style="border-color: #ffc107; color: #856404;">
                 <i class="bi bi-key-fill"></i>
+            </button>
+            
+            <!-- ✅ دکمه مجوز رزرو اضافه -->
+            <button type="button"
+                    class="btn btn-outline-info extra-reservation-btn"
+                    data-user-id="{{ user.id }}"
+                    data-username="{{ user.username }}"
+                    data-can-extra="{{ user.can_extra_reservation|yesno:'true,false' }}"
+                    title="{% if user.can_extra_reservation %}غیرفعال کردن مجوز رزرو اضافه{% else %}فعال کردن مجوز رزرو اضافه{% endif %}"
+                    style="border-color: #17a2b8; color: #0c5460;">
+                {% if user.can_extra_reservation %}
+                <i class="bi bi-plus-circle-fill text-success" style="font-size: 1rem;"></i>
+                {% else %}
+                <i class="bi bi-plus-circle" style="font-size: 1rem;"></i>
+                {% endif %}
             </button>
             
             <!-- دکمه حذف -->
             <button type="button"
                     class="btn btn-outline-danger delete-user-btn"
                     data-user-id="{{ user.id }}"
+                    title="حذف کاربر"
                     data-username="{{ user.username }}">
                 <i class="bi bi-trash"></i>
             </button>
@@ -158,7 +181,7 @@
 </tr>
 {% empty %}
 <tr>
-    <td colspan="10" class="text-center py-4">
+    <td colspan="11" class="text-center py-4">
         <i class="bi bi-inbox display-4 text-muted"></i>
         <p class="text-muted mt-2">هیچ کاربری با این فیلترها یافت نشد.</p>
     </td>

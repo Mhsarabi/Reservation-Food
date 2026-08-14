@@ -2,540 +2,570 @@
         CALENDAR
 ==============================*/
 
-.calendar-container{
-
-    background:#ffffff;
-
-    border-radius:14px;
-
-    padding:25px;
-
-    box-shadow:0 4px 15px rgba(0,0,0,.08);
-
+.calendar-container {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
-
 
 /*=============================
       HEADER
 ==============================*/
 
-.calendar-header{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-bottom:25px;
-
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
 }
 
-.calendar-header h3{
-
-    margin:0;
-
-    font-size:28px;
-
-    font-weight:bold;
-
-    color:#198754;
-
+.calendar-header h3 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: bold;
+    color: #198754;
 }
 
-.month-btn{
-
-    width:42px;
-
-    height:42px;
-
-    border:none;
-
-    border-radius:10px;
-
-    background:#198754;
-
-    color:white;
-
-    font-size:20px;
-
-    transition:.25s;
-
+.month-btn {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 10px;
+    background: #198754;
+    color: white;
+    font-size: 20px;
+    transition: 0.25s;
 }
 
-.month-btn:hover{
-
-    background:#157347;
-
+.month-btn:hover {
+    background: #157347;
 }
-
 
 /*=============================
       WEEK DAYS
 ==============================*/
 
-.weekdays{
-
-    display:grid;
-
-    grid-template-columns:repeat(7,minmax(0,1fr));
-
-    gap:10px;
-
-    margin-bottom:15px;
-
+.weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
 }
 
-.weekdays div{
-
-    text-align:center;
-
-    font-size:15px;
-
-    font-weight:600;
-
-    color:#6c757d;
-
+.weekdays div {
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: #6c757d;
 }
-
 
 /*=============================
       CALENDAR GRID
 ==============================*/
 
-.calendar-grid{
-
-    display:grid;
-
-    grid-template-columns:repeat(7,minmax(0,1fr));
-
-    gap:10px;
-
-    width:100%;
-
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
 }
 
-@media (max-width:768px){
-
-    .calendar-grid{
-
-        gap:6px;
-
+@media (max-width: 768px) {
+    .calendar-grid {
+        gap: 6px;
     }
-
 }
-
 
 /*=============================
       DAY CARD
 ==============================*/
 
-.day{
-
-    height:95px;
-
-    min-height:95px;
-    
-    /* aspect-ratio:1/0.9; */
-
-    background:white;
-
-    border:1px solid #e7e7e7;
-
-    border-radius:12px;
-
-    padding:10px;
-
-    cursor:pointer;
-
-    display:flex;
-
-    flex-direction:column;
-
-    justify-content:flex-start;
-
-    transition:.25s;
-
+.day {
+    position: relative;
+    height: 95px;
+    min-height: 95px;
+    background: white;
+    border: 1px solid #e7e7e7;
+    border-radius: 12px;
+    padding: 8px 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    transition: 0.25s;
 }
 
-.day:hover{
-
-    background:#f7fbf8;
-
-    border-color:#198754;
-
+.day:hover {
+    background: #f7fbf8;
+    border-color: #198754;
 }
 
-.reserved-day:hover{
-
-    background:#198754;
-
-    border-color:#198754;
-
+/* روزهای با رزرو - استایل مخصوص */
+.reserved-day {
+    background: #198754 !important;
+    border-color: #198754 !important;
 }
 
-.day-actions{
-
-    margin-top:auto;
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    gap:4px;
-
+.reserved-day .day-number {
+    color: white !important;
 }
 
-.day-actions i{
-
-    font-size:14px;
-
+.reserved-day .day-food {
+    color: white !important;
 }
 
-.day-actions span{
-
-    cursor:pointer;
-
-    font-size:18px;
-
-    color:white;
-
-    transition:.2s;
-
+.reserved-day .day-content {
+    color: white;
 }
 
-.day-actions span:hover{
-
-    transform:scale(1.2);
-
-}
-
-.day{
-
-    position:relative;
-
-}
-
-.delete-btn{
-
-    position:absolute;
-
-    top:8px;
-
-    right:8px;
-
-    font-size:18px;
-
-    cursor:pointer;
-
-}
-
-.add-btn{
-
-    position:absolute;
-
-    bottom:8px;
-
-    right:8px;
-
-    font-size:18px;
-
-    cursor:pointer;
-
-}
-
-.delete-btn:hover,
-.add-btn:hover{
-
-    transform:scale(1.2);
-
-}
-
-.day-food{
-
-    margin-top:18px;
-
-    text-align:center;
-
+.reserved-day:hover {
+    background: #157347 !important;
+    border-color: #157347 !important;
 }
 
 /*=============================
-      DAY NUMBER
+      DAY CONTENT
 ==============================*/
 
-.day-number{
-
-    font-weight:bold;
-
-    font-size:17px;
-
-    text-align:left;
-
+.day-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    padding: 0;
 }
 
+.day-number {
+    font-weight: bold;
+    font-size: 17px;
+    text-align: left;
+    color: #333;
+}
+
+.day-food {
+    margin-top: 4px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #198754;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}
 
 /*=============================
-      FOOD NAME
+      DAY ACTIONS (دکمه‌های عملیات)
 ==============================*/
 
-.day-food{
-
-    margin-top:10px;
-
-    text-align:center;
-
-    font-size:13px;
-
-    font-weight:600;
-
-    color:#198754;
-
-    overflow:hidden;
-
-    text-overflow:ellipsis;
-
-    white-space:nowrap;
-
+.day-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 4px;
+    margin-top: auto;
+    padding-top: 4px;
 }
 
-@media (max-width:768px){
-
-    .day-food{
-
-        white-space:normal;
-
-        overflow:visible;
-
-        text-overflow:unset;
-
-        line-height:1.2;
-
-        font-size:11px;
-
-        word-break:break-word;
-
-    }
-
+.day-actions span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
 }
 
+.day-actions span:hover {
+    transform: scale(1.15);
+}
+
+/* ============================================================
+   دکمه حذف رزرو اضافه (x)
+   ============================================================ */
+.remove-extra-btn {
+    color: #ffc107;
+    background: rgba(255, 193, 7, 0.2);
+}
+
+.remove-extra-btn:hover {
+    background: #ffc107;
+    color: white;
+}
+
+/* ============================================================
+   دکمه رزرو اضافه (+)
+   ============================================================ */
+.add-btn {
+    color: #28a745;
+    background: rgba(40, 167, 69, 0.2);
+}
+
+.add-btn:hover {
+    background: #28a745;
+    color: white;
+}
+
+.add-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.add-btn.disabled:hover {
+    transform: none;
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+}
+
+/* ============================================================
+   دکمه حذف رزرو اصلی (سطل آشغال)
+   ============================================================ */
+.delete-btn {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.15);
+}
+
+.delete-btn:hover {
+    background: #dc3545;
+    color: white;
+}
+
+/* ============================================================
+   نشانگر رزرو اضافه (در روزهای سبز)
+   ============================================================ */
+.extra-badge {
+    cursor: default;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.2);
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
 
 /*=============================
       EMPTY DAYS
 ==============================*/
 
-.empty-day{
-
-    height:95px;
-
+.empty-day {
+    height: 95px;
 }
 
 /*=============================
       Past Day
 ==============================*/
-.past-day{
 
-    opacity:.65;
-
+.past-day {
+    opacity: 0.65;
 }
 
-.past-day:not(.reserved-day){
-
-    cursor:not-allowed;
-
+.past-day:not(.reserved-day) {
+    cursor: not-allowed;
 }
 
-.past-day:not(.reserved-day):hover{
+.past-day:not(.reserved-day):hover {
+    background: #ececec;
+    border-color: #e7e7e7;
+    transform: none;
+    box-shadow: none;
+}
 
-    background:#ececec;
+/* روزهای گذشته با رزرو - سبز کمرنگ */
+.past-day.reserved-day {
+    background: #6cae7a !important;
+    border-color: #6cae7a !important;
+}
 
-    border-color:#e7e7e7;
+.past-day.reserved-day .day-number {
+    color: white !important;
+}
 
-    transform:none;
+.past-day.reserved-day .day-food {
+    color: white !important;
+}
 
-    box-shadow:none;
-
+.past-day.reserved-day:hover {
+    background: #5a9d68 !important;
 }
 
 /*=============================
       TODAY
 ==============================*/
 
-.today{
-
-    border:2px solid #0c8adf;
-
+.today {
+    border: 2px solid #0c8adf;
 }
 
+.today .day-number {
+    color: #0c8adf;
+}
+
+.today.reserved-day {
+    border: 2px solid #0c8adf;
+}
+
+.today.reserved-day .day-number {
+    color: white;
+}
 
 /*=============================
       DAYS WITHOUT FOOD
 ==============================*/
 
-.no-food{
-
-    background:#ececec;
-
-    color:#888;
-
-    cursor:default;
-
+.no-food {
+    background: #ececec;
+    color: #888;
+    cursor: default;
 }
 
-.no-food:hover{
-
-    transform:none;
-
-    box-shadow:none;
-
+.no-food:hover {
+    transform: none;
+    box-shadow: none;
+    background: #ececec;
+    border-color: #e7e7e7;
 }
 
-.no-food .day-number{
-
-    color:#888;
-
+.no-food .day-number {
+    color: #888;
 }
-
 
 /*=============================
       DAYS WITH FOOD
 ==============================*/
 
-.has-food{
-
-    background:white;
-
-    cursor:pointer;
-
+.has-food {
+    background: white;
+    cursor: pointer;
 }
 
-.has-food:hover{
-
-    transform:translateY(-3px);
-
-    box-shadow:0 6px 12px rgba(0,0,0,.12);
-
+.has-food:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
 }
-
-
-/*=============================
-      RESERVED DAYS
-==============================*/
-
-.reserved-day{
-
-    background:#198754;
-
-}
-
-.reserved-day .day-number{
-
-    color:white;
-
-}
-
-.reserved-day .day-food{
-
-    color:white;
-
-}
-
 
 /*=============================
       FOOD CARD
 ==============================*/
 
-.food-card{
-
-    background:white;
-
-    border-radius:14px;
-
-    padding:25px;
-
-    box-shadow:0 4px 15px rgba(0,0,0,.08);
-
+.food-card {
+    background: white;
+    border-radius: 14px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
-.food-card h4{
-
-    font-weight:bold;
-
-    margin-bottom:20px;
-
+.food-card h4 {
+    font-weight: bold;
+    margin-bottom: 20px;
 }
-
-
-
 
 /*=============================
       RESPONSIVE
 ==============================*/
 
-@media (max-width:768px){
-
-    .calendar-container{
-
-        padding:12px;
-
+@media (max-width: 992px) {
+    .day {
+        height: 80px;
+        min-height: 80px;
+        padding: 6px 8px;
     }
 
-}
-
-@media(max-width:768px){
-
-    .day{
-
-        height:85px;
-
+    .day-number {
+        font-size: 15px;
     }
 
-    .day-food{
-
-        font-size:12px;
-
-        margin-top:10px;
-
+    .day-food {
+        font-size: 12px;
+        white-space: normal;
+        word-break: break-word;
+        line-height: 1.3;
     }
 
+    .day-actions span {
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+    }
 }
 
-.calendar-tools{
+@media (max-width: 768px) {
+    .calendar-container {
+        padding: 12px;
+    }
 
-    display:grid;
+    .calendar-header h3 {
+        font-size: 20px;
+    }
 
-    grid-template-columns:1fr 1fr;
+    .weekdays div {
+        font-size: 13px;
+    }
 
-    justify-content:center;
+    .day {
+        height: 70px;
+        min-height: 70px;
+        padding: 4px 6px;
+        border-radius: 8px;
+    }
 
-    gap:10px;
+    .day-number {
+        font-size: 13px;
+    }
 
-    margin-bottom:20px;
+    .day-food {
+        font-size: 10px;
+        margin-top: 2px;
+        white-space: normal;
+        word-break: break-word;
+        line-height: 1.2;
+    }
 
-    flex-wrap:wrap;
+    .day-actions {
+        gap: 2px;
+    }
 
+    .day-actions span {
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+    }
+
+    .calendar-tools .btn {
+        font-size: 12px;
+        padding: 6px 4px;
+    }
+
+    .calendar-note {
+        font-size: 12px;
+        margin: -8px 0 12px;
+    }
 }
 
-.calendar-tools .btn{
-    white-space:nowrap;
+@media (max-width: 576px) {
+    .calendar-container {
+        padding: 8px;
+    }
 
-    font-size:14px;
+    .day {
+        height: 60px;
+        min-height: 60px;
+        padding: 3px 4px;
+        border-radius: 6px;
+        gap: 1px;
+    }
 
-    padding:10px 8px;
+    .calendar-grid {
+        gap: 4px;
+    }
 
+    .weekdays {
+        gap: 4px;
+        margin-bottom: 8px;
+    }
+
+    .weekdays div {
+        font-size: 11px;
+    }
+
+    .day-number {
+        font-size: 11px;
+    }
+
+    .day-food {
+        font-size: 9px;
+        margin-top: 1px;
+        line-height: 1.1;
+    }
+
+    .day-actions span {
+        width: 14px;
+        height: 14px;
+        font-size: 8px;
+    }
+
+    .calendar-header h3 {
+        font-size: 16px;
+    }
+
+    .month-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .calendar-tools {
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+
+    .calendar-tools .btn {
+        font-size: 11px;
+        padding: 4px 6px;
+    }
 }
 
-.calendar-note{
+/*=============================
+      CALENDAR TOOLS
+==============================*/
 
+.calendar-tools {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.calendar-tools .btn {
+    white-space: nowrap;
+    font-size: 14px;
+    padding: 10px 8px;
+}
+
+.calendar-note {
     text-align: center;
-
     color: #198754;
-
     font-size: 15px;
-
     font-weight: 600;
-
     margin: -12px 0 18px;
+}
 
+/*=============================
+      USER FOOD CARD
+==============================*/
+
+.user-food-card .food-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.user-food-card .food-image img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.user-food-card #foodName {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #198754;
+}
+
+.user-food-card #reservedCount {
+    text-align: center;
+    font-size: 14px;
+    color: #6c757d;
+    margin-top: 10px;
 }

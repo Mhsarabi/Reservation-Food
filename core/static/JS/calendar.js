@@ -2,7 +2,6 @@ class PersianCalendar {
     constructor(gridId, adminMode = false) {
         this.grid = document.getElementById(gridId);
         this.adminMode = adminMode;
-        // ✅ اصلاح: استفاده از window.menuData
         this.menuData = window.menuData || menuData || {};
         this.selectedDate = null;   
         this.monthTitle = document.getElementById("monthTitle");
@@ -96,7 +95,6 @@ class PersianCalendar {
             const key =
             `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
 
-            // ✅ از this.menuData استفاده می‌کند
             const menu = this.menuData[key];
 
             const food = menu
@@ -121,7 +119,9 @@ class PersianCalendar {
                     food: food ? food.name : null,
                     today: isToday,
                     past: isPast,
-                    reserved: menu?.reserved ?? false
+                    reserved: menu?.reserved ?? false,
+                    can_extra_reservation: menu?.can_extra_reservation ?? false,
+                    has_extra_reservation: menu?.has_extra_reservation ?? false
                 })
             );
         }
@@ -163,18 +163,22 @@ class PersianCalendar {
             day.classList.add("past-day");
         }
 
+        // محتوای اصلی روز
+        const content = document.createElement("div");
+        content.className = "day-content";
+
         if (data.day !== null) {
             const number = document.createElement("div");
             number.className = "day-number";
             number.textContent = data.day;
-            day.appendChild(number);
+            content.appendChild(number);
         }
 
         if (data.food) {
             const food = document.createElement("div");
             food.className = "day-food";
             food.textContent = data.food;
-            day.appendChild(food);
+            content.appendChild(food);
             day.classList.add("has-food");
         }
         else if (data.day !== null) {
@@ -189,6 +193,9 @@ class PersianCalendar {
             day.classList.add("selected-day");
         }
 
+        // =============================================================
+        // اگر رزرو اصلی وجود دارد
+        // =============================================================
         if (data.reserved && !this.adminMode) {
             day.classList.add("reserved-day");
 
@@ -196,29 +203,60 @@ class PersianCalendar {
             actions.className = "day-actions";
 
             if (!data.past) {
+                // =============================================================
+                // دکمه حذف رزرو اضافه (x کوچک) - فقط اگر رزرو اضافه داشته باشد
+                // =============================================================
+                if (data.has_extra_reservation) {
+                    const removeExtraBtn = document.createElement("span");
+                    removeExtraBtn.className = "remove-extra-btn";
+                    removeExtraBtn.innerHTML = '<i class="bi bi-x-circle"></i>';
+                    removeExtraBtn.title = "حذف رزرو اضافه";
+                    
+                    removeExtraBtn.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        this.removeExtraReservation(data.day);
+                    });
+                    
+                    actions.appendChild(removeExtraBtn);
+                }
+
+                // =============================================================
+                // دکمه رزرو اضافه (+)
+                // =============================================================
+                if (data.can_extra_reservation && !data.past && !data.has_extra_reservation) {
+                    const addBtn = document.createElement("span");
+                    addBtn.className = "add-btn";
+                    addBtn.innerHTML = '<i class="bi bi-plus-circle"></i>';
+                    addBtn.title = "رزرو اضافه";
+                    
+                    addBtn.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        this.addExtraReservation(data.day);
+                    });
+                    
+                    actions.appendChild(addBtn);
+                }
+
+                // =============================================================
+                // دکمه حذف رزرو اصلی (سطل آشغال) - همیشه نمایش داده می‌شود
+                // =============================================================
                 const deleteBtn = document.createElement("span");
                 deleteBtn.className = "delete-btn";
                 deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
-
+                deleteBtn.title = "لغو رزرو اصلی";
+                
                 deleteBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    this.removeReservation(data.day);
+                    this.removeMainReservation(data.day);
                 });
-
+                
                 actions.appendChild(deleteBtn);
-
-                const addBtn = document.createElement("span");
-                addBtn.className = "add-btn";
-                addBtn.innerHTML = '<i class="bi bi-plus-circle"></i>';
-
-                addBtn.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                });
-
-                actions.appendChild(addBtn);
             }
 
+            day.appendChild(content);
             day.appendChild(actions);
+        } else {
+            day.appendChild(content);
         }
                 
         if (data.day !== null) {
@@ -330,7 +368,10 @@ class PersianCalendar {
         );
     }
 
-    async removeReservation(day) {
+    // =============================================================
+    // حذف فقط رزرو اضافه (با دکمه x)
+    // =============================================================
+    async removeExtraReservation(day) {
         const g = jalaali.toGregorian(
             this.currentYear,
             this.currentMonth,
@@ -341,11 +382,73 @@ class PersianCalendar {
             `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
 
         const menu = this.menuData[key];
+        if (!menu) {
+            alert("غذایی برای این روز ثبت نشده است.");
+            return;
+        }
 
-        if (!menu) return;
+        if (!menu.has_extra_reservation) {
+            alert("رزرو اضافه‌ای برای حذف وجود ندارد.");
+            return;
+        }
 
-        const csrfToken =
-            document.getElementById("csrf-token").value;
+        const csrfToken = document.getElementById("csrf-token")?.value || '';
+
+        try {
+            const response = await fetch("/reservations/delete-extra/", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    food_date: key,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // فقط رزرو اضافه حذف شد
+                this.menuData[key].has_extra_reservation = false;
+                // reserved را true نگه دار (رزرو اصلی هنوز وجود دارد)
+                this.menuData[key].reserved = true;
+                
+                this.render();
+                if (typeof updateReservedCount === 'function') {
+                    updateReservedCount();
+                }
+                
+                alert(data.message);
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('❌ Error in removeExtraReservation:', error);
+            alert("خطا در ارتباط با سرور");
+        }
+    }
+
+    // =============================================================
+    // حذف رزرو اصلی (با سطل آشغال) - هر دو رزرو را حذف می‌کند
+    // =============================================================
+    async removeMainReservation(day) {
+        const g = jalaali.toGregorian(
+            this.currentYear,
+            this.currentMonth,
+            day
+        );
+
+        const key =
+            `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
+
+        const menu = this.menuData[key];
+        if (!menu) {
+            alert("غذایی برای این روز ثبت نشده است.");
+            return;
+        }
+
+        const csrfToken = document.getElementById("csrf-token")?.value || '';
 
         try {
             const response = await fetch("/reservations/delete/", {
@@ -362,12 +465,16 @@ class PersianCalendar {
             const data = await response.json();
 
             if (data.success) {
+                // حذف رزرو اصلی - همه چیز پاک می‌شود
                 this.menuData[key].reserved = false;
+                this.menuData[key].has_extra_reservation = false;
+                
                 this.render();
                 if (typeof updateReservedCount === 'function') {
                     updateReservedCount();
                 }
 
+                // پاک کردن اطلاعات نمایش داده شده
                 const foodImage = document.getElementById("foodImage");
                 const foodName = document.getElementById("foodName");
                 const selectedDate = document.getElementById("selectedDate");
@@ -375,11 +482,65 @@ class PersianCalendar {
                 if (foodImage) foodImage.src = "/static/images/no-food.png";
                 if (foodName) foodName.textContent = "-";
                 if (selectedDate) selectedDate.textContent = "تاریخی انتخاب نشده است.";
+                
+                alert(data.message);
             } else {
                 alert(data.message);
             }
         } catch (error) {
-            console.error(error);
+            console.error('❌ Error in removeMainReservation:', error);
+            alert("خطا در ارتباط با سرور");
+        }
+    }
+
+    // =============================================================
+    // افزودن رزرو اضافه (با دکمه +)
+    // =============================================================
+    async addExtraReservation(day) {
+        const g = jalaali.toGregorian(
+            this.currentYear,
+            this.currentMonth,
+            day
+        );
+
+        const key =
+            `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
+
+        const menu = this.menuData[key];
+        if (!menu) {
+            alert("غذایی برای این روز ثبت نشده است.");
+            return;
+        }
+
+        const csrfToken = document.getElementById("csrf-token")?.value || '';
+
+        try {
+            const response = await fetch("/reservations/add-extra/", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    food_date: key,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.menuData[key].has_extra_reservation = true;
+                this.menuData[key].reserved = true;
+                this.render();
+                if (typeof updateReservedCount === 'function') {
+                    updateReservedCount();
+                }
+                alert(data.message);
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('❌ Error in addExtraReservation:', error);
             alert("خطا در ارتباط با سرور");
         }
     }
@@ -419,6 +580,9 @@ class PersianCalendar {
         this.renderGrid();
     }
 
+    // =============================================================
+    // رزرو معمولی (با کلیک روی روز)
+    // =============================================================
     async toggleReservation(day) {
         const g = jalaali.toGregorian(
             this.currentYear,
@@ -430,7 +594,7 @@ class PersianCalendar {
             `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
 
         const csrfToken =
-            document.getElementById("csrf-token").value;
+            document.getElementById("csrf-token")?.value || '';
 
         try {
             const response = await fetch("/reservations/toggle/", {
@@ -452,11 +616,12 @@ class PersianCalendar {
                 if (typeof updateReservedCount === 'function') {
                     updateReservedCount();
                 }
+                alert(data.message);
             } else {
                 alert(data.message);
             }
         } catch (error) {
-            console.error(error);
+            console.error('❌ Error in toggleReservation:', error);
             alert("خطا در ارتباط با سرور");
         }
     }

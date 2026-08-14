@@ -33,8 +33,8 @@
         <div class="card shadow">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4 class="mb-0"><i class="bi bi-people"></i> لیست کاربران سامانه</h4>
-                <button type="button" class="btn btn-success btn-sm" id="importUsersBtn">
-                    <i class="bi bi-file-earmark-excel me-1"></i> ورودی اکسل
+                <button type="button" class="btn btn-success" id="importUsersBtn">
+                    <i class="bi bi-file-earmark-excel"></i> ورودی اکسل
                 </button>
             </div>
             <div class="card-body">
@@ -139,6 +139,15 @@
                                         <option value="فروش" {% if request.GET.department == 'فروش' %}selected{% endif %}>فروش</option>
                                     </select>
                                 </th>
+                                <!-- ✅ ستون جدید: رزرو اضافه -->
+                                <th>
+                                    رزرو اضافه
+                                    <select name="can_extra" class="form-select form-select-sm filter-select" data-filter="can_extra">
+                                        <option value="">همه</option>
+                                        <option value="true" {% if request.GET.can_extra == 'true' %}selected{% endif %}>فعال</option>
+                                        <option value="false" {% if request.GET.can_extra == 'false' %}selected{% endif %}>غیرفعال</option>
+                                    </select>
+                                </th>
                                 <th>
                                     وضعیت
                                     <select name="status" class="form-select form-select-sm filter-select" data-filter="status">
@@ -158,7 +167,7 @@
                                 {% include 'admin/partials/user_table_rows.html' %}
                             {% else %}
                                 <tr>
-                                    <td colspan="10" class="text-center py-4">
+                                    <td colspan="11" class="text-center py-4">
                                         <i class="bi bi-inbox display-4 text-muted"></i>
                                         <p class="text-muted mt-2">هیچ کاربری یافت نشد.</p>
                                     </td>
@@ -191,9 +200,15 @@
                                             <option value="فروش">فروش</option>
                                         </select>
                                     </td>
+                                    <!-- ✅ رزرو اضافه (غیرفعال پیش‌فرض) -->
                                     <td>
                                         <span class="badge" style="background-color: #8B0000; color: white;">غیرفعال</span>
                                     </td>
+                                    <!-- ✅ وضعیت (غیرفعال پیش‌فرض) -->
+                                    <td>
+                                        <span class="badge" style="background-color: #8B0000; color: white;">غیرفعال</span>
+                                    </td>
+                                    <!-- ✅ عملیات -->
                                     <td>
                                         <button type="submit" class="btn btn-success btn-sm" name="add_user">
                                             <i class="bi bi-person-plus"></i> افزودن کاربر

@@ -54,6 +54,8 @@ class User(AbstractBaseUser,PermissionsMixin):
 
     department=models.CharField(max_length=100,verbose_name="واحد")
 
+    can_extra_reservation = models.BooleanField(default=False, verbose_name="مجوز رزرو اضافه")
+
     is_active = models.BooleanField(default=True)
 
     is_staff = models.BooleanField(default=False)

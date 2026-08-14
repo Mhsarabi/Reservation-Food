@@ -11,6 +11,8 @@ class Reservation(models.Model):
 
     reserve_time= models.DateTimeField(auto_now_add=True,verbose_name="زمان رزرو")
 
+    is_extra = models.BooleanField(default=False, verbose_name="رزرو اضافه")
+
     class Meta:
         verbose_name="رزرو"
         verbose_name_plural="رزروها"
@@ -19,7 +21,7 @@ class Reservation(models.Model):
 
         constraints=[
             models.UniqueConstraint(
-                fields=["user","menu"],
+                fields=["user","menu",'is_extra'],
                 name="unique_user_reservation_per_day"
             )
         ]

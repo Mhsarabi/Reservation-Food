@@ -245,6 +245,41 @@ class EditUserView(LoginRequiredMixin, UserPassesTestMixin, View):
         return JsonResponse({"success": True})
 
 
+class ToggleExtraReservationView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def post(self, request):
+        user_id = request.POST.get("user_id")
+        can_extra = request.POST.get("can_extra") == "true"
+
+        try:
+            user = User.objects.get(id=user_id)
+            
+            if user.is_superuser or user.is_staff:
+                return JsonResponse({
+                    "success": False,
+                    "message": "امکان تغییر مجوز مدیر اصلی وجود ندارد."
+                })
+
+            user.can_extra_reservation = can_extra
+            user.save()
+
+            return JsonResponse({
+                "success": True,
+                "message": f"مجوز رزرو اضافه برای {user.username} به‌روزرسانی شد.",
+                "can_extra": user.can_extra_reservation
+            })
+        except User.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "message": "کاربر یافت نشد."
+            })
+        except Exception as e:
+            return JsonResponse({
+                "success": False,
+                "message": f"خطا: {str(e)}"
+            })
 
 class DeleteUserView(LoginRequiredMixin,UserPassesTestMixin,View):
 
@@ -255,7 +290,7 @@ class DeleteUserView(LoginRequiredMixin,UserPassesTestMixin,View):
 
         user = User.objects.get(id=request.POST["user_id"])
 
-        if user.is_superuser:
+        if user.is_superuser or user.is_staff:
             return JsonResponse({
                 "success": False,
                 "message": "امکان حذف کردن مدیر اصلی وجود ندارد."
