@@ -3,9 +3,9 @@
 // ============================================================
 
 // ===========================
-// متغیرهای سراسری
+// متغیرهای سراسری (با استفاده از window)
 // ===========================
-let foods = [];
+window.foods = [];
 
 // ===========================
 // دریافت CSRF Token
@@ -78,17 +78,17 @@ function fetchFoods() {
     })
     .then(data => {
         if (data.success) {
-            foods = data.foods;
-            console.log(`✅ ${foods.length} غذا دریافت شد.`);
-            return foods;
+            window.foods = data.foods;
+            console.log(`✅ ${window.foods.length} غذا دریافت شد.`);
+            return window.foods;
         } else {
             throw new Error('دریافت غذاها با خطا مواجه شد.');
         }
     })
     .catch(error => {
         console.error('❌ خطا:', error);
-        foods = [];
-        return foods;
+        window.foods = [];
+        return window.foods;
     });
 }
 
@@ -105,14 +105,14 @@ function updateAllFoodSelects() {
         const currentValue = select.value;
         select.innerHTML = '<option value=""></option>';
         
-        foods.forEach(food => {
+        window.foods.forEach(food => {
             const option = document.createElement('option');
             option.value = food.id;
             option.textContent = food.name;
             select.appendChild(option);
         });
         
-        if (currentValue && foods.some(f => f.id == currentValue)) {
+        if (currentValue && window.foods.some(f => f.id == currentValue)) {
             select.value = currentValue;
         }
     });
@@ -123,7 +123,7 @@ function updateAllFoodSelects() {
 // ===========================
 function loadSelectedFood() {
     const id = Number(document.getElementById("editFoodSelect").value);
-    const food = foods.find(f => f.id === id);
+    const food = window.foods.find(f => f.id === id);
     
     if (!food) {
         document.getElementById("editFoodName").value = "";
@@ -396,7 +396,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 const select = document.getElementById("editFoodSelect");
                 select.innerHTML = "";
                 
-                foods.forEach(food => {
+                window.foods.forEach(food => {
                     const option = document.createElement("option");
                     option.value = food.id;
                     option.textContent = food.name;
@@ -551,7 +551,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         name: data.food.name,
                         image: getImageUrl(data.food.image)
                     };
-                    foods.push(newFood);
+                    window.foods.push(newFood);
                     
                     updateAllFoodSelects();
                     
@@ -619,7 +619,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
             
-            const existingFood = foods.find(f => f.id === id);
+            const existingFood = window.foods.find(f => f.id === id);
             if (!existingFood) {
                 alert("❌ غذا در لیست محلی یافت نشد.");
                 return;
@@ -673,9 +673,9 @@ document.addEventListener("DOMContentLoaded", function() {
             })
             .then(data => {
                 if (data.success) {            
-                    const foodIndex = foods.findIndex(f => f.id === data.food.id);
+                    const foodIndex = window.foods.findIndex(f => f.id === data.food.id);
                     if (foodIndex !== -1) {
-                        foods[foodIndex] = {
+                        window.foods[foodIndex] = {
                             id: data.food.id,
                             name: data.food.name,
                             image: getImageUrl(data.food.image)
@@ -792,39 +792,20 @@ document.addEventListener("DOMContentLoaded", function() {
                     throw new Error(`خطا: ${response.status}`);
                 }
                 
-                // دریافت نام فایل از هدر
                 const contentDisposition = response.headers.get("Content-Disposition");
-                console.log("📄 Content-Disposition:", contentDisposition); // برای دیباگ
                 
                 let filename = `گزارش_${year}_${month}.xlsx`;
-
                 if (contentDisposition) {
-                    const match = contentDisposition.match(/filename="([^"]+)"/);
-                    if (match && match[1]) {
-                        let rawFilename = match[1];
-                        if (rawFilename.includes('%')) {
-                            try {
-                                filename = decodeURIComponent(rawFilename);
-                            } catch (e) {
-                                filename = rawFilename;
-                            }
-                        } else {
-                            filename = rawFilename;
-                        }
-                    }
-                    
-                    // اگر filename* هم بود (UTF-8)، آن را در نظر بگیر
                     const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
-                    if (utf8Match && utf8Match[1]) {
-                        try {
-                            filename = decodeURIComponent(utf8Match[1]);
-                        } catch (e) {
-                            // اگر نشد، همان را نگه دار
+                    if (utf8Match) {
+                        filename = decodeURIComponent(utf8Match[1]);
+                    } else {
+                        const asciiMatch = contentDisposition.match(/filename="?([^"]+)"?/i);
+                        if (asciiMatch) {
+                            filename = asciiMatch[1];
                         }
                     }
                 }
-                
-                console.log("📄 Extracted filename:", filename); // برای دیباگ
                 
                 return response.blob().then(blob => ({ blob, filename }));
             })
@@ -849,7 +830,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ============================================================
-    // 14. رویداد: گزارش بازه زمانی (اصلاح شده)
+    // 14. رویداد: گزارش بازه زمانی
     // ============================================================
     const generateRangeReportBtn = document.getElementById("generateRangeReport");
     if (generateRangeReportBtn) {
@@ -885,25 +866,16 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
                 
                 const contentDisposition = response.headers.get("Content-Disposition");
-
                 let filename = `گزارش_${fromDate.replace(/\//g, "-")}_تا_${toDate.replace(/\//g, "-")}.xlsx`;
-
                 if (contentDisposition) {
-
                     const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
-
                     if (utf8Match) {
-
                         filename = decodeURIComponent(utf8Match[1]);
-
                     } else {
-
                         const asciiMatch = contentDisposition.match(/filename="?([^"]+)"?/i);
-
                         if (asciiMatch) {
                             filename = asciiMatch[1];
                         }
-
                     }
                 }
                 
@@ -1046,9 +1018,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        checkImportResult();
-    });
-
+    checkImportResult();
     
 });

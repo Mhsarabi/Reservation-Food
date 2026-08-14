@@ -394,7 +394,7 @@ class DailyMenusAPIView(LoginRequiredMixin, View):
 
 
 class SaveWeeklyFoodView(LoginRequiredMixin, UserPassesTestMixin, View):
-
+    
     def test_func(self):
         return self.request.user.is_staff
     
@@ -404,13 +404,6 @@ class SaveWeeklyFoodView(LoginRequiredMixin, UserPassesTestMixin, View):
             to_date = request.POST.get('to_date')
             food_id = request.POST.get('food_id')
             weekdays = request.POST.getlist('weekdays')
-            
-            print("=" * 50)
-            print("📅 from_date:", from_date)
-            print("📅 to_date:", to_date)
-            print("🍽️ food_id:", food_id)
-            print("📆 weekdays (خام):", weekdays)
-            print("=" * 50)
             
             if not from_date or not to_date or not food_id or not weekdays:
                 return JsonResponse({
@@ -433,6 +426,13 @@ class SaveWeeklyFoodView(LoginRequiredMixin, UserPassesTestMixin, View):
                     'message': 'تاریخ شروع نباید از تاریخ پایان بزرگتر باشد.'
                 })
             
+            today = timezone.now().date()
+            if from_date_obj < today:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'امکان ثبت برنامه برای روزهای گذشته وجود ندارد. لطفاً تاریخ شروع را به روزهای آینده تغییر دهید.'
+                })
+            
             try:
                 food = Food.objects.get(id=food_id)
             except Food.DoesNotExist:
@@ -442,21 +442,21 @@ class SaveWeeklyFoodView(LoginRequiredMixin, UserPassesTestMixin, View):
                 })
             
             weekdays = [int(w) for w in weekdays if w]
-            print(f"📆 weekdays (پس از تبدیل): {weekdays}")
             
             created_count = 0
+            skipped_past = 0
             current_date = from_date_obj
-            
-            print("\n📅 شروع بررسی روزها:")
-            print("-" * 50)
             
             while current_date <= to_date_obj:
                 python_weekday = current_date.weekday()
                 persian_weekday = (python_weekday + 2) % 7
                 
-                print(f"📅 {current_date}: python_weekday={python_weekday}, persian_weekday={persian_weekday}, in weekdays={persian_weekday in weekdays}")
-                
                 if persian_weekday in weekdays:
+                    if current_date < today:
+                        skipped_past += 1
+                        current_date += timedelta(days=1)
+                        continue
+                    
                     date_str = current_date.strftime('%Y-%m-%d')
                     _, created = DailyMenu.objects.update_or_create(
                         food_date=date_str,
@@ -464,21 +464,21 @@ class SaveWeeklyFoodView(LoginRequiredMixin, UserPassesTestMixin, View):
                     )
                     if created:
                         created_count += 1
-                        print(f"   ✅ ثبت شد: {date_str}")
                 
                 current_date += timedelta(days=1)
             
-            print("-" * 50)
-            print(f"✅ تعداد روزهای جدید ثبت شده: {created_count}")
+            message = f'برنامه هفتگی با موفقیت ثبت شد. {created_count} روز جدید اضافه شد.'
+            if skipped_past > 0:
+                message += f' ({skipped_past} روز گذشته حذف شدند)'
             
             return JsonResponse({
                 'success': True,
-                'message': f'برنامه هفتگی با موفقیت ثبت شد. {created_count} روز جدید اضافه شد.',
-                'created_count': created_count
+                'message': message,
+                'created_count': created_count,
+                'skipped_past': skipped_past
             })
             
         except Exception as e:
-            print(f"❌ خطا: {str(e)}")
             return JsonResponse({
                 'success': False,
                 'message': f'خطا در ثبت برنامه هفتگی: {str(e)}'

@@ -418,7 +418,6 @@ class ReservationManagementView(LoginRequiredMixin, UserPassesTestMixin, View):
         wb = Workbook()
         ws = wb.active
         ws.sheet_view.rightToLeft = True
-        # ws.title = "لیست رزروها"
 
         headers = ["ردیف", "نام", "نام خانوادگی", "کد ملی", "غذا", "تاریخ رزرو", "تاریخ ارائه غذا"]
 

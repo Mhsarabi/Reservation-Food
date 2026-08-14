@@ -6,6 +6,78 @@
 // متغیرهای سراسری
 // ===========================
 let selectedKey = null;
+let foods = [];
+
+// ===========================
+// دریافت CSRF Token
+// ===========================
+function getCSRFToken() {
+    const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+    return cookieValue || '';
+}
+
+// ===========================
+// تابع کمکی: ساخت URL تصویر
+// ===========================
+function getImageUrl(imagePath) {
+    if (!imagePath || imagePath === '') {
+        return '/static/images/no-food.png';
+    }
+    
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+    }
+    
+    if (imagePath.startsWith('/media/')) {
+        return imagePath;
+    }
+    
+    if (imagePath.startsWith('media/')) {
+        return '/' + imagePath;
+    } 
+    if (imagePath.includes('foods/')) {
+        return '/media/' + imagePath;
+    }
+    
+    return '/static/images/no-food.png';
+}
+
+// ===========================
+// دریافت لیست غذاها از سرور
+// ===========================
+function fetchFoods() {
+    console.log('📡 دریافت لیست غذاها از سرور...');
+    
+    return fetch('/menu/foods/list/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`خطا در دریافت غذاها: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            foods = data.foods;
+            console.log(`✅ ${foods.length} غذا دریافت شد.`);
+            return foods;
+        } else {
+            throw new Error('دریافت غذاها با خطا مواجه شد.');
+        }
+    })
+    .catch(error => {
+        console.error('❌ خطا:', error);
+        foods = [];
+        return foods;
+    });
+}
 
 // ===========================
 // دریافت menuData از سرور (API)
@@ -26,11 +98,9 @@ function fetchMenuData() {
         return response.json();
     })
     .then(data => {
-        // پاک کردن menuData قبلی
         for (let key in menuData) {
             delete menuData[key];
         }
-        // اضافه کردن داده‌های جدید
         Object.assign(menuData, data);
         console.log(`✅ ${Object.keys(menuData).length} روز با غذا دریافت شد.`);
         return menuData;
@@ -39,6 +109,48 @@ function fetchMenuData() {
         console.error('❌ خطا در دریافت داده‌های تقویم:', error);
         menuData = {};
         return menuData;
+    });
+}
+
+// ===========================
+// بروزرسانی لیست غذاها در Select
+// ===========================
+function updateAllFoodSelects() {
+    const selectIds = ['foodSelect', 'editFoodSelect'];
+    
+    selectIds.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+        
+        const currentValue = select.value;
+        select.innerHTML = '<option value=""></option>';
+        
+        foods.forEach(food => {
+            const option = document.createElement('option');
+            option.value = food.id;
+            option.textContent = food.name;
+            select.appendChild(option);
+        });
+        
+        if (currentValue && foods.some(f => f.id == currentValue)) {
+            select.value = currentValue;
+        }
+    });
+}
+
+// ===========================
+// تبدیل اعداد فارسی به انگلیسی
+// ===========================
+function toEnglishDigits(str) {
+    if (!str) return str;
+    
+    const map = {
+        '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+        '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'
+    };
+    
+    return str.replace(/[۰-۹]/g, function(match) {
+        return map[match];
     });
 }
 
@@ -93,22 +205,6 @@ function loadDayData(year, month, day) {
 }
 
 // ===========================
-// تبدیل اعداد فارسی به انگلیسی
-// ===========================
-function toEnglishDigits(str) {
-    if (!str) return str;
-    
-    const map = {
-        '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
-        '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'
-    };
-    
-    return str.replace(/[۰-۹]/g, function(match) {
-        return map[match];
-    });
-}
-
-// ===========================
 // ذخیره برنامه هفتگی
 // ===========================
 function saveWeeklyProgram() {
@@ -154,6 +250,17 @@ function saveWeeklyProgram() {
     
     const fromDateGreg = `${fromGreg.gy}-${String(fromGreg.gm).padStart(2, "0")}-${String(fromGreg.gd).padStart(2, "0")}`;
     const toDateGreg = `${toGreg.gy}-${String(toGreg.gm).padStart(2, "0")}-${String(toGreg.gd).padStart(2, "0")}`;
+    
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const fromDateObj = new Date(fromGreg.gy, fromGreg.gm - 1, fromGreg.gd);
+    fromDateObj.setHours(0, 0, 0, 0);
+    
+    if (fromDateObj < today) {
+        alert("⚠️ امکان ثبت برنامه برای روزهای گذشته وجود ندارد.\nلطفاً تاریخ شروع را به روزهای آینده تغییر دهید.");
+        return;
+    }
     
     const weekdays = [];
     weekChecks.forEach(checkbox => {
@@ -414,7 +521,6 @@ document.getElementById('foodModal').addEventListener('hidden.bs.modal', functio
 // بارگذاری اولیه
 // ===========================
 function initApp() {
-    console.log('🚀 شروع بارگذاری پنل ادمین...');
     
     fetchFoods().then(() => {
         updateAllFoodSelects();
@@ -422,9 +528,7 @@ function initApp() {
     
     fetchMenuData().then(() => {
         calendar.render();
-        console.log('✅ تقویم بارگذاری شد.');
     });
 }
 
-// اجرای برنامه
 initApp();
