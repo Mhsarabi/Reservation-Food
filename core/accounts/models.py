@@ -12,6 +12,9 @@ class UserManager(BaseUserManager):
         if not password:
             password = national_code
 
+        if 'username' not in extra_fields or not extra_fields.get('username'):
+            extra_fields['username'] = national_code
+
         user=self.model(national_code=national_code,**extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -22,6 +25,9 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_staff",True)
         extra_fields.setdefault("is_superuser",True)
         extra_fields.setdefault("is_active",True)
+
+        if 'username' not in extra_fields or not extra_fields.get('username'):
+            extra_fields['username'] = national_code
 
         if extra_fields.get("is_staff") is not True:
          raise ValueError("Superuser must have is_staff=True.")
@@ -64,6 +70,9 @@ class User(AbstractBaseUser,PermissionsMixin):
     ]
 
     def save(self, *args, **kwargs):
+        if not self.username:
+            self.username = self.national_code
+
         if not self.password:
             self.set_password(self.national_code)
         super().save(*args, **kwargs)

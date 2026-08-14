@@ -799,11 +799,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 let filename = `گزارش_${year}_${month}.xlsx`;
 
                 if (contentDisposition) {
-                    // ✅ روش صحیح: ابتدا filename معمولی را بگیر و decode کن
                     const match = contentDisposition.match(/filename="([^"]+)"/);
                     if (match && match[1]) {
                         let rawFilename = match[1];
-                        // اگر شامل % بود، decode کن
                         if (rawFilename.includes('%')) {
                             try {
                                 filename = decodeURIComponent(rawFilename);
@@ -870,7 +868,6 @@ document.addEventListener("DOMContentLoaded", function() {
             
             const csrfToken = getCSRFToken();
             
-            // ✅ استفاده از fetch با response.blob() مانند گزارش ماهانه
             fetch('/reservations/report-range/', {
                 method: 'POST',
                 headers: {
@@ -936,5 +933,122 @@ document.addEventListener("DOMContentLoaded", function() {
     // 15. مقداردهی Datepicker ها
     // ============================================================
     initDatepickers();
+
+    // ============================================================
+    // 16. رویداد: باز کردن مودال وارد کردن کاربران از اکسل
+    // ============================================================
+    const importUsersBtn = document.getElementById("importUsers") || document.getElementById("importUsersBtn");
+    if (importUsersBtn) {
+        importUsersBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            const modal = new bootstrap.Modal(document.getElementById("importUsersModal"));
+            modal.show();
+        });
+    }
+
+    // ============================================================
+    // نمایش جزئیات خطاهای وارد کردن کاربران
+    // ============================================================
+    function showImportErrors(errors, createdCount, failedCount) {
+        const importResult = document.getElementById('importResult');
+        const createdCountEl = document.getElementById('createdCount');
+        const failedCountEl = document.getElementById('failedCount');
+        const errorList = document.getElementById('errorList');
+        const errorItems = document.getElementById('errorItems');
+        const errorDetailsBtnContainer = document.getElementById('errorDetailsBtnContainer');
+        
+        if (!importResult) return;
+        
+        importResult.classList.remove('d-none');
+        
+        if (createdCountEl) createdCountEl.textContent = createdCount || 0;
+        if (failedCountEl) failedCountEl.textContent = failedCount || 0;
+        
+        if (errors && errors.length > 0) {
+            if (errorDetailsBtnContainer) {
+                errorDetailsBtnContainer.classList.remove('d-none');
+            }
+            
+            let html = `
+                <table class="table table-bordered table-sm table-hover">
+                    <thead class="table-danger">
+                        <tr>
+                            <th>ردیف</th>
+                            <th>نام</th>
+                            <th>نام خانوادگی</th>
+                            <th>نام کاربری</th>
+                            <th>کد ملی</th>
+                            <th>کد پرسنلی</th>
+                            <th>خطا</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            errors.forEach(function(error) {
+                html += `
+                    <tr>
+                        <td>${error.row || '-'}</td>
+                        <td>${error.first_name || '-'}</td>
+                        <td>${error.last_name || '-'}</td>
+                        <td>${error.username || '-'}</td>
+                        <td>${error.national_code || '-'}</td>
+                        <td>${error.personnel_code || '-'}</td>
+                        <td class="text-danger">${error.error}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            if (errorItems) {
+                errorItems.innerHTML = html;
+            }
+            
+            const showErrorDetailsBtn = document.getElementById('showErrorDetails');
+            if (showErrorDetailsBtn) {
+                showErrorDetailsBtn.replaceWith(showErrorDetailsBtn.cloneNode(true));
+                const newBtn = document.getElementById('showErrorDetails');
+                newBtn.addEventListener('click', function() {
+                    errorList.classList.toggle('d-none');
+                    this.innerHTML = errorList.classList.contains('d-none') ? 
+                        '<i class="bi bi-eye me-1"></i> مشاهده جزئیات خطاها' : 
+                        '<i class="bi bi-eye-slash me-1"></i> بستن جزئیات خطاها';
+                });
+            }
+        } else {
+            if (errorDetailsBtnContainer) {
+                errorDetailsBtnContainer.classList.add('d-none');
+            }
+            if (errorList) {
+                errorList.classList.add('d-none');
+            }
+        }
+    }
+
+    // ============================================================
+    // دریافت نتیجه وارد کردن کاربران از session
+    // ============================================================
+    function checkImportResult() {
+        const importErrorsData = document.getElementById('importErrorsData');
+        if (importErrorsData) {
+            try {
+                const data = JSON.parse(importErrorsData.value);
+                if (data) {
+                    showImportErrors(data.errors || [], data.created || 0, data.failed || 0);
+                }
+            } catch(e) {
+                console.error('خطا در پردازش داده‌های وارد کردن:', e);
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        checkImportResult();
+    });
+
     
 });

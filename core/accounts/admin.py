@@ -1,13 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User,UserManager
+from .models import User, UserManager
 
 # Register your models here.
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    model=User
+    model = User
 
-    list_display=(
+    list_display = (
         "username",
         "first_name",
         "last_name",
@@ -37,12 +37,12 @@ class CustomUserAdmin(UserAdmin):
 
     ordering = ("personnel_code",)
 
-    fieldsets=(
-        ("اطلاعات ورود",{
-            "fields":("national_code","password"),
+    fieldsets = (
+        ("اطلاعات ورود", {
+            "fields": ("national_code", "password"),
         }),
-        ("اطلاعات پرسنلی",{
-            "fields":(
+        ("اطلاعات پرسنلی", {
+            "fields": (
                 "personnel_code",
                 "username",
                 "first_name",
@@ -51,8 +51,8 @@ class CustomUserAdmin(UserAdmin):
                 "department",
             ),
         }),
-        ("دسترسی ها",{
-            "fields":(
+        ("دسترسی ها", {
+            "fields": (
                 "is_active",
                 "is_staff",
                 "is_superuser",
@@ -60,8 +60,8 @@ class CustomUserAdmin(UserAdmin):
                 "user_permissions",
             ),
         }),
-        ("تاریخ های مهم",{
-            "fields":("last_login",),
+        ("تاریخ های مهم", {
+            "fields": ("last_login",),
         }),
     )
 
@@ -83,3 +83,15 @@ class CustomUserAdmin(UserAdmin):
             ),
         }),
     )
+
+    def save_model(self, request, obj, form, change):
+        if not obj.username:
+            obj.username = obj.national_code
+        super().save_model(request, obj, form, change)
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj is None: 
+            form.base_fields['username'].help_text = "اختیاری - در صورت خالی بودن، کد ملی به عنوان نام کاربری استفاده می‌شود"
+            form.base_fields['username'].required = False 
+        return form

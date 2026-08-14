@@ -2,8 +2,107 @@
 // User Management JS - مدیریت جدول کاربران
 // ============================================================
 
+// ============================================================
+// تابع برای نمایش مودال تأیید سفارشی (خارج از DOMContentLoaded)
+// ============================================================
+function showConfirmModal(title, bodyHTML, onConfirm) {
+    const existingModal = document.getElementById("customConfirmModal");
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modalHTML = `
+        <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">${title}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        ${bodyHTML}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                        <button type="button" class="btn btn-primary" id="confirmAction">تأیید</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    const modalElement = document.getElementById("customConfirmModal");
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+    document.getElementById("confirmAction").addEventListener("click", function() {
+        modal.hide();
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            modalElement.remove();
+        });
+        if (typeof onConfirm === 'function') {
+            onConfirm();
+        }
+    });
+
+    modalElement.addEventListener('hidden.bs.modal', function() {
+        setTimeout(() => {
+            if (document.getElementById("customConfirmModal")) {
+                modalElement.remove();
+            }
+        }, 300);
+    });
+}
+
+// ============================================================
+// تابع کمکی برای دریافت توکن CSRF (خارج از DOMContentLoaded)
+// ============================================================
+function getCSRFToken() {
+    const tokenElement = document.getElementById("csrf-token");
+    if (tokenElement) {
+        return tokenElement.value;
+    }
+    const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+    return cookieValue || '';
+}
+
+// ============================================================
+// تابع نمایش پیام (خارج از DOMContentLoaded)
+// ============================================================
+function showMessage(message, type = "info") {
+    const existingAlerts = document.querySelectorAll(".alert.position-fixed");
+    existingAlerts.forEach(alert => alert.remove());
+
+    const alertBox = document.createElement("div");
+    alertBox.className =
+        `alert alert-${type} position-fixed top-0 start-50 translate-middle-x mt-3 shadow`;
+    alertBox.style.zIndex = "9999";
+    alertBox.style.minWidth = "300px";
+    alertBox.style.textAlign = "center";
+    alertBox.style.maxWidth = "90%";
+    alertBox.innerHTML = message;
+
+    document.body.appendChild(alertBox);
+
+    setTimeout(() => {
+        if (alertBox.parentNode) {
+            alertBox.remove();
+        }
+    }, 3000);
+}
+
+// ============================================================
+// DOMContentLoaded - اجرای کدهای اصلی
+// ============================================================
 document.addEventListener("DOMContentLoaded", function() {
     
+    console.log("✅ User Management initialized!");
+
     // ============================================================
     // 1. اعتبارسنجی فرم افزودن کاربر جدید
     // ============================================================
@@ -80,7 +179,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const filterInputs = document.querySelectorAll(".filter-input");
     const filterSelects = document.querySelectorAll(".filter-select");
     const userTableBody = document.getElementById("userTableBody");
-    const userCount = document.getElementById("userCount");
     
     let timeoutId = null;
 
@@ -121,10 +219,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (userTableBody) {
                     userTableBody.innerHTML = data.html;
                 }
-                
-                if (userCount) {
-                    userCount.innerHTML = `تعداد کل کاربران: ${data.total}`;
-                }
             }
         })
         .catch(error => {
@@ -144,7 +238,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     filterInputs.forEach(input => {
         input.addEventListener("input", function() {
-            console.log(`🔍 Input changed: ${this.name} = "${this.value}"`);
             clearTimeout(timeoutId);
             timeoutId = setTimeout(fetchUsers, 400);
         });
@@ -152,7 +245,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     filterSelects.forEach(select => {
         select.addEventListener("change", function() {
-            console.log(`🔍 Select changed: ${this.name} = "${this.value}"`);
             fetchUsers();
         });
     });
@@ -395,11 +487,17 @@ document.addEventListener("DOMContentLoaded", function() {
         const username = btn.dataset.username;
         const userId = btn.dataset.userId;
 
-        document.getElementById("resetUsername").innerText = username;
-        document.getElementById("resetUserId").value = userId;
+        const resetUsernameEl = document.getElementById("resetUsername");
+        const resetUserIdEl = document.getElementById("resetUserId");
+        
+        if (resetUsernameEl) resetUsernameEl.innerText = username;
+        if (resetUserIdEl) resetUserIdEl.value = userId;
 
-        const modal = new bootstrap.Modal(document.getElementById("resetPasswordModal"));
-        modal.show();
+        const modalElement = document.getElementById("resetPasswordModal");
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
     }
 
     // ============================================================
@@ -438,8 +536,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (data.success) {
                     showMessage("رمز عبور با موفقیت تغییر کرد.", "success");
                     const modalElement = document.getElementById("resetPasswordModal");
-                    const modal = bootstrap.Modal.getInstance(modalElement);
-                    modal.hide();
+                    if (modalElement) {
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+                        if (modal) modal.hide();
+                    }
                     document.getElementById("newUserPassword").value = "";
                 } else {
                     showMessage(data.message || "خطا در تغییر رمز عبور.", "danger");
@@ -451,67 +551,21 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    console.log("✅ User Management initialized!");
-});
-
-// ============================================================
-// تابع برای نمایش مودال تأیید سفارشی
-// ============================================================
-function showConfirmModal(title, bodyHTML, onConfirm) {
-    const existingModal = document.getElementById("customConfirmModal");
-    if (existingModal) {
-        existingModal.remove();
+    // ============================================================
+    // دکمه ورودی اکسل - فقط باز کردن مودال
+    // ============================================================
+    const importUsersBtn = document.getElementById('importUsersBtn');
+    if (importUsersBtn) {
+        importUsersBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const modalElement = document.getElementById('importUsersModal');
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            } else {
+                console.error('❌ مودال importUsersModal پیدا نشد!');
+            }
+        });
     }
 
-    const modalHTML = `
-        <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">${title}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        ${bodyHTML}
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
-                        <button type="button" class="btn btn-primary" id="confirmAction">تأیید</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-    const modalElement = document.getElementById("customConfirmModal");
-    const modal = new bootstrap.Modal(modalElement);
-    modal.show();
-
-    document.getElementById("confirmAction").addEventListener("click", function() {
-        modal.hide();
-        modalElement.addEventListener('hidden.bs.modal', function() {
-            modalElement.remove();
-        });
-        if (typeof onConfirm === 'function') {
-            onConfirm();
-        }
-    });
-
-    modalElement.addEventListener('hidden.bs.modal', function() {
-        setTimeout(() => {
-            if (document.getElementById("customConfirmModal")) {
-                modalElement.remove();
-            }
-        }, 300);
-    });
-}
-
-// ============================================================
-// تابع کمکی برای دریافت توکن CSRF 
-// ============================================================
-function getCSRFToken() {
-    const tokenElement = document.getElementById("csrf-token");
-    return tokenElement ? tokenElement.value : null;
-}
+});

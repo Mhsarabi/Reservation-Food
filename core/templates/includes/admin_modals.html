@@ -162,3 +162,55 @@
         </div>
     </div>
 </div>
+
+<!-- ================== 5. وارد کردن کاربران از اکسل ================== -->
+<div class="modal fade" id="importUsersModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-earmark-excel text-success me-2"></i>
+                    وارد کردن کاربران از فایل اکسل
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- راهنما -->
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>راهنما:</strong>
+                    فایل اکسل باید دارای ستون‌های زیر باشد:
+                    <ul class="mb-0 mt-2">
+                        <li><strong>first_name</strong> : نام</li>
+                        <li><strong>last_name</strong> : نام خانوادگی</li>
+                        <li><strong>national_code</strong> : کد ملی (یکتا)</li>
+                        <li><strong>personnel_code</strong> : کد پرسنلی (یکتا)</li>
+                        <li><strong>site</strong> : سایت </li>
+                        <li><strong>department</strong> : واحد </li>
+                    </ul>
+                    <p class="mt-2 mb-0 text-muted small">
+                        <i class="bi bi-key me-1"></i>
+                        نام کاربری و رمز عبور پیش‌فرض برابر با کد ملی کاربر خواهد بود.
+                    </p>
+                </div>
+
+                <form id="importUsersForm" method="POST" action="{% url 'accounts:import_users' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="excelFileInput" class="form-label fw-bold">
+                            <i class="bi bi-cloud-upload me-1"></i>
+                            انتخاب فایل اکسل
+                        </label>
+                        <input type="file" class="form-control" id="excelFileInput" name="excel_file" accept=".xlsx,.xls" required>
+                        <div class="form-text">فایل‌های با فرمت .xlsx و .xls پشتیبانی می‌شوند.</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" id="importExcelSubmitBtn">
+                            <i class="bi bi-upload me-1"></i> آپلود و ایجاد کاربران
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

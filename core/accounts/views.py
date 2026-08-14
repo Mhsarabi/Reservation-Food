@@ -10,7 +10,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import update_session_auth_hash
 from django.views.generic import TemplateView
 from django.db import IntegrityError
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+import openpyxl
 
 # Create your views here.
 # login
@@ -169,32 +169,31 @@ class UsersManagementView(LoginRequiredMixin,View):
 
 
     def post(self, request):
-         
         if "add_user" in request.POST:
-
             try:
+                username = request.POST.get("username", "").strip()
+                national_code = request.POST.get("national_code", "").strip()
+                
+                if not username:
+                    username = national_code
 
                 User.objects.create_user(
-
-                    national_code=request.POST.get("national_code"),
-                    password=request.POST.get("password"),
+                    national_code=national_code,
+                    password=request.POST.get("password") or national_code,  
                     first_name=request.POST.get("first_name"),
                     last_name=request.POST.get("last_name"),
-                    username=request.POST.get("username"),
+                    username=username,
                     personnel_code=request.POST.get("personnel_code"),
-                    site = request.POST.get("site"),
+                    site=request.POST.get("site"),
                     department=request.POST.get("department"),
-
                 )
                 messages.success(request, "کاربر با موفقیت اضافه شد.")
 
             except IntegrityError:
-
                 messages.error(
                     request,
                     "کد ملی یا کد پرسنلی قبلاً ثبت شده است."
                 )
-                
             except Exception as e:
                 messages.error(
                     request,
@@ -221,20 +220,20 @@ class ResetPasswordView(LoginRequiredMixin, View):
             "message": "رمز عبور با موفقیت تغییر کرد."
         })
 
-class EditUserView(LoginRequiredMixin,UserPassesTestMixin,View):
-
+class EditUserView(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self):
         return self.request.user.is_staff
 
     def post(self, request):
+        user = User.objects.get(id=request.POST["user_id"])
 
-        user = User.objects.get(
-            id=request.POST["user_id"]
-        )
+        username = request.POST.get("username", "").strip()
+        if not username:
+            username = request.POST.get("national_code", "").strip()
 
         user.first_name = request.POST["first_name"]
         user.last_name = request.POST["last_name"]
-        user.username = request.POST["username"]
+        user.username = username  
         user.personnel_code = request.POST["personnel_code"]
         user.national_code = request.POST["national_code"]
         user.site = request.POST["site"]
@@ -243,9 +242,7 @@ class EditUserView(LoginRequiredMixin,UserPassesTestMixin,View):
 
         user.save()
 
-        return JsonResponse({
-            "success": True
-        })
+        return JsonResponse({"success": True})
 
 
 
@@ -295,3 +292,135 @@ class ToggleUserStatusView(LoginRequiredMixin,UserPassesTestMixin,View):
                 "کاربر فعال شد."if user.is_active else "کاربر غیرفعال شد."
             )
         })
+
+class ImportUsersView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def post(self, request):
+        excel_file = request.FILES.get('excel_file')
+        
+        if not excel_file:
+            messages.error(request, "لطفاً یک فایل انتخاب کنید.")
+            return redirect('accounts:user_management')
+
+        if not excel_file.name.endswith(('.xlsx', '.xls')):
+            messages.error(request, "فرمت فایل باید .xlsx یا .xls باشد.")
+            return redirect('accounts:user_management')
+
+        try:
+            workbook = openpyxl.load_workbook(excel_file)
+            sheet = workbook.active
+
+            headers = []
+            for cell in sheet[1]:
+                headers.append(cell.value)
+
+            required_headers = ['first_name', 'last_name', 'national_code', 'personnel_code']
+            missing_headers = [h for h in required_headers if h not in headers]
+            
+            if missing_headers:
+                messages.error(
+                    request, 
+                    f"ستون‌های زیر در فایل وجود ندارند: {', '.join(missing_headers)}"
+                )
+                return redirect('accounts:user_management')
+
+            header_index = {header: idx for idx, header in enumerate(headers)}
+
+            created_count = 0
+            failed_count = 0
+            error_messages = [] 
+            
+            for row_idx, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+                if not any(row):
+                    continue
+                    
+                try:
+                    first_name = str(row[header_index.get('first_name', 0)] or '').strip()
+                    last_name = str(row[header_index.get('last_name', 1)] or '').strip()
+                    national_code = str(row[header_index.get('national_code', 2)] or '').strip()
+                    personnel_code = str(row[header_index.get('personnel_code', 3)] or '').strip()
+                    
+                    username = str(row[header_index.get('username', 4)] or '').strip() if header_index.get('username') is not None else ''
+                    if not username:
+                        username = national_code
+                    
+                    site = str(row[header_index.get('site', 5)] or '').strip() if header_index.get('site') is not None else ''
+                    department = str(row[header_index.get('department', 6)] or '').strip() if header_index.get('department') is not None else ''
+
+                    if not all([first_name, last_name, national_code, personnel_code]):
+                        failed_count += 1
+                        error_messages.append(
+                            f"⚠️ ردیف {row_idx}: {first_name} {last_name} - داده‌های ضروری کامل نیستند."
+                        )
+                        continue
+
+                    existing_user = None
+                    duplicate_fields = []
+                    
+                    if User.objects.filter(username=username).exists():
+                        existing_user = User.objects.get(username=username)
+                        duplicate_fields.append(f"نام کاربری ({username})")
+                    
+                    if User.objects.filter(national_code=national_code).exists():
+                        if not existing_user:
+                            existing_user = User.objects.get(national_code=national_code)
+                        duplicate_fields.append(f"کد ملی ({national_code})")
+                    
+                    if User.objects.filter(personnel_code=personnel_code).exists():
+                        if not existing_user:
+                            existing_user = User.objects.get(personnel_code=personnel_code)
+                        duplicate_fields.append(f"کد پرسنلی ({personnel_code})")
+
+                    if duplicate_fields:
+                        failed_count += 1
+                        error_messages.append(
+                            f"⚠️ ردیف {row_idx}: {first_name} {last_name} - قبلاً با {', '.join(duplicate_fields)} ثبت شده است."
+                        )
+                        continue
+
+                    User.objects.create_user(
+                        national_code=national_code,
+                        password=national_code, 
+                        first_name=first_name,
+                        last_name=last_name,
+                        username=username, 
+                        personnel_code=personnel_code,
+                        site=site if site else None,
+                        department=department,
+                        is_active=True,
+                    )
+                    
+                    created_count += 1
+
+                except Exception as e:
+                    failed_count += 1
+                    error_messages.append(
+                        f"⚠️ ردیف {row_idx}: {first_name if 'first_name' in locals() else '-'} - {str(e)}"
+                    )
+
+            if created_count > 0:
+                messages.success(request, f"✅ {created_count} کاربر با موفقیت ایجاد شدند.")
+            
+            if failed_count > 0:
+                error_text = "<ul class='mb-0'>"
+                for msg in error_messages[:10]:
+                    error_text += f"<li>{msg}</li>"
+
+                if len(error_messages) > 10:
+                    error_text += f"<li>... و {len(error_messages) - 10} خطای دیگر</li>"
+
+                error_text += "</ul>"
+                
+                messages.warning(
+                    request,
+                    f"{failed_count} کاربر ایجاد نشدند:{error_text}",
+                    extra_tags="safe",
+                )
+
+            return redirect('accounts:user_management')
+
+        except Exception as e:
+            messages.error(request, f"خطا در خواندن فایل: {str(e)}")
+            return redirect('accounts:user_management')
