@@ -351,7 +351,18 @@ class ImportUsersView(LoginRequiredMixin, UserPassesTestMixin, View):
             for cell in sheet[1]:
                 headers.append(cell.value)
 
-            required_headers = ['first_name', 'last_name', 'national_code', 'personnel_code']
+
+            header_mapping = {
+                'نام': 'first_name',
+                'نام خانوادگی': 'last_name',
+                'کد ملی': 'national_code',
+                'کد پرسنلی': 'personnel_code',
+                'نام کاربری': 'username',
+                'سایت': 'site',
+                'واحد': 'department',
+            }
+
+            required_headers = ['نام', 'نام خانوادگی', 'کد ملی', 'کد پرسنلی']
             missing_headers = [h for h in required_headers if h not in headers]
             
             if missing_headers:
@@ -361,7 +372,11 @@ class ImportUsersView(LoginRequiredMixin, UserPassesTestMixin, View):
                 )
                 return redirect('accounts:user_management')
 
-            header_index = {header: idx for idx, header in enumerate(headers)}
+
+            header_index = {}
+            for idx, header in enumerate(headers):
+                if header in header_mapping:
+                    header_index[header_mapping[header]] = idx
 
             created_count = 0
             failed_count = 0
@@ -378,9 +393,6 @@ class ImportUsersView(LoginRequiredMixin, UserPassesTestMixin, View):
                     personnel_code = str(row[header_index.get('personnel_code', 3)] or '').strip()
                     
                     username = str(row[header_index.get('username', 4)] or '').strip() if header_index.get('username') is not None else ''
-                    if not username:
-                        username = national_code
-                    
                     site = str(row[header_index.get('site', 5)] or '').strip() if header_index.get('site') is not None else ''
                     department = str(row[header_index.get('department', 6)] or '').strip() if header_index.get('department') is not None else ''
 
@@ -391,29 +403,21 @@ class ImportUsersView(LoginRequiredMixin, UserPassesTestMixin, View):
                         )
                         continue
 
-                    existing_user = None
-                    duplicate_fields = []
-                    
-                    if User.objects.filter(username=username).exists():
-                        existing_user = User.objects.get(username=username)
-                        duplicate_fields.append(f"نام کاربری ({username})")
-                    
                     if User.objects.filter(national_code=national_code).exists():
-                        if not existing_user:
-                            existing_user = User.objects.get(national_code=national_code)
-                        duplicate_fields.append(f"کد ملی ({national_code})")
-                    
-                    if User.objects.filter(personnel_code=personnel_code).exists():
-                        if not existing_user:
-                            existing_user = User.objects.get(personnel_code=personnel_code)
-                        duplicate_fields.append(f"کد پرسنلی ({personnel_code})")
-
-                    if duplicate_fields:
                         failed_count += 1
                         error_messages.append(
-                            f"⚠️ ردیف {row_idx}: {first_name} {last_name} - قبلاً با {', '.join(duplicate_fields)} ثبت شده است."
+                            f"⚠️ ردیف {row_idx}: {first_name} {last_name} - کد ملی ({national_code}) قبلاً ثبت شده است."
                         )
                         continue
+
+                    if not username:
+                        username = national_code
+
+                    original_username = username
+                    counter = 1
+                    while User.objects.filter(username=username).exists():
+                        username = f"{original_username}_{counter}"
+                        counter += 1
 
                     User.objects.create_user(
                         national_code=national_code,
