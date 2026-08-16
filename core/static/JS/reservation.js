@@ -7,7 +7,6 @@ const csrfToken = document.getElementById("csrf-token")?.value || '';
 // دریافت menuData از سرور (API)
 // ===========================
 function fetchMenuData() {
-    console.log('📡 دریافت داده‌های تقویم از سرور...');
     
     return fetch('/menu/daily-menus/', {
         method: 'GET',
@@ -33,7 +32,6 @@ function fetchMenuData() {
         Object.assign(window.menuData, data);
         
         const count = Object.keys(window.menuData).length;
-        console.log(`✅ ${count} روز با غذا دریافت شد.`);
         
         return window.menuData;
     })
@@ -98,7 +96,7 @@ function updateReserveButton(status) {
 }
 
 // ===========================
-// Update Reserved Count (با پشتیبانی از رزرو اضافه)
+// Update Reserved Count 
 // ===========================
 function updateReservedCount() {
     let count = 0;
@@ -134,7 +132,7 @@ function updateReservedCount() {
 }
 
 // ===========================
-// بارگذاری اولیه
+// initialize
 // ===========================
 function initApp() {
     
@@ -148,11 +146,10 @@ function initApp() {
         });
 }
 
-// اجرای برنامه
 initApp();
 
 // ===========================
-// Reserve Month (رزرو همه روزهای ماه)
+// Reserve Month 
 // ===========================
 document.getElementById("reserveMonthBtn")?.addEventListener("click", async () => {
     const start = calendar.getMonthStartGregorian();
@@ -193,7 +190,7 @@ document.getElementById("reserveMonthBtn")?.addEventListener("click", async () =
 });
 
 // ===========================
-// Cancel Month (لغو همه روزهای ماه)
+// Cancel Month 
 // ===========================
 document.getElementById("cancelMonthBtn")?.addEventListener("click", async () => {
     const start = calendar.getMonthStartGregorian();
@@ -233,9 +230,7 @@ document.getElementById("cancelMonthBtn")?.addEventListener("click", async () =>
     }
 });
 
-// ===========================
-// دریافت مجدد داده‌ها بعد از تغییر ماه
-// ===========================
+
 const originalNextMonth = calendar.nextMonth;
 const originalPreviousMonth = calendar.previousMonth;
 
@@ -255,9 +250,7 @@ calendar.previousMonth = function() {
     });
 };
 
-// ===========================
-// اضافه کردن رزرو اضافه (دکمه +)
-// ===========================
+
 calendar.addExtraReservation = async function(day) {
     const g = jalaali.toGregorian(
         this.currentYear,
@@ -307,9 +300,7 @@ calendar.addExtraReservation = async function(day) {
     }
 };
 
-// ===========================
-// حذف رزرو (با پشتیبانی از حذف رزرو اضافه)
-// ===========================
+
 calendar.removeReservation = async function(day) {
     const g = jalaali.toGregorian(
         this.currentYear,

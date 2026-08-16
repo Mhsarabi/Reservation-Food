@@ -1,9 +1,5 @@
 // ============================================================
-// User Management JS - مدیریت جدول کاربران
-// ============================================================
-
-// ============================================================
-// تابع برای نمایش مودال تأیید سفارشی
+// User Management JS 
 // ============================================================
 function showConfirmModal(title, bodyHTML, onConfirm) {
     const existingModal = document.getElementById("customConfirmModal");
@@ -56,9 +52,7 @@ function showConfirmModal(title, bodyHTML, onConfirm) {
     });
 }
 
-// ============================================================
-// تابع کمکی برای دریافت توکن CSRF
-// ============================================================
+
 function getCSRFToken() {
     const tokenElement = document.getElementById("csrf-token");
     if (tokenElement) {
@@ -72,7 +66,7 @@ function getCSRFToken() {
 }
 
 // ============================================================
-// تابع نمایش پیام
+// show message
 // ============================================================
 function showMessage(message, type = "info") {
     const existingAlerts = document.querySelectorAll(".alert.position-fixed");
@@ -82,9 +76,10 @@ function showMessage(message, type = "info") {
     alertBox.className =
         `alert alert-${type} position-fixed top-0 start-50 translate-middle-x mt-3 shadow`;
     alertBox.style.zIndex = "9999";
-    alertBox.style.minWidth = "300px";
+    alertBox.style.minWidth = "350px";
     alertBox.style.textAlign = "center";
     alertBox.style.maxWidth = "90%";
+    alertBox.style.fontSize = "1rem";
     alertBox.innerHTML = message;
 
     document.body.appendChild(alertBox);
@@ -93,63 +88,60 @@ function showMessage(message, type = "info") {
         if (alertBox.parentNode) {
             alertBox.remove();
         }
-    }, 3000);
+    }, 4000);
 }
 
 // ============================================================
-// DOMContentLoaded - اجرای کدهای اصلی
+// DOMContentLoaded 
 // ============================================================
 document.addEventListener("DOMContentLoaded", function() {
     
-    console.log("✅ User Management initialized!");
 
-    // ============================================================
-    // 1. اعتبارسنجی فرم افزودن کاربر جدید
-    // ============================================================
+
     const addButton = document.querySelector(".new-user button");
-    const inputs = document.querySelectorAll(".new-user input");
-    const siteSelect = document.querySelector(".new-user select[name='site']");
-    const departmentSelect = document.querySelector(".new-user select[name='department']");
+    const addInputs = document.querySelectorAll(".new-user input");
+    const addSiteSelect = document.querySelector(".new-user select[name='site']");
+    const addDepartmentSelect = document.querySelector(".new-user select[name='department']");
 
     if (addButton) {
         addButton.addEventListener("click", function(e) {
-            let empty = false;
+            let hasError = false;
 
-            inputs.forEach(input => {
+            addInputs.forEach(input => {
                 if (input.value.trim() === "") {
-                    empty = true;
+                    hasError = true;
                     input.classList.add("is-invalid");
                 } else {
                     input.classList.remove("is-invalid");
                 }
             });
 
-            if (siteSelect) {
-                if (siteSelect.value.trim() === "") {
-                    empty = true;
-                    siteSelect.classList.add("is-invalid");
+            if (addSiteSelect) {
+                if (addSiteSelect.value.trim() === "") {
+                    hasError = true;
+                    addSiteSelect.classList.add("is-invalid");
                 } else {
-                    siteSelect.classList.remove("is-invalid");
+                    addSiteSelect.classList.remove("is-invalid");
                 }
             }
 
-            if (departmentSelect) {
-                if (departmentSelect.value.trim() === "") {
-                    empty = true;
-                    departmentSelect.classList.add("is-invalid");
+            if (addDepartmentSelect) {
+                if (addDepartmentSelect.value.trim() === "") {
+                    hasError = true;
+                    addDepartmentSelect.classList.add("is-invalid");
                 } else {
-                    departmentSelect.classList.remove("is-invalid");
+                    addDepartmentSelect.classList.remove("is-invalid");
                 }
             }
 
-            if (empty) {
+            if (hasError) {
                 e.preventDefault();
-                showMessage("لطفاً تمام اطلاعات کاربر را وارد کنید.", "danger");
+                showMessage("❌ لطفاً تمام اطلاعات کاربر را وارد کنید.", "danger");
             }
         });
     }
 
-    inputs.forEach(input => {
+    addInputs.forEach(input => {
         input.addEventListener("input", function() {
             if (this.value.trim() !== "") {
                 this.classList.remove("is-invalid");
@@ -157,25 +149,22 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    if (siteSelect) {
-        siteSelect.addEventListener("change", function() {
+    if (addSiteSelect) {
+        addSiteSelect.addEventListener("change", function() {
             if (this.value.trim() !== "") {
                 this.classList.remove("is-invalid");
             }
         });
     }
 
-    if (departmentSelect) {
-        departmentSelect.addEventListener("change", function() {
+    if (addDepartmentSelect) {
+        addDepartmentSelect.addEventListener("change", function() {
             if (this.value.trim() !== "") {
                 this.classList.remove("is-invalid");
             }
         });
     }
 
-    // ============================================================
-    // 2. فیلترهای AJAX بدون رفرش صفحه
-    // ============================================================
     const filterInputs = document.querySelectorAll(".filter-input");
     const filterSelects = document.querySelectorAll(".filter-select");
     const userTableBody = document.getElementById("userTableBody");
@@ -249,9 +238,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // ============================================================
-    // 3. Event Delegation برای دکمه‌های عملیات
-    // ============================================================
     const userTable = document.getElementById("userTable");
     
     if (userTable) {
@@ -301,9 +287,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ============================================================
-    // 4. هندلرهای دکمه‌های عملیات
-    // ============================================================
+
     function handleToggleStatus(e, btn) {
         const userId = btn.dataset.userId;
         const username = btn.dataset.username;
@@ -337,31 +321,27 @@ document.addEventListener("DOMContentLoaded", function() {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showMessage(`حساب کاربری با موفقیت ${action} شد.`, "success");
+                        showMessage(`✅ حساب کاربری با موفقیت ${action} شد.`, "success");
                         fetchUsers();
                     } else {
-                        showMessage(data.message || `خطا در ${action} کردن حساب کاربری.`, "danger");
+                        showMessage(`❌ ${data.message || 'خطا در تغییر وضعیت کاربر.'}`, "danger");
                     }
                 })
                 .catch(error => {
-                    showMessage("خطا در ارتباط با سرور.", "danger");
+                    showMessage("❌ خطا در ارتباط با سرور.", "danger");
                 });
             }
         );
     }
 
-    // ============================================================
-    // 5. توابع Inline Edit (با پشتیبانی از extra_reservation_limit)
-    // ============================================================
+
     function enableEditMode(userId) {
         const row = document.getElementById(`user-row-${userId}`);
         if (!row) return;
         
-        // مخفی کردن view-mode و نمایش edit-mode
         row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'none');
         row.querySelectorAll('.edit-mode').forEach(el => el.style.display = '');
         
-        // نمایش دکمه‌های ذخیره و لغو
         const saveBtn = row.querySelector('.save-edit-btn');
         const cancelBtn = row.querySelector('.cancel-edit-btn');
         const editBtn = row.querySelector('.edit-toggle-btn');
@@ -377,11 +357,9 @@ document.addEventListener("DOMContentLoaded", function() {
         const row = document.getElementById(`user-row-${userId}`);
         if (!row) return;
         
-        // نمایش view-mode و مخفی کردن edit-mode
         row.querySelectorAll('.view-mode').forEach(el => el.style.display = '');
         row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'none');
         
-        // مخفی کردن دکمه‌های ذخیره و لغو
         const saveBtn = row.querySelector('.save-edit-btn');
         const cancelBtn = row.querySelector('.cancel-edit-btn');
         const editBtn = row.querySelector('.edit-toggle-btn');
@@ -405,35 +383,115 @@ document.addEventListener("DOMContentLoaded", function() {
         const site = row.querySelector('select[name="site"]').value;
         const department = row.querySelector('select[name="department"]').value;
         const status = row.querySelector('select[name="status"]').value;
-        
-        // ✅ دریافت تعداد مجاز رزرو اضافه (عددی)
-        const extraLimitInput = row.querySelector('input[name="extra_reservation_limit"]');
+        const extraInput = row.querySelector('input[name="extra_reservation_limit"]');
         let extra_reservation_limit = 0;
-        if (extraLimitInput) {
-            const val = parseInt(extraLimitInput.value.trim());
-            extra_reservation_limit = isNaN(val) ? 0 : Math.max(0, val);
-        }
         
-        // اعتبارسنجی
-        if (!first_name || !last_name || !national_code || !personnel_code || !username) {
-            showMessage("لطفاً تمام فیلدهای ضروری را پر کنید.", "danger");
+
+        if (!first_name) {
+            showMessage("❌ لطفاً نام را وارد کنید.", "danger");
+            row.querySelector('input[name="first_name"]').focus();
             return;
         }
         
+
+        if (!last_name) {
+            showMessage("❌ لطفاً نام خانوادگی را وارد کنید.", "danger");
+            row.querySelector('input[name="last_name"]').focus();
+            return;
+        }
+        
+        if (!national_code) {
+            showMessage("❌ لطفاً کد ملی را وارد کنید.", "danger");
+            row.querySelector('input[name="national_code"]').focus();
+            return;
+        }
+        
+        if (national_code.length !== 10 || !/^\d+$/.test(national_code)) {
+            showMessage("❌ کد ملی باید 10 رقم باشد.", "danger");
+            row.querySelector('input[name="national_code"]').focus();
+            return;
+        }
+        
+
+        if (!personnel_code) {
+            showMessage("❌ لطفاً کد پرسنلی را وارد کنید.", "danger");
+            row.querySelector('input[name="personnel_code"]').focus();
+            return;
+        }
+        
+
+        if (!username) {
+            showMessage("❌ لطفاً نام کاربری را وارد کنید.", "danger");
+            row.querySelector('input[name="username"]').focus();
+            return;
+        }
+        
+
         if (!site) {
-            showMessage("لطفاً سایت را انتخاب کنید.", "danger");
+            showMessage("❌ لطفاً سایت را انتخاب کنید.", "danger");
+            row.querySelector('select[name="site"]').focus();
             return;
         }
         
+
         if (!department) {
-            showMessage("لطفاً واحد را انتخاب کنید.", "danger");
+            showMessage("❌ لطفاً واحد را انتخاب کنید.", "danger");
+            row.querySelector('select[name="department"]').focus();
             return;
         }
         
+
+        if (extraInput) {
+            const extraValue = extraInput.value.trim();
+            
+            if (extraValue === '') {
+                showMessage("❌ لطفاً تعداد رزرو اضافه را وارد کنید.", "danger");
+                extraInput.focus();
+                extraInput.select();
+                return;
+            }
+            
+            const numValue = Number(extraValue);
+            if (isNaN(numValue)) {
+                showMessage("❌ تعداد رزرو اضافه باید یک عدد باشد.", "danger");
+                extraInput.focus();
+                extraInput.select();
+                return;
+            }
+            
+            if (numValue < 0) {
+                showMessage("❌ تعداد رزرو اضافه نمی‌تواند کمتر از صفر باشد.", "danger");
+                extraInput.focus();
+                extraInput.select();
+                return;
+            }
+            
+            if (!Number.isInteger(numValue)) {
+                showMessage("❌ تعداد رزرو اضافه باید یک عدد صحیح باشد.", "danger");
+                extraInput.focus();
+                extraInput.select();
+                return;
+            }
+            
+            extra_reservation_limit = numValue;
+        }
+
         const saveBtn = row.querySelector('.save-edit-btn');
         const originalHtml = saveBtn.innerHTML;
         saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
         saveBtn.disabled = true;
+        
+        const formData = new URLSearchParams();
+        formData.append('user_id', userId);
+        formData.append('first_name', first_name);
+        formData.append('last_name', last_name);
+        formData.append('national_code', national_code);
+        formData.append('personnel_code', personnel_code);
+        formData.append('username', username);
+        formData.append('site', site);
+        formData.append('department', department);
+        formData.append('is_active', status === "active" ? "true" : "false");
+        formData.append('extra_reservation_limit', extra_reservation_limit);
         
         fetch("/Alvan/edit/user", {
             method: "POST",
@@ -441,18 +499,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 "X-CSRFToken": getCSRFToken(),
                 "Content-Type": "application/x-www-form-urlencoded",
             },
-            body: new URLSearchParams({
-                user_id: userId,
-                first_name: first_name,
-                last_name: last_name,
-                national_code: national_code,
-                personnel_code: personnel_code,
-                username: username,
-                site: site,
-                department: department,
-                is_active: status === "active" ? "true" : "false",
-                extra_reservation_limit: extra_reservation_limit  // ✅ اضافه شد
-            })
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
@@ -460,22 +507,19 @@ document.addEventListener("DOMContentLoaded", function() {
             saveBtn.disabled = false;
             
             if (data.success) {
-                showMessage("اطلاعات کاربر با موفقیت به‌روزرسانی شد.", "success");
+                showMessage("✅ اطلاعات کاربر با موفقیت به‌روزرسانی شد.", "success");
                 fetchUsers();
             } else {
-                showMessage(data.message || "خطا در به‌روزرسانی اطلاعات.", "danger");
+                showMessage(`❌ ${data.message || 'خطا در به‌روزرسانی اطلاعات.'}`, "danger");
             }
         })
         .catch(error => {
             saveBtn.innerHTML = originalHtml;
             saveBtn.disabled = false;
-            showMessage("خطا در ارتباط با سرور.", "danger");
+            showMessage("❌ خطا در ارتباط با سرور.", "danger");
         });
     }
 
-    // ============================================================
-    // 6. حذف کاربر
-    // ============================================================
     function handleDeleteUser(e, btn) {
         const userId = btn.dataset.userId;
         const username = btn.dataset.username;
@@ -488,7 +532,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 <p class="mt-3">آیا از حذف کاربر</p>
                 <p class="fw-bold text-danger fs-5">"${username}"</p>
                 <p class="mt-3">مطمئن هستید؟</p>
-                <p class="text-muted small">این عمل غیرقابل بازگشت است!</p>
+                <p class="text-muted small">⚠️ این عمل غیرقابل بازگشت است!</p>
             </div>
             `,
             function() {
@@ -505,22 +549,20 @@ document.addEventListener("DOMContentLoaded", function() {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showMessage("کاربر با موفقیت حذف شد.", "success");
+                        showMessage("✅ کاربر با موفقیت حذف شد.", "success");
                         fetchUsers();
                     } else {
-                        showMessage(data.message || "خطا در حذف کاربر.", "danger");
+                        showMessage(`❌ ${data.message || 'خطا در حذف کاربر.'}`, "danger");
                     }
                 })
                 .catch(error => {
-                    showMessage("خطا در ارتباط با سرور.", "danger");
+                    showMessage("❌ خطا در ارتباط با سرور.", "danger");
                 });
             }
         );
     }
 
-    // ============================================================
-    // 7. ریست رمز عبور کاربر
-    // ============================================================
+
     function handleResetPassword(e, btn) {
         const username = btn.dataset.username;
         const userId = btn.dataset.userId;
@@ -538,9 +580,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // ============================================================
-    // 8. ذخیره رمز جدید برای کاربر
-    // ============================================================
+
     const saveResetPassword = document.getElementById("saveResetPassword");
 
     if (saveResetPassword) {
@@ -549,12 +589,12 @@ document.addEventListener("DOMContentLoaded", function() {
             const newPassword = document.getElementById("newUserPassword").value;
 
             if (newPassword.trim() === "") {
-                showMessage("لطفاً رمز جدید را وارد کنید.", "danger");
+                showMessage("❌ لطفاً رمز جدید را وارد کنید.", "danger");
                 return;
             }
 
             if (newPassword.length < 8) {
-                showMessage("رمز عبور باید حداقل 8 کاراکتر باشد.", "danger");
+                showMessage("❌ رمز عبور باید حداقل 8 کاراکتر باشد.", "danger");
                 return;
             }
 
@@ -572,7 +612,7 @@ document.addEventListener("DOMContentLoaded", function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showMessage("رمز عبور با موفقیت تغییر کرد.", "success");
+                    showMessage("✅ رمز عبور با موفقیت تغییر کرد.", "success");
                     const modalElement = document.getElementById("resetPasswordModal");
                     if (modalElement) {
                         const modal = bootstrap.Modal.getInstance(modalElement);
@@ -580,18 +620,16 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                     document.getElementById("newUserPassword").value = "";
                 } else {
-                    showMessage(data.message || "خطا در تغییر رمز عبور.", "danger");
+                    showMessage(`❌ ${data.message || 'خطا در تغییر رمز عبور.'}`, "danger");
                 }
             })
             .catch(error => {
-                showMessage("خطا در ارتباط با سرور.", "danger");
+                showMessage("❌ خطا در ارتباط با سرور.", "danger");
             });
         });
     }
 
-    // ============================================================
-    // 9. دکمه ورودی اکسل - فقط باز کردن مودال
-    // ============================================================
+
     const importUsersBtn = document.getElementById('importUsersBtn');
     if (importUsersBtn) {
         importUsersBtn.addEventListener('click', function(e) {
@@ -602,6 +640,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 modal.show();
             } else {
                 console.error('❌ مودال importUsersModal پیدا نشد!');
+                showMessage("❌ خطا در باز کردن مودال وارد کردن کاربران.", "danger");
             }
         });
     }

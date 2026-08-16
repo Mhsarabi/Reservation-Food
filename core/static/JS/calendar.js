@@ -2,14 +2,12 @@ class PersianCalendar {
     constructor(gridId, adminMode = false) {
         this.grid = document.getElementById(gridId);
         this.adminMode = adminMode;
-        console.log("🔐 PersianCalendar adminMode =", this.adminMode);
         this.menuData = window.menuData || {};
         this.selectedDate = null;
         this.monthTitle = document.getElementById("monthTitle");
         this.prevBtn = document.getElementById("prevMonth");
         this.nextBtn = document.getElementById("nextMonth");
 
-        // Bind events
         this.prevBtn.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -22,7 +20,6 @@ class PersianCalendar {
             this.nextMonth();
         });
 
-        // Get current date
         const today = new Date();
         const jToday = jalaali.toJalaali(today);
 
@@ -88,12 +85,10 @@ class PersianCalendar {
         const daysInMonth = this.getDaysInMonth();
         const todayNumber = this.todayYear * 10000 + this.todayMonth * 100 + this.todayDay;
 
-        // Empty days at start of month
         for (let i = 0; i < firstDay; i++) {
             this.grid.appendChild(this.createDayCard(null));
         }
 
-        // Days of month
         for (let day = 1; day <= daysInMonth; day++) {
             const key = this.getFoodDateKey(day);
             const menu = this.menuData[key];
@@ -146,9 +141,7 @@ class PersianCalendar {
     day.dataset.day = data.day;
     day.dataset.foodDate = data.food_date || '';
 
-    // ============================================================
-    // کلاس‌های ظاهری
-    // ============================================================
+
     if (data.past) day.classList.add("past-day");
     if (data.today) day.classList.add("today");
     if (data.reserved) day.classList.add("reserved-day");
@@ -158,9 +151,7 @@ class PersianCalendar {
         day.classList.add("no-food");
     }
 
-    // ============================================================
-    // محتوای روز
-    // ============================================================
+
     const content = document.createElement("div");
     content.className = "day-content";
 
@@ -169,7 +160,6 @@ class PersianCalendar {
     number.textContent = data.day;
     content.appendChild(number);
 
-    // نام غذا
     if (data.food) {
         const food = document.createElement("div");
         food.className = "day-food";
@@ -178,9 +168,7 @@ class PersianCalendar {
     } 
     day.appendChild(content);
 
-    // ============================================================
-    // حالت ادمین
-    // ============================================================
+
     if (this.adminMode === true) {
 
         day.onclick = (e) => {
@@ -194,9 +182,7 @@ class PersianCalendar {
         return day;
     }
 
-    // ============================================================
-    // حالت کاربر عادی
-    // ============================================================
+
     if (data.reserved && !data.past) {
 
         const limit = data.extra_reservation_limit || 0;
@@ -209,7 +195,6 @@ class PersianCalendar {
 
             const maxLabel = document.createElement("span");
             maxLabel.className = "extra-max-label";
-            maxLabel.textContent = `${limit}/`;
             extraControls.appendChild(maxLabel);
 
             const addBtn = document.createElement("span");
@@ -264,7 +249,6 @@ class PersianCalendar {
             day.appendChild(extraControls);
         }
 
-        // لغو رزرو اصلی
         const actions = document.createElement("div");
         actions.className = "day-actions";
 
@@ -283,7 +267,6 @@ class PersianCalendar {
         day.appendChild(actions);
     }
 
-    // کلیک کاربر عادی
     day.addEventListener("click", (e) => {
 
         if (
@@ -305,9 +288,7 @@ class PersianCalendar {
     // ============================================================
 
     handleDayClick(data) {
-        // این متد فقط برای کاربر عادی است
         if (this.adminMode) {
-            // اگر به هر دلیلی اینجا صدا زده شد، نادیده بگیر
             return;
         }
 
@@ -326,8 +307,6 @@ class PersianCalendar {
 
     handleAdminDayClick(data) {
 
-    console.log("🛡️ handleAdminDayClick اجرا شد");
-
     if (this.adminMode !== true) {
         console.warn("⚠️ adminMode فعال نیست");
         return;
@@ -343,8 +322,6 @@ class PersianCalendar {
             foodDate: data.food_date || null
         }
     });
-
-    console.log("📢 ارسال adminDaySelected:", event.detail);
 
     document.dispatchEvent(event);
 }
@@ -470,7 +447,7 @@ class PersianCalendar {
     this.toggleReservation(day);
 }
     // ============================================================
-    // API Calls (فقط برای کاربر عادی)
+    // API Calls 
     // ============================================================
 
     async toggleReservation(day) {
@@ -478,12 +455,6 @@ class PersianCalendar {
 
     const key = this.getFoodDateKey(day);
     const csrfToken = this.getCsrfToken();
-
-    console.log("📤 ارسال درخواست رزرو:", {
-        url: "/reservations/toggle/",
-        food_date: key,
-        csrf: csrfToken ? "موجود" : "❌ خالی"
-    });
 
     try {
         const response = await fetch("/reservations/toggle/", {
@@ -497,15 +468,7 @@ class PersianCalendar {
             }),
         });
 
-        console.log("📥 Response:", {
-            status: response.status,
-            ok: response.ok,
-            contentType: response.headers.get("content-type")
-        });
-
         const text = await response.text();
-
-        console.log("📥 Server response:", text);
 
         let data;
 
@@ -603,7 +566,6 @@ class PersianCalendar {
                     updateReservedCount();
                 }
 
-                // Update food info panel
                 const foodImage = document.getElementById("foodImage");
                 const foodName = document.getElementById("foodName");
                 const selectedDate = document.getElementById("selectedDate");

@@ -1,12 +1,10 @@
 // ============================================================
-// Reservation List JS - مدیریت لیست رزروها
+// Reservation List JS 
 // ============================================================
 
-console.log("✅ Reservation List JS loaded");
 
 document.addEventListener("DOMContentLoaded", function() {
 
-    console.log("🚀 Reservation List DOM ready");
 
     const reservationTableBody = document.getElementById("reservationTableBody");
     const dateFilterForm = document.getElementById("dateFilterForm");
@@ -21,13 +19,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const addReservationForm = document.getElementById("addReservationForm");
 
     if (!reservationTableBody) {
-        console.log("ℹ️ Reservation table not found");
         return;
     }
 
-    // --------------------------------------------
-    // ساخت پارامترهای فیلتر
-    // --------------------------------------------
 
     function getReservationFilters() {
         const params = new URLSearchParams();
@@ -55,9 +49,6 @@ document.addEventListener("DOMContentLoaded", function() {
         return params;
     }
 
-    // --------------------------------------------
-    // دریافت AJAX
-    // --------------------------------------------
 
     async function fetchReservations() {
         const params = getReservationFilters();
@@ -114,9 +105,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // --------------------------------------------
-    // رویدادها
-    // --------------------------------------------
 
     if (dateFilterForm) {
         dateFilterForm.addEventListener("submit", function(event) {
@@ -154,9 +142,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // --------------------------------------------
-    // حذف رزرو
-    // --------------------------------------------
 
     if (reservationTable) {
         reservationTable.addEventListener("click", function(event) {
@@ -201,9 +186,6 @@ document.addEventListener("DOMContentLoaded", function() {
         return input ? input.value : "";
     }
 
-    // --------------------------------------------
-    // فرم افزودن رزرو
-    // --------------------------------------------
 
     if (addReservationForm) {
         addReservationForm.addEventListener("submit", function(event) {
@@ -217,7 +199,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Select2
     if (typeof $ !== "undefined" && $.fn.select2) {
         $(".user-select").select2({
             placeholder: "جستجوی کاربر...",
@@ -227,7 +208,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Datepicker
     if (typeof $ !== "undefined" && $.fn.persianDatepicker) {
         $(".datepicker").persianDatepicker({
             format: "YYYY/MM/DD",
@@ -238,5 +218,4 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    console.log("✅ Reservation List ready");
 });

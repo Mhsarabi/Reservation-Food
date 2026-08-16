@@ -81,9 +81,6 @@ function saveWeeklyProgram() {
         if (currentNumber > endNumber)
             break;
 
-        //--------------------------------------------------
-        // محاسبه روز هفته
-        //--------------------------------------------------
 
         const g =
             jalaali.toGregorian(jy, jm, jd);
@@ -94,7 +91,7 @@ function saveWeeklyProgram() {
         const weekDay =
             (jsDate.getDay() + 1) % 7;
 
-        //--------------------------------------------------
+
 
         if (selectedWeekDays.includes(weekDay)) {
 
@@ -111,9 +108,7 @@ function saveWeeklyProgram() {
 
         }
 
-        //--------------------------------------------------
-        // رفتن به روز بعد
-        //--------------------------------------------------
+
 
         jd++;
 

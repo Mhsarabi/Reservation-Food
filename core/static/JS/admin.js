@@ -1,16 +1,112 @@
 // ============================================================
-// Admin JS - مدیریت داشبورد ادمین (فقط مدیریت)
+// Admin JS 
 // ============================================================
 
 // ===========================
-// متغیرهای سراسری
+// global variable
 // ===========================
 let selectedKey = null;
 let foods = [];
 let adminCalendar = null;
 
+// ============================================================
+// Toast Notification
+// ============================================================
+
+function showToast(message, type = "info", duration = 4000) {
+
+    let container = document.getElementById("toastContainer");
+
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "toastContainer";
+
+        container.style.position = "fixed";
+        container.style.top = "20px";
+        container.style.left = "20px";
+        container.style.zIndex = "9999";
+        container.style.direction = "rtl";
+
+        document.body.appendChild(container);
+    }
+
+
+    const icons = {
+        success: "bi-check-circle-fill",
+        danger: "bi-x-circle-fill",
+        warning: "bi-exclamation-triangle-fill",
+        info: "bi-info-circle-fill"
+    };
+
+    if (!icons[type]) {
+        type = "info";
+    }
+
+
+    const titles = {
+        success: "موفق",
+        danger: "خطا",
+        warning: "هشدار",
+        info: "اطلاع"
+    };
+
+
+    const toast = document.createElement("div");
+
+    toast.className = `
+        toast-message alert alert-${type}
+        shadow-lg border-0
+        d-flex align-items-center
+        mb-3
+    `;
+
+
+    toast.style.minWidth = "330px";
+    toast.style.maxWidth = "450px";
+    toast.style.animation = "slideIn .4s ease";
+
+
+    toast.innerHTML = `
+        <div class="me-2">
+            <i class="bi ${icons[type]} fs-4"></i>
+        </div>
+
+        <div class="flex-grow-1">
+            <strong>${titles[type]}</strong>
+            <br>
+            <span>${message}</span>
+        </div>
+
+        <button class="btn-close"></button>
+    `;
+
+
+    container.appendChild(toast);
+
+
+    toast.querySelector(".btn-close")
+        .addEventListener("click", () => {
+            removeToast(toast);
+        });
+
+
+    setTimeout(() => {
+        removeToast(toast);
+    }, duration);
+}
+
+
+
+function removeToast(toast){
+
+    toast.style.animation = "slideOut .4s ease";
+
+    setTimeout(()=>{
+        toast.remove();
+    },400);
+}
 // ===========================
-// دریافت CSRF Token
+//CSRF Token
 // ===========================
 function getCSRFToken() {
     const cookieValue = document.cookie
@@ -20,9 +116,7 @@ function getCSRFToken() {
     return cookieValue || '';
 }
 
-// ===========================
-// تابع کمکی: ساخت URL تصویر
-// ===========================
+
 function getImageUrl(imagePath) {
     if (!imagePath || imagePath === '') {
         return '/static/images/no-food.png';
@@ -48,10 +142,9 @@ function getImageUrl(imagePath) {
 }
 
 // ===========================
-// دریافت لیست غذاها از سرور
+// list of foods
 // ===========================
 function fetchFoods() {
-    console.log('📡 دریافت لیست غذاها از سرور...');
     
     return fetch('/menu/foods/list/', {
         method: 'GET',
@@ -68,7 +161,6 @@ function fetchFoods() {
     .then(data => {
         if (data.success) {
             foods = data.foods;
-            console.log(`✅ ${foods.length} غذا دریافت شد.`);
             return foods;
         } else {
             throw new Error('دریافت غذاها با خطا مواجه شد.');
@@ -82,10 +174,9 @@ function fetchFoods() {
 }
 
 // ===========================
-// دریافت menuData از سرور (API)
+// get menu data
 // ===========================
 function fetchMenuData() {
-    console.log('📡 دریافت داده‌های تقویم از سرور...');
     
     return fetch('/menu/daily-menus/', {
         method: 'GET',
@@ -107,7 +198,6 @@ function fetchMenuData() {
         if (adminCalendar) {
             adminCalendar.menuData = menuData;
         }
-        console.log(`✅ ${Object.keys(menuData).length} روز با غذا دریافت شد.`);
         return menuData;
     })
     .catch(error => {
@@ -118,7 +208,7 @@ function fetchMenuData() {
 }
 
 // ===========================
-// بروزرسانی لیست غذاها در Select
+// update foods
 // ===========================
 function updateAllFoodSelects() {
     const selectIds = ['foodSelect', 'editFoodSelect'];
@@ -143,9 +233,7 @@ function updateAllFoodSelects() {
     });
 }
 
-// ===========================
-// تبدیل اعداد فارسی به انگلیسی
-// ===========================
+
 function toEnglishDigits(str) {
     if (!str) return str;
     
@@ -160,7 +248,7 @@ function toEnglishDigits(str) {
 }
 
 // ===========================
-// نمایش اطلاعات غذای روز انتخاب شده
+// show detail food
 // ===========================
 function displayFoodInfo(foodId) {
     const foodImageEl = document.getElementById('foodImage');
@@ -201,8 +289,6 @@ function displayFoodInfo(foodId) {
             foodTitleEl.textContent = food.name;
         }
 
-        console.log(`🍽️ نمایش غذا: ${food.name}`);
-        console.log(`🎯 مقدار Select: ${foodSelectEl?.value}`);
 
     } else {
 
@@ -223,13 +309,12 @@ function displayFoodInfo(foodId) {
 }
 
 // ===========================
-// نمایش وضعیت رزروهای روز
+// show status of day
 // ===========================
 function displayReservationStatus(dateKey) {
     const statusContainer = document.getElementById('reservationStatus');
     if (!statusContainer) return;
     
-    // اگر کلید تاریخی وجود نداشت
     if (!dateKey) {
         statusContainer.innerHTML = `
             <div class="alert alert-secondary mt-3">
@@ -240,7 +325,6 @@ function displayReservationStatus(dateKey) {
         return;
     }
     
-    // دریافت اطلاعات رزرو از سرور
     fetch(`/menu/reservation-status/?date=${dateKey}`, {
         method: 'GET',
         headers: {
@@ -298,19 +382,11 @@ function displayReservationStatus(dateKey) {
     });
 }
 
-// ===========================
-// بارگذاری اطلاعات روز (برای ادمین)
-// ===========================
 function loadDayData(year, month, day) {
-    console.log(`📅 بارگذاری روز: ${year}/${month}/${day}`);
     
-    // تبدیل به میلادی
     const g = jalaali.toGregorian(year, month, day);
     selectedKey = `${g.gy}-${String(g.gm).padStart(2, "0")}-${String(g.gd).padStart(2, "0")}`;
     
-    console.log(`🔑 کلید انتخاب شده: ${selectedKey}`);
-    
-    // نمایش تاریخ شمسی
     const months = [
         "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", 
         "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
@@ -321,52 +397,43 @@ function loadDayData(year, month, day) {
         selectedDateEl.textContent = `${day} ${months[month - 1]} ${year}`;
     }
     
-    // دریافت اطلاعات غذا برای این روز
     const menu = menuData[selectedKey];
     
     if (menu && menu.foodId) {
-        console.log(`🍽️ غذا برای این روز: ID=${menu.foodId}`);
         displayFoodInfo(menu.foodId);
-        // نمایش وضعیت رزرو
         displayReservationStatus(selectedKey);
     } else {
-        console.log(`❌ هیچ غذایی برای این روز ثبت نشده است`);
         displayFoodInfo(null);
         displayReservationStatus(null);
     }
 }
 
-// ===========================
-// ذخیره برنامه هفتگی (فقط ادمین)
-// ===========================
 function saveWeeklyProgram() {
     const fromDate = document.getElementById("fromDate");
     const toDate = document.getElementById("toDate");
     const foodSelect = document.getElementById("foodSelect");
     const weekChecks = document.querySelectorAll("#weekDays input[type='checkbox']:checked");
     
-    // اعتبارسنجی
     if (!fromDate || !fromDate.value.trim()) {
-        alert("⚠️ لطفاً تاریخ شروع را انتخاب کنید.");
+        showToast("لطفاً تاریخ شروع را انتخاب کنید.","warning");
         return;
     }
     
     if (!toDate || !toDate.value.trim()) {
-        alert("⚠️ لطفاً تاریخ پایان را انتخاب کنید.");
+       showToast("لطفاً تاریخ پایان را انتخاب کنید.","warning");
         return;
     }
     
     if (!foodSelect || foodSelect.value === "") {
-        alert("⚠️ لطفاً یک غذا را انتخاب کنید.");
+       showToast("لطفاً یک غذا را انتخاب کنید.","warning");
         return;
     }
     
     if (weekChecks.length === 0) {
-        alert("⚠️ لطفاً حداقل یک روز از هفته را انتخاب کنید.");
+        showToast(" لطفاً حداقل یک روز از هفته را انتخاب کنید.","warning");
         return;
     }
     
-    // تبدیل تاریخ‌ها
     const fromDateValue = toEnglishDigits(fromDate.value.trim());
     const toDateValue = toEnglishDigits(toDate.value.trim());
     const foodId = foodSelect.value;
@@ -379,31 +446,27 @@ function saveWeeklyProgram() {
         return;
     }
     
-    // تبدیل به میلادی
     const fromGreg = jalaali.toGregorian(fromParts[0], fromParts[1], fromParts[2]);
     const toGreg = jalaali.toGregorian(toParts[0], toParts[1], toParts[2]);
     
     const fromDateGreg = `${fromGreg.gy}-${String(fromGreg.gm).padStart(2, "0")}-${String(fromGreg.gd).padStart(2, "0")}`;
     const toDateGreg = `${toGreg.gy}-${String(toGreg.gm).padStart(2, "0")}-${String(toGreg.gd).padStart(2, "0")}`;
     
-    // بررسی تاریخ شروع (نباید از امروز کمتر باشد)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const fromDateObj = new Date(fromGreg.gy, fromGreg.gm - 1, fromGreg.gd);
     fromDateObj.setHours(0, 0, 0, 0);
     
     if (fromDateObj < today) {
-        alert("⚠️ امکان ثبت برنامه برای روزهای گذشته وجود ندارد.\nلطفاً تاریخ شروع را به روزهای آینده تغییر دهید.");
+        showToast(" امکان ثبت برنامه برای روزهای گذشته وجود ندارد.\nلطفاً تاریخ شروع را به روزهای آینده تغییر دهید.","warning");
         return;
     }
     
-    // دریافت روزهای انتخاب شده
     const weekdays = [];
     weekChecks.forEach(checkbox => {
         weekdays.push(checkbox.value);
     });
     
-    // ارسال به سرور
     const csrfToken = getCSRFToken();
     const saveBtn = document.getElementById("saveWeekly");
     
@@ -432,19 +495,17 @@ function saveWeeklyProgram() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(`✅ ${data.message}`);
+            showToast(data.message,"success");
             return fetchMenuData();
         } else {
-            alert(`❌ ${data.message}`);
+            showToast(data.message,"danger");
             throw new Error(data.message);
         }
     })
     .then(() => {
-        // رندر مجدد تقویم
         if (adminCalendar) {
             adminCalendar.render();
         }
-        // بارگذاری مجدد روز جاری
         const today = new Date();
         const jToday = jalaali.toJalaali(today);
         loadDayData(jToday.jy, jToday.jm, jToday.jd);
@@ -452,7 +513,7 @@ function saveWeeklyProgram() {
     .catch(error => {
         console.error('❌ Error:', error);
         if (!error.message.includes('خطا در دریافت داده‌ها')) {
-            alert(`❌ ${error.message}`);
+            showToast(error.message,"danger");
         }
     })
     .finally(() => {
@@ -463,25 +524,15 @@ function saveWeeklyProgram() {
     });
 }
 
-// ===========================
-// رویداد: انتخاب روز توسط ادمین
-// ===========================
+
 function onAdminDaySelected(event) {
     const { year, month, day } = event.detail;
     loadDayData(year, month, day);
 }
 
-// ===========================
-// رویداد: تغییر غذا در سلکت
-// ===========================
+
 function onFoodSelectChange() {
     const foodId = this.value;
-
-    console.log("🍽️ انتخاب غذا:", foodId);
-    console.log("📋 گزینه‌های موجود:", [...this.options].map(o => ({
-        value: o.value,
-        text: o.text
-    })));
 
     if (!foodId) {
         displayFoodInfo(null);
@@ -490,28 +541,22 @@ function onFoodSelectChange() {
 
     const food = foods.find(f => String(f.id) === String(foodId));
 
-    console.log("🔎 غذای پیدا شده:", food);
 
     if (food) {
         displayFoodInfo(foodId);
 
-        console.log("✅ بعد از displayFoodInfo:", this.value);
     } else {
-        console.warn("⚠️ غذا پیدا نشد:", foodId);
         displayFoodInfo(null);
     }
 }
 
-// ===========================
-// رویداد: ذخیره غذای روز (مدیریت - فقط ادمین)
-// ===========================
+
 function onSaveFood() {
     if (!selectedKey) {
-        alert("⚠️ ابتدا یک روز را در تقویم انتخاب کنید.");
+        showToast("⚠️ ابتدا یک روز را در تقویم انتخاب کنید.","warning");
         return;
     }
     
-    // بررسی اینکه تاریخ آینده باشد
     const [gy, gm, gd] = selectedKey.split("-").map(Number);
     const jSelected = jalaali.toJalaali(gy, gm, gd);
     const selectedNumber = jSelected.jy * 10000 + jSelected.jm * 100 + jSelected.jd;
@@ -521,20 +566,19 @@ function onSaveFood() {
     const todayNumber = jToday.jy * 10000 + jToday.jm * 100 + jToday.jd;
     
     if (selectedNumber < todayNumber) {
-        alert(`⚠️ امکان ثبت غذا برای روزهای گذشته وجود ندارد.`);
+        showToast(` امکان ثبت غذا برای روزهای گذشته وجود ندارد.`,"warning");
         return;
     }
     
     const foodSelectEl = document.getElementById("foodSelect");
     if (!foodSelectEl || foodSelectEl.value === "") {
-        alert("⚠️ لطفاً یک غذا را از لیست انتخاب کنید.");
+        showToast(" لطفاً یک غذا را از لیست انتخاب کنید.","warning");
         return;
     }
     
-    // تایید نهایی
-    if (!confirm(`آیا مطمئن هستید که می‌خواهید این غذا را برای روز ${jSelected.jy}/${jSelected.jm}/${jSelected.jd} ثبت کنید؟`)) {
-        return;
-    }
+    // if (!confirm(`آیا مطمئن هستید که می‌خواهید این غذا را برای روز ${jSelected.jy}/${jSelected.jm}/${jSelected.jd} ثبت کنید؟`)) {
+    //     return;
+    // }
     
     const csrfToken = getCSRFToken();
     const saveBtn = this;
@@ -556,25 +600,23 @@ function onSaveFood() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(`✅ ${data.message}`);
+            showToast(data.message,"success");
             return fetchMenuData();
         } else {
-            alert(`❌ ${data.message}`);
+            showToast(data.message,"danger");
             throw new Error(data.message);
         }
     })
     .then(() => {
-        // رندر مجدد تقویم
         if (adminCalendar) {
             adminCalendar.render();
         }
-        // بارگذاری مجدد اطلاعات روز
         loadDayData(jSelected.jy, jSelected.jm, jSelected.jd);
     })
     .catch(error => {
         console.error('❌ Error:', error);
         if (!error.message.includes('خطا در دریافت داده‌ها')) {
-            alert(`❌ ${error.message}`);
+            showToast(error.message,"danger");
         }
     })
     .finally(() => {
@@ -583,21 +625,18 @@ function onSaveFood() {
     });
 }
 
-// ===========================
-// رویداد: حذف غذای روز (فقط ادمین)
-// ===========================
+
 function onDeleteFood() {
     if (!selectedKey) {
-        alert("⚠️ ابتدا یک روز را در تقویم انتخاب کنید.");
+        showToast("⚠️ ابتدا یک روز را در تقویم انتخاب کنید.","warning");
         return;
     }
     
     if (!menuData[selectedKey] || !menuData[selectedKey].foodId) {
-        alert("⚠️ برای این روز غذایی ثبت نشده است.");
+        showToast("⚠️ برای این روز غذایی ثبت نشده است.","warning");
         return;
     }
     
-    // دریافت اطلاعات رزرو قبل از حذف
     fetch(`/menu/reservation-status/?date=${selectedKey}`, {
         method: 'GET',
         headers: {
@@ -609,16 +648,6 @@ function onDeleteFood() {
         const hasReservation = data.success && data.reservation_count > 0;
         const count = data.reservation_count || 0;
         
-        let confirmMessage = `آیا مطمئن هستید که می‌خواهید این غذا را حذف کنید؟`;
-        if (hasReservation) {
-            confirmMessage = `⚠️ هشدار: ${count} نفر برای این روز رزرو ثبت کرده‌اند.\n\n${confirmMessage}`;
-        }
-        
-        if (!confirm(confirmMessage)) {
-            return;
-        }
-        
-        // ادامه عملیات حذف
         const csrfToken = getCSRFToken();
         const deleteBtn = document.getElementById("deleteFood");
         
@@ -638,25 +667,23 @@ function onDeleteFood() {
         .then(response => response.json())
         .then(response => {
             if (response.success) {
-                alert(`✅ ${response.message}`);
+                showToast(response.message,"success");
                 return fetchMenuData();
             } else {
                 throw new Error(response.message);
             }
         })
         .then(() => {
-            // رندر مجدد تقویم
             if (adminCalendar) {
                 adminCalendar.render();
             }
-            // بارگذاری مجدد اطلاعات روز
             const [gy, gm, gd] = selectedKey.split("-").map(Number);
             const jSelected = jalaali.toJalaali(gy, gm, gd);
             loadDayData(jSelected.jy, jSelected.jm, jSelected.jd);
         })
         .catch(error => {
             console.error('❌ Error:', error);
-            alert(`❌ ${error.message}`);
+            showToast(error.message,"danger");
         })
         .finally(() => {
             deleteBtn.disabled = false;
@@ -665,23 +692,18 @@ function onDeleteFood() {
     })
     .catch(error => {
         console.error('❌ خطا در بررسی رزرو:', error);
-        alert('❌ خطا در بررسی وضعیت رزرو');
+        showToast('❌ خطا در بررسی وضعیت رزرو',"danger");
     });
 }
 
 // ===========================
-// راه‌اندازی اولیه
+// setup
 // ===========================
-function initApp() {
-    console.log('🚀 شروع بارگذاری پنل مدیریت...');
-    
-    // ایجاد تقویم با حالت ادمین
+function initApp() {    
     adminCalendar = new PersianCalendar("calendarGrid", true);
     
-    // ثبت رویدادهای ادمین
     document.addEventListener("adminDaySelected", onAdminDaySelected);
     
-    // ثبت رویدادهای UI
     const foodSelectEl = document.getElementById("foodSelect");
     if (foodSelectEl) {
         foodSelectEl.addEventListener("change", onFoodSelectChange);
@@ -702,12 +724,10 @@ function initApp() {
         saveWeeklyBtn.addEventListener("click", saveWeeklyProgram);
     }
     
-    // مخفی کردن دکمه‌های رزرو
     document.querySelectorAll('.reservation-btn, .reserve-btn, .btn-reserve, .reserve-food-btn').forEach(el => {
         el.style.display = 'none';
     });
     
-    // نمایش پیام وضعیت ادمین
     const adminStatus = document.getElementById('adminStatus');
     if (adminStatus) {
         adminStatus.innerHTML = `
@@ -721,41 +741,29 @@ function initApp() {
         `;
     }
     
-    // دریافت لیست غذاها
     fetchFoods()
         .then(() => {
-            console.log('✅ لیست غذاها بارگذاری شد');
             updateAllFoodSelects();
         })
         .catch(error => {
             console.error('❌ خطا در بارگذاری غذاها:', error);
         });
     
-    // دریافت داده‌های تقویم
     fetchMenuData()
         .then(() => {
-            console.log('✅ داده‌های تقویم بارگذاری شد');
-            // رندر تقویم
             if (adminCalendar) {
                 adminCalendar.render();
             }
             
-            // انتخاب و نمایش روز جاری به طور خودکار
             const today = new Date();
             const jToday = jalaali.toJalaali(today);
-            console.log(`📅 روز جاری: ${jToday.jy}/${jToday.jm}/${jToday.jd}`);
             loadDayData(jToday.jy, jToday.jm, jToday.jd);
         })
-        .catch(error => {
-            console.error('❌ خطا در بارگذاری داده‌های تقویم:', error);
-        });
+        
     
-    console.log('✅ پنل مدیریت بارگذاری شد');
 }
 
-// ===========================
-// اجرای برنامه
-// ===========================
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
 } else {

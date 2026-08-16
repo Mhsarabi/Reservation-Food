@@ -1,23 +1,21 @@
 // ============================================================
-// Admin ToolBar JS - مدیریت هدر، مودال‌ها و گزارش‌گیری
+// Admin ToolBar JS 
 // ============================================================
 
 // ===========================
-// متغیرهای سراسری (با استفاده از window)
+// global Variable
 // ===========================
 window.foods = [];
 
 // ===========================
-// دریافت CSRF Token
+//  CSRF Token
 // ===========================
 function getCSRFToken() {
     const tokenElement = document.getElementById("csrf-token");
     return tokenElement ? tokenElement.value : null;
 }
 
-// ===========================
-// تابع کمکی: ساخت URL تصویر
-// ===========================
+
 function getImageUrl(imagePath) {
     if (!imagePath || imagePath === '') {
         return '/static/images/no-food.png';
@@ -42,7 +40,7 @@ function getImageUrl(imagePath) {
 }
 
 // ===========================
-// نمایش پیام در مودال
+// Showing message in modal
 // ===========================
 function showFoodMessage(message, type = 'success') {
     const messageDiv = document.getElementById('foodMessage');
@@ -59,10 +57,9 @@ function showFoodMessage(message, type = 'success') {
 }
 
 // ===========================
-// دریافت لیست غذاها از سرور
+// fetch list of foods
 // ===========================
 function fetchFoods() {
-    console.log('📡 دریافت لیست غذاها از سرور...');
     
     return fetch('/menu/foods/list/', {
         method: 'GET',
@@ -79,7 +76,6 @@ function fetchFoods() {
     .then(data => {
         if (data.success) {
             window.foods = data.foods;
-            console.log(`✅ ${window.foods.length} غذا دریافت شد.`);
             return window.foods;
         } else {
             throw new Error('دریافت غذاها با خطا مواجه شد.');
@@ -93,7 +89,7 @@ function fetchFoods() {
 }
 
 // ===========================
-// بروزرسانی لیست غذاها در همه Select ها
+// Edit list of foods
 // ===========================
 function updateAllFoodSelects() {
     const selectIds = ['foodSelect', 'editFoodSelect'];
@@ -119,7 +115,7 @@ function updateAllFoodSelects() {
 }
 
 // ===========================
-// بارگذاری غذا برای ویرایش
+// Loading food for Edit
 // ===========================
 function loadSelectedFood() {
     const id = Number(document.getElementById("editFoodSelect").value);
@@ -136,7 +132,7 @@ function loadSelectedFood() {
 }
 
 // ===========================
-// نمایش پیام‌های عمومی
+// showing message
 // ===========================
 function showMessage(message, type = "info") {
     const existingAlerts = document.querySelectorAll(".alert.position-fixed");
@@ -160,18 +156,14 @@ function showMessage(message, type = "info") {
     }, 3000);
 }
 
-// ============================================================
-// ✅ تابع کمکی برای حذف backdrop (مهم!)
-// ============================================================
+
 function clearModalBackdrop() {
     document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
     document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
 }
 
-// ============================================================
-// ✅ تابع کمکی برای بستن ایمن مودال (مهم!)
-// ============================================================
+
 function safeCloseModal(modalId) {
     const modalElement = document.getElementById(modalId);
     if (!modalElement) return;
@@ -187,7 +179,7 @@ function safeCloseModal(modalId) {
 }
 
 // ===========================
-// مقداردهی اولیه Datepicker ها
+// initialize
 // ===========================
 function initDatepickers() {
     if (typeof $ !== 'undefined') {
@@ -230,12 +222,12 @@ function initDatepickers() {
 }
 
 // ===========================
-// راه‌اندازی اولیه
+// Setup
 // ===========================
 document.addEventListener("DOMContentLoaded", function() {
     
     // ============================================================
-    // ✅ مدیریت بسته شدن همه مودال‌ها (مهم!)
+    // manage for Exit modal
     // ============================================================
     const modalIds = [
         'passwordModal',
@@ -247,7 +239,6 @@ document.addEventListener("DOMContentLoaded", function() {
         'deleteUserModal'
     ];
     
-    // برای هر مودال، event listener اضافه کن
     modalIds.forEach(modalId => {
         const modalElement = document.getElementById(modalId);
         if (modalElement) {
@@ -257,7 +248,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
     
-    // بستن مودال با دکمه ضربدر
     document.addEventListener('click', function(e) {
         if (e.target.closest('.btn-close') && e.target.closest('.modal')) {
             setTimeout(() => {
@@ -266,7 +256,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
     
-    // بستن مودال با کلید ESC
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             setTimeout(() => {
@@ -276,7 +265,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     
     // ============================================================
-    // 1. مدیریت دکمه‌های منو برای نمایش مودال‌ها
+    // manage buttons for Modals
     // ============================================================
     const menuButtons = {
         "changePassword": "passwordModal",
@@ -288,13 +277,11 @@ document.addEventListener("DOMContentLoaded", function() {
     Object.keys(menuButtons).forEach(btnId => {
         const btn = document.getElementById(btnId);
         if (btn) {
-            console.log(`✅ Found button: ${btnId}`);
             btn.addEventListener("click", function(e) {
                 e.preventDefault();
                 const modalId = menuButtons[btnId];
                 const modalElement = document.getElementById(modalId);
                 if (modalElement) {
-                    console.log(`✅ Showing modal: ${modalId}`);
                     const modal = new bootstrap.Modal(modalElement);
                     modal.show();
                 } else {
@@ -307,7 +294,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     
     // ============================================================
-    // 2. نمایش تاریخ امروز
+    // Show date
     // ============================================================
     const todayDateElement = document.getElementById("todayDate");
     if (todayDateElement) {
@@ -316,7 +303,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     // ============================================================
-    // 3. تغییر رمز عبور (دکمه ذخیره در مودال)
+    // Change password
     // ============================================================
     const savePasswordBtn = document.getElementById("savePassword");
     if (savePasswordBtn) {
@@ -371,7 +358,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     // ============================================================
-    // 4. رویداد: باز کردن مودال تعریف غذا
+    // New food
     // ============================================================
     const manageFoodsBtn = document.getElementById("manageFoods");
     if (manageFoodsBtn) {
@@ -386,7 +373,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     // ============================================================
-    // 5. رویداد: ویرایش غذاها
+    // Edit food
     // ============================================================
     const editFoodsBtn = document.getElementById("editFoods");
     if (editFoodsBtn) {
@@ -413,17 +400,11 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
     
-    // ============================================================
-    // 6. رویداد: انتخاب غذا برای ویرایش
-    // ============================================================
     const editFoodSelect = document.getElementById("editFoodSelect");
     if (editFoodSelect) {
         editFoodSelect.addEventListener("change", loadSelectedFood);
     }
     
-    // ============================================================
-    // 7. رویداد: پیش‌نمایش تصویر در ویرایش
-    // ============================================================
     const editFoodImage = document.getElementById("editFoodImage");
     if (editFoodImage) {
         editFoodImage.addEventListener("change", function() {
@@ -437,9 +418,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
     
-    // ============================================================
-    // 8. رویداد: پیش‌نمایش تصویر غذا
-    // ============================================================
     const foodImageInput = document.getElementById("foodImageInput");
     if (foodImageInput) {
         foodImageInput.addEventListener("change", function() {
@@ -478,9 +456,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
     
-    // ============================================================
-    // 9. رویداد: ذخیره غذای جدید
-    // ============================================================
     const saveNewFoodBtn = document.getElementById("saveNewFood");
     if (saveNewFoodBtn) {
         saveNewFoodBtn.addEventListener("click", function() {
@@ -593,9 +568,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
     
-    // ============================================================
-    // 10. رویداد: ذخیره تغییرات ویرایش غذا
-    // ============================================================
     const saveFoodChangesBtn = document.getElementById("saveFoodChanges");
     if (saveFoodChangesBtn) {
         saveFoodChangesBtn.addEventListener("click", function() {
@@ -722,9 +694,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
     
-    // ============================================================
-    // 11. بازنشانی پیام هنگام بسته شدن مودال
-    // ============================================================
     const foodModal = document.getElementById('foodModal');
     if (foodModal) {
         foodModal.addEventListener('hidden.bs.modal', function() {
@@ -745,7 +714,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     // ============================================================
-    // 12. رویداد: گزارش گیری - باز کردن مودال
+    // Report
     // ============================================================
     const monthlyReportBtn = document.getElementById("monthlyReport");
     if (monthlyReportBtn) {
@@ -757,7 +726,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     // ============================================================
-    // 13. رویداد: گزارش ماهانه
+    // Month Report
     // ============================================================
     const generateMonthlyReportBtn = document.getElementById("generateMonthlyReport");
     if (generateMonthlyReportBtn) {
@@ -830,7 +799,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ============================================================
-    // 14. رویداد: گزارش بازه زمانی
+    // Range Report
     // ============================================================
     const generateRangeReportBtn = document.getElementById("generateRangeReport");
     if (generateRangeReportBtn) {
@@ -901,13 +870,11 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
     
-    // ============================================================
-    // 15. مقداردهی Datepicker ها
-    // ============================================================
+
     initDatepickers();
 
     // ============================================================
-    // 16. رویداد: باز کردن مودال وارد کردن کاربران از اکسل
+    // Input Excel
     // ============================================================
     const importUsersBtn = document.getElementById("importUsers") || document.getElementById("importUsersBtn");
     if (importUsersBtn) {
@@ -918,9 +885,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ============================================================
-    // نمایش جزئیات خطاهای وارد کردن کاربران
-    // ============================================================
+
     function showImportErrors(errors, createdCount, failedCount) {
         const importResult = document.getElementById('importResult');
         const createdCountEl = document.getElementById('createdCount');
@@ -1001,9 +966,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // ============================================================
-    // دریافت نتیجه وارد کردن کاربران از session
-    // ============================================================
+
     function checkImportResult() {
         const importErrorsData = document.getElementById('importErrorsData');
         if (importErrorsData) {

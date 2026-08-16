@@ -1,20 +1,12 @@
 // ============================================================
-// Food Management JS - مدیریت جدول غذاها
+// Food Management JS
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", function() {
-    console.log("✅ Food Management JS loaded!");
     
-    // ============================================================
-    // اعتبارسنجی فرم افزودن غذا
-    // ============================================================
     const addFoodForm = document.getElementById("addFoodForm");
     const foodNameInput = document.getElementById("manageFoodNameInput");
     const foodImageInput = document.getElementById("manageFoodImageInput");
-
-    console.log("FORM:", addFoodForm);
-    console.log("FOOD NAME:", foodNameInput);
-    console.log("FOOD IMAGE:", foodImageInput);
     
     if (addFoodForm) {
 
@@ -85,9 +77,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
     
-    // ============================================================
-    // 1. فیلترهای AJAX
-    // ============================================================
+
     const filterInputs = document.querySelectorAll(".filter-input");
     const foodTableBody = document.getElementById("foodTableBody");
     const foodCount = document.getElementById("foodCount");
@@ -149,15 +139,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     filterInputs.forEach(input => {
         input.addEventListener("input", function() {
-            console.log(`🔍 Input changed: ${this.name} = "${this.value}"`);
             clearTimeout(timeoutId);
             timeoutId = setTimeout(fetchFoodTable, 400);
         });
     });
 
-    // ============================================================
-    // 2. Event Delegation برای دکمه‌های عملیات
-    // ============================================================
     const foodTable = document.getElementById("foodTable");
     
     if (foodTable) {
@@ -194,10 +180,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     }
-
-    // ============================================================
-    // 3. توابع Inline Edit
-    // ============================================================
     
     function enableEditMode(foodId) {
         const row = document.getElementById(`food-row-${foodId}`);
@@ -261,9 +243,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ============================================================
-    // 4. حذف غذا
-    // ============================================================
     function handleDeleteFood(foodId, foodName) {
         showConfirmModal(
             `حذف غذا`,
@@ -303,16 +282,11 @@ document.addEventListener("DOMContentLoaded", function() {
         );
     }
 
-    // ============================================================
-    // 5. نمایش تصویر بزرگ در مرکز صفحه
-    // ============================================================
     
-    // ایجاد بک‌دراپ
     const overlay = document.createElement('div');
     overlay.className = 'modal-image-overlay';
     document.body.appendChild(overlay);
     
-    // ایجاد دکمه بستن
     const closeBtn = document.createElement('div');
     closeBtn.className = 'close-image-btn';
     closeBtn.innerHTML = '×';
@@ -320,7 +294,6 @@ document.addEventListener("DOMContentLoaded", function() {
     
     let activeImg = null;
     
-    // کلیک روی تصویر
     document.addEventListener('click', function(e) {
         const img = e.target.closest('.food-table img');
         if (img && img.closest('.view-mode')) {
@@ -365,12 +338,8 @@ document.addEventListener("DOMContentLoaded", function() {
         if (e.key === 'Escape') closeImage();
     });
 
-    console.log("✅ Food Management initialized!");
 });
 
-// ============================================================
-// توابع کمکی (در صورت عدم وجود در admin_toolbar.js)
-// ============================================================
 
 function showConfirmModal(title, bodyHTML, onConfirm) {
     const existingModal = document.getElementById("customConfirmModal");

@@ -7,20 +7,14 @@
     <td>{{ item.personnel_code }}</td>
     <td>{{ item.site }}</td>
     <td>{{ item.department }}</td>
-    <td>
-        <span class="badge bg-primary rounded-pill">
-            {{ item.reservation_count }}
-        </span>
+    <td class="text-center fw-bold fs-5">
+        {{ item.reservation_count }}
     </td>
-    <td>
-        <span class="badge bg-success rounded-pill">
-            {{ item.main_count }}
-        </span>
+    <td class="text-center fw-bold fs-5">
+        {{ item.main_count }}
     </td>
-    <td>
-        <span class="badge bg-warning rounded-pill">
-            {{ item.extra_count }}
-        </span>
+    <td class="text-center fw-bold fs-5">
+        {{ item.extra_count }}
     </td>
 </tr>
 {% empty %}

@@ -303,5 +303,4 @@ document.addEventListener("DOMContentLoaded", function() {
         setTimeout(fetchUserReport, 300);
     }
 
-    console.log("✅ User Report ready");
 });

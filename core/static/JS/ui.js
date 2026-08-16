@@ -3,7 +3,6 @@
 // ============================================================
 
 function showToast(type, message) {
-    // Create container if not exists
     let container = document.getElementById('toastContainer');
     if (!container) {
         container = document.createElement('div');
@@ -12,7 +11,6 @@ function showToast(type, message) {
         document.body.appendChild(container);
     }
     
-    // Create toast
     const toastEl = document.createElement('div');
     const bgColor = type === 'success' ? 'bg-success' : 
                     type === 'warning' ? 'bg-warning' : 
@@ -56,7 +54,6 @@ function getCsrfToken() {
 // ============================================================
 
 function fetchMenuData() {
-    console.log('📡 Fetching calendar data...');
     
     return fetch('/menu/daily-menus/', {
         method: 'GET',
@@ -82,7 +79,6 @@ function fetchMenuData() {
         Object.assign(window.menuData, data);
         
         const count = Object.keys(window.menuData).length;
-        console.log(`✅ ${count} days with food loaded.`);
         return window.menuData;
     })
     .catch(error => {
@@ -397,7 +393,6 @@ async function initApp() {
         // Update counts
         updateReservedCount();
         
-        console.log('✅ Application initialized successfully');
     } catch (error) {
         console.error('❌ Error initializing app:', error);
         showToast('error', 'خطا در راه‌اندازی برنامه.');

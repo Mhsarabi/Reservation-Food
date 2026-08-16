@@ -14,4 +14,5 @@ urlpatterns = [
     path('delete-daily-food/', DeleteDailyFoodView.as_view(), name='delete_daily_food'), 
     path('save-weekly/', SaveWeeklyFoodView.as_view(), name='save_weekly'),
     path("Alvan/foods/manage/", FoodManagementView.as_view(), name="food_management"),
+    path('reservation-status/', ReservationStatusView.as_view(), name='reservation_status'),
 ]

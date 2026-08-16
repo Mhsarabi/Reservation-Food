@@ -320,9 +320,7 @@ class SaveDailyFoodView(LoginRequiredMixin, UserPassesTestMixin, View):
             })
 
 
-class DeleteDailyFoodView(LoginRequiredMixin, UserPassesTestMixin, View):
-    """حذف غذای روز از تقویم"""
-    
+class DeleteDailyFoodView(LoginRequiredMixin, UserPassesTestMixin, View):    
     def test_func(self):
         return self.request.user.is_staff
     
@@ -349,10 +347,12 @@ class DeleteDailyFoodView(LoginRequiredMixin, UserPassesTestMixin, View):
             if deleted_count > 0:
                 return JsonResponse({
                     'success': True,
+                    "message": "حذف غذا با موفقیت انجام شد."
                 })
             else:
                 return JsonResponse({
                     'success': False,
+                    "message": "حذف غذا با شکست مواجه شد."
                 })
                 
         except Exception as e:
@@ -394,6 +394,46 @@ class DailyMenusAPIView(LoginRequiredMixin, View):
         
         return JsonResponse(data)
 
+class ReservationStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def test_func(self):
+        return self.request.user.is_staff
+    
+    def get(self, request):
+        try:
+            date = request.GET.get('date')
+            if not date:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'تاریخ ارسال نشده است.'
+                })
+            
+            menu = DailyMenu.objects.filter(food_date=date).first()
+            if not menu:
+                return JsonResponse({
+                    'success': True,
+                    'reservation_count': 0,
+                    'users': []
+                })
+            
+            reservations = Reservation.objects.filter(menu=menu)
+            users = []
+            for reservation in reservations:
+                full_name = f"{reservation.user.first_name} {reservation.user.last_name}".strip()
+                if not full_name:
+                    full_name = reservation.user.username
+                users.append(full_name)
+            
+            return JsonResponse({
+                'success': True,
+                'reservation_count': reservations.count(),
+                'users': users
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'خطا: {str(e)}'
+            })
 
 class SaveWeeklyFoodView(LoginRequiredMixin, UserPassesTestMixin, View):
     

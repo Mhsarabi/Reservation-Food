@@ -46,7 +46,13 @@
     </td>
     
     <td>
-        <span class="view-mode">{{ user.site}}</span>
+        <span class="view-mode">
+            {% if user.site %}
+                {{ user.site }}
+            {% else %}
+                <span class="text-muted">—</span>
+            {% endif %}
+        </span>
         <select name="site" class="form-select form-select-sm edit-mode" style="display:none;">
             <option value="">انتخاب سایت</option>
             <option value="ستاد" {% if user.site == 'ستاد' %}selected{% endif %}>ستاد</option>
@@ -55,8 +61,15 @@
     </td>
     
     <td>
-        <span class="view-mode">{{ user.department }}</span>
+        <span class="view-mode">
+            {% if user.department %}
+                {{ user.department }}
+            {% else %}
+                <span class="text-muted">—</span>
+            {% endif %}
+        </span>
         <select name="department" class="form-select form-select-sm edit-mode" style="display:none;">
+            <option value="">انتخاب دپارتمان</option>
             <option value="IT" {% if user.department == 'IT' %}selected{% endif %}>IT</option>
             <option value="HR" {% if user.department == 'HR' %}selected{% endif %}>HR</option>
             <option value="مالی" {% if user.department == 'مالی' %}selected{% endif %}>مالی</option>
@@ -67,11 +80,17 @@
 
     <td>
         <span class="view-mode">{{ user.extra_reservation_limit }}</span>
-        <input type="text" 
-               name="username" 
-               class="form-control form-control-sm edit-mode" 
-               value="{{ user.username }}" 
-               style="display:none;">
+        <div class="edit-mode" style="display:none;">
+            <input type="number" 
+                   name="extra_reservation_limit" 
+                   class="form-control form-control-sm extra-limit-input" 
+                   value="{{ user.extra_reservation_limit }}" 
+                   min="0"
+                   step="1">
+            <div class="invalid-feedback text-end" style="font-size: 0.75rem;">
+                تعداد رزرو اضافه باید عددی بزرگتر یا مساوی صفر باشد.
+            </div>
+        </div>
     </td>
     
     <td>

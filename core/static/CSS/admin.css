@@ -86,3 +86,47 @@
     background:#f8f9fa;
 
 }
+
+@keyframes slideIn {
+
+    from {
+        opacity:0;
+        transform:translateX(-50px);
+    }
+
+    to {
+        opacity:1;
+        transform:translateX(0);
+    }
+}
+
+
+@keyframes slideOut {
+
+    from {
+        opacity:1;
+        transform:translateX(0);
+    }
+
+    to {
+        opacity:0;
+        transform:translateX(-50px);
+    }
+}
+
+
+
+.toast-message {
+
+    border-radius: 15px !important;
+
+    font-family: "Vazirmatn", sans-serif;
+
+}
+
+
+.toast-message .btn-close {
+
+    margin-right:10px;
+
+}

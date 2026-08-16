@@ -327,18 +327,14 @@ class AddExtraReservationView(RegularUserReservationMixin, View):
     def post(self, request):
         food_date = request.POST.get("food_date")
         
-        # ============================================================
-        # 1. اعتبارسنجی تاریخ
-        # ============================================================
+
         if not food_date:
             return JsonResponse({
                 "success": False,
                 "message": "تاریخ ارسال نشده است."
             })
         
-        # ============================================================
-        # 2. بررسی وجود منو برای تاریخ مورد نظر
-        # ============================================================
+
         try:
             menu = DailyMenu.objects.get(food_date=food_date)
         except DailyMenu.DoesNotExist:
@@ -347,18 +343,14 @@ class AddExtraReservationView(RegularUserReservationMixin, View):
                 "message": "برای این روز غذایی ثبت نشده است."
             })
         
-        # ============================================================
-        # 3. بررسی مهلت رزرو
-        # ============================================================
+
         if is_reservation_closed(menu):
             return JsonResponse({
                 "success": False,
                 "message": "مهلت رزرو این غذا به پایان رسیده است."
             })
         
-        # ============================================================
-        # 4. بررسی مجوز رزرو اضافه (بر اساس تعداد مجاز)
-        # ============================================================
+
         limit = request.user.extra_reservation_limit or 0
         if limit == 0:
             return JsonResponse({
@@ -366,9 +358,7 @@ class AddExtraReservationView(RegularUserReservationMixin, View):
                 "message": "شما مجوز رزرو اضافه ندارید."
             })
         
-        # ============================================================
-        # 5. بررسی وجود رزرو اصلی
-        # ============================================================
+
         has_main = Reservation.objects.filter(
             user=request.user,
             menu=menu,
@@ -381,9 +371,7 @@ class AddExtraReservationView(RegularUserReservationMixin, View):
                 "message": "شما ابتدا باید رزرو اصلی را انجام دهید."
             })
         
-        # ============================================================
-        # 6. بررسی تعداد رزرو اضافه فعلی (حداکثر مجاز)
-        # ============================================================
+
         extra_count = Reservation.objects.filter(
             user=request.user,
             menu=menu,
@@ -396,9 +384,7 @@ class AddExtraReservationView(RegularUserReservationMixin, View):
                 "message": f"شما قبلاً حداکثر تعداد مجاز ({limit}) رزرو اضافه را گرفته‌اید."
             })
         
-        # ============================================================
-        # 7. ایجاد رزرو اضافه جدید
-        # ============================================================
+
         Reservation.objects.create(
             user=request.user,
             menu=menu,
@@ -407,9 +393,7 @@ class AddExtraReservationView(RegularUserReservationMixin, View):
         
         new_extra_count = extra_count + 1
         
-        # ============================================================
-        # 8. پاسخ موفقیت‌آمیز
-        # ============================================================
+
         return JsonResponse({
             "success": True,
             "message": f"رزرو اضافه با موفقیت انجام شد. ({new_extra_count} از {limit})",
@@ -419,25 +403,18 @@ class AddExtraReservationView(RegularUserReservationMixin, View):
         })
 
 class RemoveExtraReservationView(RegularUserReservationMixin, View):
-    """
-    کاهش یک واحد از رزرو اضافه (با دکمه -)
-    """
     
     def post(self, request):
         food_date = request.POST.get("food_date")
         
-        # ============================================================
-        # 1. اعتبارسنجی تاریخ
-        # ============================================================
+
         if not food_date:
             return JsonResponse({
                 "success": False,
                 "message": "تاریخ ارسال نشده است."
             })
         
-        # ============================================================
-        # 2. بررسی وجود منو برای تاریخ مورد نظر
-        # ============================================================
+
         try:
             menu = DailyMenu.objects.get(food_date=food_date)
         except DailyMenu.DoesNotExist:
@@ -446,9 +423,7 @@ class RemoveExtraReservationView(RegularUserReservationMixin, View):
                 "message": "برای این روز غذایی ثبت نشده است."
             })
         
-        # ============================================================
-        # 3. بررسی وجود رزرو اضافه
-        # ============================================================
+
         extra_reservation = Reservation.objects.filter(
             user=request.user,
             menu=menu,
@@ -461,14 +436,10 @@ class RemoveExtraReservationView(RegularUserReservationMixin, View):
                 "message": "رزرو اضافه‌ای برای کاهش وجود ندارد."
             })
         
-        # ============================================================
-        # 4. حذف آخرین رزرو اضافه
-        # ============================================================
+
         extra_reservation.delete()
         
-        # ============================================================
-        # 5. محاسبه تعداد باقی‌مانده
-        # ============================================================
+
         new_extra_count = Reservation.objects.filter(
             user=request.user,
             menu=menu,
@@ -477,9 +448,7 @@ class RemoveExtraReservationView(RegularUserReservationMixin, View):
         
         limit = request.user.extra_reservation_limit or 0
         
-        # ============================================================
-        # 6. پاسخ موفقیت‌آمیز
-        # ============================================================
+
         return JsonResponse({
             "success": True,
             "message": f"یک واحد رزرو اضافه کاهش یافت. ({new_extra_count} از {limit} باقی مانده)",
@@ -694,7 +663,6 @@ class UserReportView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         users = User.objects.filter(id__in=user_ids_with_reservations, is_active=True).order_by("first_name", "last_name")
 
-        # فیلترهای جستجو
         first_name = request.GET.get("first_name")
         if first_name:
             users = users.filter(first_name__icontains=first_name)
@@ -741,8 +709,8 @@ class UserReportView(LoginRequiredMixin, UserPassesTestMixin, View):
                     "site": user.site or "-",
                     "department": user.department or "-",
                     "reservation_count": total_count,
-                    "main_count": main_count,  # اضافه شده
-                    "extra_count": extra_count,  # اضافه شده
+                    "main_count": main_count,  
+                    "extra_count": extra_count,  
                 })
 
         report_data.sort(key=lambda item: item["reservation_count"], reverse=True)
@@ -776,7 +744,6 @@ class UserReportView(LoginRequiredMixin, UserPassesTestMixin, View):
         ws.title = "گزارش کاربران"
         ws.sheet_view.rightToLeft = True
 
-        # اضافه کردن ستون‌های جدید
         headers = ["ردیف", "نام", "نام خانوادگی", "نام کاربری", "کد ملی", "کد پرسنلی", 
                 "تعداد کل رزرو", "تعداد رزرو اصلی", "تعداد رزرو اضافه", "سایت", "دپارتمان"]
 
@@ -793,8 +760,8 @@ class UserReportView(LoginRequiredMixin, UserPassesTestMixin, View):
                 (data["national_code"], 5),
                 (data["personnel_code"], 6),
                 (data["reservation_count"], 7),
-                (data["main_count"], 8),      # اضافه شده
-                (data["extra_count"], 9),     # اضافه شده
+                (data["main_count"], 8),      
+                (data["extra_count"], 9),     
                 (data["site"], 10),
                 (data["department"], 11),
             ]
@@ -894,14 +861,11 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
 
             report = []
             for user in users:
-                # تعداد کل رزروها
                 total_count = reservations.filter(user=user).count()
                 
                 if total_count > 0:
-                    # تعداد رزروهای اصلی
                     main_count = reservations.filter(user=user, is_extra=False).count()
                     
-                    # تعداد رزروهای اضافه
                     extra_count = reservations.filter(user=user, is_extra=True).count()
                     
                     report.append({
@@ -913,8 +877,8 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
                         "site": user.site or "-",
                         "department": user.department or "-",
                         "reservation_count": total_count,
-                        "main_count": main_count,    # اضافه شده
-                        "extra_count": extra_count,  # اضافه شده
+                        "main_count": main_count,    
+                        "extra_count": extra_count,  
                     })
 
             report.sort(key=lambda x: x["reservation_count"], reverse=True)
@@ -927,7 +891,6 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
             ws.sheet_view.rightToLeft = True
             ws.title = f"گزارش_{year_str}_{month_str}"
 
-            # اضافه کردن ستون‌های جدید
             headers = ["ردیف", "نام", "نام خانوادگی", "نام کاربری", "کد ملی", "کد پرسنلی", 
                        "تعداد کل رزرو", "تعداد رزرو اصلی", "تعداد رزرو اضافه", "سایت", "دپارتمان"]
 
@@ -944,8 +907,8 @@ class MonthlyReportView(LoginRequiredMixin, UserPassesTestMixin, View):
                     (data["national_code"], 5),
                     (data["personnel_code"], 6),
                     (data["reservation_count"], 7),
-                    (data["main_count"], 8),      # اضافه شده
-                    (data["extra_count"], 9),     # اضافه شده
+                    (data["main_count"], 8),   
+                    (data["extra_count"], 9),    
                     (data["site"], 10),
                     (data["department"], 11),
                 ]
@@ -1010,7 +973,6 @@ class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
                 
                 main_count = reservations.filter(user=user, is_extra=False).count()
                 
-                # تعداد رزروهای اضافه
                 extra_count = reservations.filter(user=user, is_extra=True).count()
                 
                 report.append({
@@ -1049,8 +1011,8 @@ class RangeReportView(LoginRequiredMixin, UserPassesTestMixin, View):
                     (data["national_code"], 5),
                     (data["personnel_code"], 6),
                     (data["reservation_count"], 7),
-                    (data["main_count"], 8),      # اضافه شده
-                    (data["extra_count"], 9),     # اضافه شده
+                    (data["main_count"], 8),      
+                    (data["extra_count"], 9),    
                     (data["site"], 10),
                     (data["department"], 11),
                 ]
