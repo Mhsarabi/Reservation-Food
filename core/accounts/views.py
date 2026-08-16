@@ -104,10 +104,8 @@ class AdminDashboardView(LoginRequiredMixin,UserPassesTestMixin,TemplateView):
         return self.request.user.is_staff
 
 
-class UsersManagementView(LoginRequiredMixin,View):
-
+class UsersManagementView(LoginRequiredMixin, View):
     template_name = "admin/user_management.html"
-
 
     def get(self, request):
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -167,7 +165,6 @@ class UsersManagementView(LoginRequiredMixin,View):
             {"users": users}
         )
 
-
     def post(self, request):
         if "add_user" in request.POST:
             try:
@@ -177,15 +174,24 @@ class UsersManagementView(LoginRequiredMixin,View):
                 if not username:
                     username = national_code
 
+                extra_limit = request.POST.get("extra_reservation_limit", 0)
+                try:
+                    extra_reservation_limit = int(extra_limit)
+                    if extra_reservation_limit < 0:
+                        extra_reservation_limit = 0
+                except ValueError:
+                    extra_reservation_limit = 0
+
                 User.objects.create_user(
                     national_code=national_code,
-                    password=request.POST.get("password") or national_code,  
+                    password=request.POST.get("password") or national_code,
                     first_name=request.POST.get("first_name"),
                     last_name=request.POST.get("last_name"),
                     username=username,
                     personnel_code=request.POST.get("personnel_code"),
                     site=request.POST.get("site"),
                     department=request.POST.get("department"),
+                    extra_reservation_limit=extra_reservation_limit, 
                 )
                 messages.success(request, "کاربر با موفقیت اضافه شد.")
 
@@ -225,51 +231,33 @@ class EditUserView(LoginRequiredMixin, UserPassesTestMixin, View):
         return self.request.user.is_staff
 
     def post(self, request):
-        user = User.objects.get(id=request.POST["user_id"])
-
-        username = request.POST.get("username", "").strip()
-        if not username:
-            username = request.POST.get("national_code", "").strip()
-
-        user.first_name = request.POST["first_name"]
-        user.last_name = request.POST["last_name"]
-        user.username = username  
-        user.personnel_code = request.POST["personnel_code"]
-        user.national_code = request.POST["national_code"]
-        user.site = request.POST["site"]
-        user.department = request.POST["department"]
-        user.is_active = request.POST.get("is_active") == "true"
-
-        user.save()
-
-        return JsonResponse({"success": True})
-
-
-class ToggleExtraReservationView(LoginRequiredMixin, UserPassesTestMixin, View):
-    def test_func(self):
-        return self.request.user.is_staff
-
-    def post(self, request):
-        user_id = request.POST.get("user_id")
-        can_extra = request.POST.get("can_extra") == "true"
-
         try:
-            user = User.objects.get(id=user_id)
-            
-            if user.is_superuser or user.is_staff:
-                return JsonResponse({
-                    "success": False,
-                    "message": "امکان تغییر مجوز مدیر اصلی وجود ندارد."
-                })
+            user = User.objects.get(id=request.POST["user_id"])
 
-            user.can_extra_reservation = can_extra
+            user.first_name = request.POST["first_name"]
+            user.last_name = request.POST["last_name"]
+            user.username = request.POST["username"]
+            user.personnel_code = request.POST["personnel_code"]
+            user.national_code = request.POST["national_code"]
+            user.site = request.POST["site"]
+            user.department = request.POST["department"]
+            extra_limit = request.POST.get("extra_reservation_limit", 0)
+            user.is_active = request.POST.get("is_active") == "true"
+            
+            try:
+                user.extra_reservation_limit = int(extra_limit)
+                if user.extra_reservation_limit < 0:
+                    user.extra_reservation_limit = 0
+            except ValueError:
+                user.extra_reservation_limit = 0
+
             user.save()
 
             return JsonResponse({
                 "success": True,
-                "message": f"مجوز رزرو اضافه برای {user.username} به‌روزرسانی شد.",
-                "can_extra": user.can_extra_reservation
+                "message": "اطلاعات کاربر با موفقیت به‌روزرسانی شد."
             })
+            
         except User.DoesNotExist:
             return JsonResponse({
                 "success": False,

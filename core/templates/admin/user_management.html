@@ -139,14 +139,9 @@
                                         <option value="فروش" {% if request.GET.department == 'فروش' %}selected{% endif %}>فروش</option>
                                     </select>
                                 </th>
-                                <!-- ✅ ستون جدید: رزرو اضافه -->
                                 <th>
-                                    رزرو اضافه
-                                    <select name="can_extra" class="form-select form-select-sm filter-select" data-filter="can_extra">
-                                        <option value="">همه</option>
-                                        <option value="true" {% if request.GET.can_extra == 'true' %}selected{% endif %}>فعال</option>
-                                        <option value="false" {% if request.GET.can_extra == 'false' %}selected{% endif %}>غیرفعال</option>
-                                    </select>
+                                    تعداد مجاز رزرو اضافه
+                                    <span class="d-block text-muted small">&nbsp;</span>
                                 </th>
                                 <th>
                                     وضعیت
@@ -200,15 +195,16 @@
                                             <option value="فروش">فروش</option>
                                         </select>
                                     </td>
-                                    <!-- ✅ رزرو اضافه (غیرفعال پیش‌فرض) -->
+                                    <td>
+                                        <input type="number" 
+                                               name="extra_reservation_limit" 
+                                               class="form-control form-control-sm" 
+                                               value="0" 
+                                               placeholder="0">
+                                    </td>
                                     <td>
                                         <span class="badge" style="background-color: #8B0000; color: white;">غیرفعال</span>
                                     </td>
-                                    <!-- ✅ وضعیت (غیرفعال پیش‌فرض) -->
-                                    <td>
-                                        <span class="badge" style="background-color: #8B0000; color: white;">غیرفعال</span>
-                                    </td>
-                                    <!-- ✅ عملیات -->
                                     <td>
                                         <button type="submit" class="btn btn-success btn-sm" name="add_user">
                                             <i class="bi bi-person-plus"></i> افزودن کاربر

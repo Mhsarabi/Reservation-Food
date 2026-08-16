@@ -13,6 +13,7 @@ urlpatterns = [
     path("reserve-month/", ReservationReserveMonthView.as_view(), name="reserve_month"),
     path("cancel-month/", ReservationCancelMonthView.as_view(), name="cancel_month"),
     path('add-extra/', AddExtraReservationView.as_view(), name='add_extra'),
+    path('remove-extra/', RemoveExtraReservationView.as_view(), name='remove_extra'),
     path('delete-extra/', DeleteExtraReservationView.as_view(), name='delete_extra'),
 
     # ============================================================

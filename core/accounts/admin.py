@@ -15,7 +15,7 @@ class CustomUserAdmin(UserAdmin):
         "personnel_code",
         "site",
         "department",
-        "can_extra_reservation",
+        "extra_reservation_limit",
         "is_active",
         "is_staff",
     )
@@ -24,7 +24,6 @@ class CustomUserAdmin(UserAdmin):
         "is_active",
         "is_staff",
         "is_superuser",
-        "can_extra_reservation",
         "site"
     )
 
@@ -51,7 +50,7 @@ class CustomUserAdmin(UserAdmin):
                 "last_name",
                 "site",
                 "department",
-                "can_extra_reservation",
+                "extra_reservation_limit",
             ),
         }),
         ("دسترسی ها", {
@@ -79,7 +78,7 @@ class CustomUserAdmin(UserAdmin):
                 "last_name",
                 "site",
                 "department",
-                "can_extra_reservation",
+                "extra_reservation_limit",
                 "password1",
                 "password2",
                 "is_active",

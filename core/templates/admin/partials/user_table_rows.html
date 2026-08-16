@@ -46,7 +46,7 @@
     </td>
     
     <td>
-        <span class="view-mode">{{ user.site|default:"-" }}</span>
+        <span class="view-mode">{{ user.site}}</span>
         <select name="site" class="form-select form-select-sm edit-mode" style="display:none;">
             <option value="">انتخاب سایت</option>
             <option value="ستاد" {% if user.site == 'ستاد' %}selected{% endif %}>ستاد</option>
@@ -64,20 +64,14 @@
             <option value="فروش" {% if user.department == 'فروش' %}selected{% endif %}>فروش</option>
         </select>
     </td>
-    
-    <!-- ✅ ستون جدید: رزرو اضافه -->
+
     <td>
-        <span class="view-mode">
-            {% if user.can_extra_reservation %}
-                <span class="badge bg-success">فعال</span>
-            {% else %}
-                <span class="badge" style="background-color: #8B0000; color: white;">غیرفعال</span>
-            {% endif %}
-        </span>
-        <select name="can_extra" class="form-select form-select-sm edit-mode" style="display:none;">
-            <option value="true" {% if user.can_extra_reservation %}selected{% endif %}>فعال</option>
-            <option value="false" {% if not user.can_extra_reservation %}selected{% endif %}>غیرفعال</option>
-        </select>
+        <span class="view-mode">{{ user.extra_reservation_limit }}</span>
+        <input type="text" 
+               name="username" 
+               class="form-control form-control-sm edit-mode" 
+               value="{{ user.username }}" 
+               style="display:none;">
     </td>
     
     <td>
@@ -96,7 +90,6 @@
     
     <td>
         <div class="btn-group btn-group-sm" role="group">
-            <!-- دکمه تغییر وضعیت -->
             {% if user.is_active %}
             <button type="button"
                     class="btn btn-outline-success toggle-status-btn"
@@ -117,7 +110,6 @@
             </button>
             {% endif %}
             
-            <!-- دکمه ویرایش -->
             <button type="button"
                     class="btn btn-outline-primary edit-toggle-btn"
                     data-user-id="{{ user.id }}"
@@ -125,7 +117,6 @@
                 <i class="bi bi-pencil"></i>
             </button>
             
-            <!-- دکمه ذخیره -->
             <button type="button"
                     class="btn btn-outline-success save-edit-btn"
                     data-user-id="{{ user.id }}"
@@ -134,7 +125,6 @@
                 <i class="bi bi-check-lg"></i>
             </button>
             
-            <!-- دکمه لغو -->
             <button type="button"
                     class="btn btn-outline-secondary cancel-edit-btn"
                     data-user-id="{{ user.id }}"
@@ -143,7 +133,6 @@
                 <i class="bi bi-x-lg"></i>
             </button>
             
-            <!-- دکمه ریست رمز -->
             <button type="button"
                     class="btn btn-outline-warning reset-password-btn"
                     data-user-id="{{ user.id }}"
@@ -153,22 +142,6 @@
                 <i class="bi bi-key-fill"></i>
             </button>
             
-            <!-- ✅ دکمه مجوز رزرو اضافه -->
-            <button type="button"
-                    class="btn btn-outline-info extra-reservation-btn"
-                    data-user-id="{{ user.id }}"
-                    data-username="{{ user.username }}"
-                    data-can-extra="{{ user.can_extra_reservation|yesno:'true,false' }}"
-                    title="{% if user.can_extra_reservation %}غیرفعال کردن مجوز رزرو اضافه{% else %}فعال کردن مجوز رزرو اضافه{% endif %}"
-                    style="border-color: #17a2b8; color: #0c5460;">
-                {% if user.can_extra_reservation %}
-                <i class="bi bi-plus-circle-fill text-success" style="font-size: 1rem;"></i>
-                {% else %}
-                <i class="bi bi-plus-circle" style="font-size: 1rem;"></i>
-                {% endif %}
-            </button>
-            
-            <!-- دکمه حذف -->
             <button type="button"
                     class="btn btn-outline-danger delete-user-btn"
                     data-user-id="{{ user.id }}"

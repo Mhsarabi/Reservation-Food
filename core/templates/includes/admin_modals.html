@@ -222,3 +222,33 @@
         </div>
     </div>
 </div>
+<!-- ================== 6. ریست رمز عبور ================== -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ریست رمز عبور</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                   توجه داشته باشید رمز عبور قبلی غیر قابل استفاده و ملاک احراز هویت با رمز عبور جدید خواهد بود.
+                </div>
+                <p class="fw-bold fs-5 text-primary" id="resetUsername">کاربر</p>
+                <input type="hidden" id="resetUserId" value="">
+                <div class="mb-3">
+                    <label class="form-label">رمز عبور جدید</label>
+                    <input type="text" id="newUserPassword" class="form-control" placeholder="رمز جدید را وارد کنید...">
+                    <small class="text-muted">رمز عبور باید حداقل 8 کاراکتر باشد.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-primary" id="saveResetPassword">
+                    <i class="bi bi-key me-1"></i> تغییر رمز عبور
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

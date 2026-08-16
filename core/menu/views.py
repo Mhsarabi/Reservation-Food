@@ -3,6 +3,7 @@ from django.template.loader import render_to_string
 from django.views.generic import TemplateView
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db import models
 from .models import DailyMenu,Food
 from reservations.models import Reservation
 from django.views import View
@@ -371,12 +372,12 @@ class DailyMenusAPIView(LoginRequiredMixin, View):
             ).values_list('menu_id', flat=True)
         )
         
-        extra_reservation_ids = set(
-            Reservation.objects.filter(
-                user=request.user,
-                is_extra=True
-            ).values_list('menu_id', flat=True)
-        )
+        extra_reservations = Reservation.objects.filter(
+            user=request.user,
+            is_extra=True
+        ).values('menu_id').annotate(count=models.Count('id'))
+        
+        extra_count_map = {item['menu_id']: item['count'] for item in extra_reservations}
         
         data = {}
         for menu in menus:
@@ -386,8 +387,9 @@ class DailyMenusAPIView(LoginRequiredMixin, View):
                 'foodName': menu.food.food_name,
                 'image': menu.food.food_image.url if menu.food.food_image else '/static/images/no-food.png',
                 'reserved': menu.id in reserved_ids,
-                'can_extra_reservation': request.user.can_extra_reservation,
-                'has_extra_reservation': menu.id in extra_reservation_ids,
+                'extra_reservation_limit': request.user.extra_reservation_limit or 0,
+                'extra_reservation_count': extra_count_map.get(menu.id, 0),
+                'has_extra_reservation': extra_count_map.get(menu.id, 0) > 0,
             }
         
         return JsonResponse(data)
@@ -467,7 +469,7 @@ class SaveWeeklyFoodView(LoginRequiredMixin, UserPassesTestMixin, View):
                 
                 current_date += timedelta(days=1)
             
-            message = f'برنامه هفتگی با موفقیت ثبت شد. {created_count} روز جدید اضافه شد.'
+            message = f'برنامه هفتگی با موفقیت ثبت شد.'
             if skipped_past > 0:
                 message += f' ({skipped_past} روز گذشته حذف شدند)'
             

@@ -1,21 +1,31 @@
 {% for item in user_report %}
 <tr>
-    <td>{{ item.first_name|default:"-" }}</td>
-    <td>{{ item.last_name|default:"-" }}</td>
-    <td>{{ item.username|default:"-" }}</td>
-    <td>{{ item.national_code|default:"-" }}</td>
-    <td>{{ item.personnel_code|default:"-" }}</td>
-    <td>{{ item.site|default:"-" }}</td>
-    <td>{{ item.department|default:"-" }}</td>
+    <td>{{ item.first_name }}</td>
+    <td>{{ item.last_name }}</td>
+    <td>{{ item.username }}</td>
+    <td>{{ item.national_code }}</td>
+    <td>{{ item.personnel_code }}</td>
+    <td>{{ item.site }}</td>
+    <td>{{ item.department }}</td>
     <td>
         <span class="badge bg-primary rounded-pill">
             {{ item.reservation_count }}
         </span>
     </td>
+    <td>
+        <span class="badge bg-success rounded-pill">
+            {{ item.main_count }}
+        </span>
+    </td>
+    <td>
+        <span class="badge bg-warning rounded-pill">
+            {{ item.extra_count }}
+        </span>
+    </td>
 </tr>
 {% empty %}
 <tr>
-    <td colspan="8" class="text-center py-4">
+    <td colspan="11" class="text-center py-4">
         <i class="bi bi-inbox display-4 text-muted"></i>
         <p class="text-muted mt-2">هیچ رزروی در بازه انتخاب شده یافت نشد.</p>
     </td>

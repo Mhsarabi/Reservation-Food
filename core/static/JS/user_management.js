@@ -3,7 +3,7 @@
 // ============================================================
 
 // ============================================================
-// تابع برای نمایش مودال تأیید سفارشی (خارج از DOMContentLoaded)
+// تابع برای نمایش مودال تأیید سفارشی
 // ============================================================
 function showConfirmModal(title, bodyHTML, onConfirm) {
     const existingModal = document.getElementById("customConfirmModal");
@@ -57,7 +57,7 @@ function showConfirmModal(title, bodyHTML, onConfirm) {
 }
 
 // ============================================================
-// تابع کمکی برای دریافت توکن CSRF (خارج از DOMContentLoaded)
+// تابع کمکی برای دریافت توکن CSRF
 // ============================================================
 function getCSRFToken() {
     const tokenElement = document.getElementById("csrf-token");
@@ -72,7 +72,7 @@ function getCSRFToken() {
 }
 
 // ============================================================
-// تابع نمایش پیام (خارج از DOMContentLoaded)
+// تابع نمایش پیام
 // ============================================================
 function showMessage(message, type = "info") {
     const existingAlerts = document.querySelectorAll(".alert.position-fixed");
@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (userTableBody) {
             userTableBody.innerHTML = `
                 <tr>
-                    <td colspan="10" class="text-center py-4">
+                    <td colspan="11" class="text-center py-4">
                         <div class="spinner-border text-success" role="status">
                             <span class="visually-hidden">در حال بارگذاری...</span>
                         </div>
@@ -226,7 +226,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if (userTableBody) {
                 userTableBody.innerHTML = `
                     <tr>
-                        <td colspan="10" class="text-center py-4 text-danger">
+                        <td colspan="11" class="text-center py-4 text-danger">
                             <i class="bi bi-exclamation-triangle display-4"></i>
                             <p class="mt-2">خطا در ارتباط با سرور</p>
                         </td>
@@ -299,16 +299,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 handleResetPassword(e, target);
             }
         });
-        
-        // ============================================================
-        // ✅ دکمه مجوز رزرو اضافه (جدید)
-        // ============================================================
-        userTable.addEventListener("click", function(e) {
-            const target = e.target.closest(".extra-reservation-btn");
-            if (target) {
-                handleExtraReservation(e, target);
-            }
-        });
     }
 
     // ============================================================
@@ -361,17 +351,45 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ============================================================
-    // 5. توابع Inline Edit
+    // 5. توابع Inline Edit (با پشتیبانی از extra_reservation_limit)
     // ============================================================
     function enableEditMode(userId) {
         const row = document.getElementById(`user-row-${userId}`);
         if (!row) return;
+        
+        // مخفی کردن view-mode و نمایش edit-mode
+        row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'none');
+        row.querySelectorAll('.edit-mode').forEach(el => el.style.display = '');
+        
+        // نمایش دکمه‌های ذخیره و لغو
+        const saveBtn = row.querySelector('.save-edit-btn');
+        const cancelBtn = row.querySelector('.cancel-edit-btn');
+        const editBtn = row.querySelector('.edit-toggle-btn');
+        
+        if (saveBtn) saveBtn.style.display = '';
+        if (cancelBtn) cancelBtn.style.display = '';
+        if (editBtn) editBtn.style.display = 'none';
+        
         row.classList.add('editing');
     }
 
     function cancelEditMode(userId) {
         const row = document.getElementById(`user-row-${userId}`);
         if (!row) return;
+        
+        // نمایش view-mode و مخفی کردن edit-mode
+        row.querySelectorAll('.view-mode').forEach(el => el.style.display = '');
+        row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'none');
+        
+        // مخفی کردن دکمه‌های ذخیره و لغو
+        const saveBtn = row.querySelector('.save-edit-btn');
+        const cancelBtn = row.querySelector('.cancel-edit-btn');
+        const editBtn = row.querySelector('.edit-toggle-btn');
+        
+        if (saveBtn) saveBtn.style.display = 'none';
+        if (cancelBtn) cancelBtn.style.display = 'none';
+        if (editBtn) editBtn.style.display = '';
+        
         row.classList.remove('editing');
     }
 
@@ -388,6 +406,15 @@ document.addEventListener("DOMContentLoaded", function() {
         const department = row.querySelector('select[name="department"]').value;
         const status = row.querySelector('select[name="status"]').value;
         
+        // ✅ دریافت تعداد مجاز رزرو اضافه (عددی)
+        const extraLimitInput = row.querySelector('input[name="extra_reservation_limit"]');
+        let extra_reservation_limit = 0;
+        if (extraLimitInput) {
+            const val = parseInt(extraLimitInput.value.trim());
+            extra_reservation_limit = isNaN(val) ? 0 : Math.max(0, val);
+        }
+        
+        // اعتبارسنجی
         if (!first_name || !last_name || !national_code || !personnel_code || !username) {
             showMessage("لطفاً تمام فیلدهای ضروری را پر کنید.", "danger");
             return;
@@ -423,7 +450,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 username: username,
                 site: site,
                 department: department,
-                is_active: status === "active" ? "true" : "false"
+                is_active: status === "active" ? "true" : "false",
+                extra_reservation_limit: extra_reservation_limit  // ✅ اضافه شد
             })
         })
         .then(response => response.json())
@@ -576,58 +604,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.error('❌ مودال importUsersModal پیدا نشد!');
             }
         });
-    }
-
-    // ============================================================
-    // 10. ✅ هندلر مجوز رزرو اضافه (جدید)
-    // ============================================================
-    function handleExtraReservation(e, btn) {
-        const userId = btn.dataset.userId;
-        const username = btn.dataset.username;
-        const currentStatus = btn.dataset.canExtra === 'true';
-        const newStatus = !currentStatus;
-        const action = newStatus ? "فعال" : "غیرفعال";
-        const icon = newStatus ? "bi-plus-circle-fill text-success" : "bi-plus-circle";
-
-        showConfirmModal(
-            `تغییر مجوز رزرو اضافه`,
-            `
-            <div class="text-center">
-                <i class="bi ${icon}" style="font-size: 4rem;"></i>
-                <p class="mt-3">آیا از <strong>${action}</strong> کردن مجوز رزرو اضافه</p>
-                <p class="fw-bold text-primary fs-5">"${username}"</p>
-                <p class="text-muted small">اطمینان دارید؟</p>
-                <p class="text-muted small">
-                    کاربر با مجوز رزرو اضافه می‌تواند برای هر روز <strong>یک رزرو اضافه</strong> ثبت کند.
-                </p>
-            </div>
-            `,
-            function() {
-                fetch("/Alvan/toggle-extra-reservation", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRFToken": getCSRFToken(),
-                        "Content-Type": "application/x-www-form-urlencoded",
-                    },
-                    body: new URLSearchParams({
-                        user_id: userId,
-                        can_extra: newStatus ? "true" : "false"
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showMessage(`مجوز رزرو اضافه برای کاربر ${username} با موفقیت ${action} شد.`, "success");
-                        fetchUsers();
-                    } else {
-                        showMessage(data.message || `خطا در ${action} کردن مجوز.`, "danger");
-                    }
-                })
-                .catch(error => {
-                    showMessage("خطا در ارتباط با سرور.", "danger");
-                });
-            }
-        );
     }
 
 });

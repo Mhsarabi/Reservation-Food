@@ -187,7 +187,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
             const data = await response.json();
             if (data.success) {
-                alert("رزرو با موفقیت حذف شد.");
                 fetchReservations();
             } else {
                 alert(data.message || "خطا در حذف رزرو.");

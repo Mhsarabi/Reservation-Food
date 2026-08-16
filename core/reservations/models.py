@@ -21,9 +21,10 @@ class Reservation(models.Model):
 
         constraints=[
             models.UniqueConstraint(
-                fields=["user","menu",'is_extra'],
-                name="unique_user_reservation_per_day"
-            )
+                fields=["user", "menu"],
+                condition=models.Q(is_extra=False),
+                name="unique_main_reservation_per_day"
+            ),
         ]
 
     def __str__(self):

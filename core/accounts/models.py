@@ -54,7 +54,7 @@ class User(AbstractBaseUser,PermissionsMixin):
 
     department=models.CharField(max_length=100,verbose_name="واحد")
 
-    can_extra_reservation = models.BooleanField(default=False, verbose_name="مجوز رزرو اضافه")
+    extra_reservation_limit = models.PositiveIntegerField(default=0,verbose_name="تعداد مجاز رزرو اضافه")
 
     is_active = models.BooleanField(default=True)
 
