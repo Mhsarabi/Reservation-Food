@@ -182,14 +182,12 @@
             </p>
 
             <p id="foodName">
-                -
+                
             </p>
 
-            <hr>
-
-                <p id="reservedCount">
-                    عداد غذاهای رزرو شده این ماه: 0
-                </p>
+            <div id="reservedCount" class="reserved-count">
+                تعداد غذاهای رزرو شده این ماه: 0
+            </div>
 
         </div>
 
@@ -292,11 +290,10 @@
 <!-- ================= Scripts ================= -->
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/jalaali.min.js' %}"></script>
-<!-- Calendar Data -->
+<div id="toastContainer"></div>
 <script>
     window.menuData = {};
 </script>
-<!-- JS Files -->
 <script src="{%static 'js/calendar.js'%}"></script>
 <script src="{%static 'js/ui.js'%}"></script>
 <script src="{%static 'js/reservation.js'%}"></script>

@@ -20,8 +20,8 @@ class PersianCalendar {
             this.nextMonth();
         });
 
-        const today = new Date();
-        const jToday = jalaali.toJalaali(today);
+        const CalendarToday = new Date();
+        const jToday = jalaali.toJalaali(CalendarToday);
 
         this.currentYear = jToday.jy;
         this.currentMonth = jToday.jm;
@@ -105,7 +105,7 @@ class PersianCalendar {
                 food: menu ? menu.foodName : null,
                 foodId: menu ? menu.foodId : null,
                 foodImage: menu ? menu.image : null,
-                today: isToday,
+                CalendarToday: isToday,
                 past: isPast,
                 reserved: menu?.reserved ?? false,
                 extra_reservation_limit: menu?.extra_reservation_limit ?? 0,
@@ -143,7 +143,7 @@ class PersianCalendar {
 
 
     if (data.past) day.classList.add("past-day");
-    if (data.today) day.classList.add("today");
+    if (data.CalendarToday) day.classList.add("CalendarToday");
     if (data.reserved) day.classList.add("reserved-day");
     if (data.food) {
         day.classList.add("has-food");
@@ -171,13 +171,20 @@ class PersianCalendar {
 
     if (this.adminMode === true) {
 
-        day.onclick = (e) => {
-
+        day.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
 
+            console.log("🟢 ADMIN DAY CLICK:", {
+                year: this.currentYear,
+                month: this.currentMonth,
+                day: data.day,
+                foodDate: data.food_date,
+                food: data.food
+            });
+
             this.handleAdminDayClick(data);
-        };
+        });
 
         return day;
     }
@@ -293,12 +300,12 @@ class PersianCalendar {
         }
 
         if (!data.food) {
-            this.showToast('warning', 'برای این روز غذایی ثبت نشده است.');
+            this.showUserToast('warning', 'برای این روز غذایی ثبت نشده است.');
             return;
         }
 
         if (data.past && !data.reserved) {
-            this.showToast('warning', 'امکان رزرو روزهای گذشته وجود ندارد.');
+            this.showUserToast('warning', 'امکان رزرو روزهای گذشته وجود ندارد.');
             return;
         }
 
@@ -307,24 +314,31 @@ class PersianCalendar {
 
     handleAdminDayClick(data) {
 
-    if (this.adminMode !== true) {
-        console.warn("⚠️ adminMode فعال نیست");
-        return;
-    }
+        console.log("🟡 handleAdminDayClick:", data);
 
-    const event = new CustomEvent("adminDaySelected", {
-        detail: {
-            year: this.currentYear,
-            month: this.currentMonth,
-            day: data.day,
-            foodId: data.foodId || null,
-            foodName: data.food || null,
-            foodDate: data.food_date || null
+        if (!this.adminMode) {
+            console.warn("⚠️ adminMode فعال نیست");
+            return;
         }
-    });
 
-    document.dispatchEvent(event);
-}
+        if (!data || !data.day) {
+            console.warn("⚠️ اطلاعات روز نامعتبر است:", data);
+            return;
+        }
+
+        document.dispatchEvent(
+            new CustomEvent("adminDaySelected", {
+                detail: {
+                    year: this.currentYear,
+                    month: this.currentMonth,
+                    day: data.day,
+                    foodId: data.foodId || null,
+                    foodName: data.food || null,
+                    foodDate: data.food_date || null
+                }
+            })
+        );
+    }
 
     handleAddExtraClick(day) {
         if (this.adminMode) return;
@@ -378,12 +392,24 @@ class PersianCalendar {
         return jalaali.toGregorian(this.currentYear, this.currentMonth, lastDay);
     }
 
-    showToast(type, message) {
-        if (typeof showToast === 'function') {
-            showToast(type, message);
-        } else {
-            alert(message);
+    showUserToast(type, message) {
+
+        if (typeof showToast !== 'function') {
+            console.warn("showToast function not found:", message);
+            return;
         }
+
+        const typeMap = {
+            success: "success",
+            error: "danger",
+            danger: "danger",
+            warning: "warning",
+            info: "info"
+        };
+
+        const toastType = typeMap[type] || "info";
+
+        showToast(toastType, message);
     }
 
     // ============================================================
@@ -429,7 +455,7 @@ class PersianCalendar {
     const menu = this.menuData[key];
 
     if (!menu) {
-        this.showToast('warning', 'برای این روز غذایی ثبت نشده است.');
+        this.showUserToast('warning', 'برای این روز غذایی ثبت نشده است.');
         return;
     }
 
@@ -477,7 +503,7 @@ class PersianCalendar {
         } catch (jsonError) {
             console.error("❌ پاسخ سرور JSON نیست:", text);
 
-            this.showToast(
+            this.showUserToast(
                 'error',
                 `خطای سرور (${response.status})`
             );
@@ -497,7 +523,7 @@ class PersianCalendar {
                 updateReservedCount();
             }
 
-            this.showToast(
+            this.showUserToast(
                 'success',
                 data.message || 'رزرو با موفقیت انجام شد.'
             );
@@ -514,7 +540,7 @@ class PersianCalendar {
 
         } else {
 
-            this.showToast(
+            this.showUserToast(
                 'error',
                 data.message || 'خطا در رزرو غذا.'
             );
@@ -524,7 +550,7 @@ class PersianCalendar {
 
         console.error("❌ Fetch Error:", error);
 
-        this.showToast(
+        this.showUserToast(
             'error',
             'خطا در ارتباط با سرور.'
         );
@@ -538,7 +564,7 @@ class PersianCalendar {
         const menu = this.menuData[key];
         
         if (!menu) {
-            this.showToast('error', 'برای این روز غذایی ثبت نشده است.');
+            this.showUserToast('error', 'برای این روز غذایی ثبت نشده است.');
             return;
         }
 
@@ -574,13 +600,13 @@ class PersianCalendar {
                 if (foodName) foodName.textContent = "-";
                 if (selectedDate) selectedDate.textContent = "تاریخی انتخاب نشده است.";
                 
-                this.showToast('success', data.message || 'رزرو با موفقیت لغو شد.');
+                this.showUserToast('success', data.message || 'رزرو با موفقیت لغو شد.');
             } else {
-                this.showToast('error', data.message || 'خطا در لغو رزرو.');
+                this.showUserToast('error', data.message || 'خطا در لغو رزرو.');
             }
         } catch (error) {
             console.error('❌ Error in removeMainReservation:', error);
-            this.showToast('error', 'خطا در ارتباط با سرور.');
+            this.showUserToast('error', 'خطا در ارتباط با سرور.');
         }
     }
 
@@ -591,7 +617,7 @@ class PersianCalendar {
         const menu = this.menuData[key];
         
         if (!menu) {
-            this.showToast('error', 'برای این روز غذایی ثبت نشده است.');
+            this.showUserToast('error', 'برای این روز غذایی ثبت نشده است.');
             return;
         }
 
@@ -618,13 +644,13 @@ class PersianCalendar {
                 if (typeof updateReservedCount === 'function') {
                     updateReservedCount();
                 }
-                this.showToast('success', data.message || 'رزرو اضافه با موفقیت انجام شد.');
+                this.showUserToast('success', data.message || 'رزرو اضافه با موفقیت انجام شد.');
             } else {
-                this.showToast('error', data.message || 'خطا در افزودن رزرو اضافه.');
+                this.showUserToast('error', data.message || 'خطا در افزودن رزرو اضافه.');
             }
         } catch (error) {
             console.error('❌ Error in addExtraReservation:', error);
-            this.showToast('error', 'خطا در ارتباط با سرور.');
+            this.showUserToast('error', 'خطا در ارتباط با سرور.');
         }
     }
 
@@ -635,12 +661,12 @@ class PersianCalendar {
         const menu = this.menuData[key];
         
         if (!menu) {
-            this.showToast('error', 'برای این روز غذایی ثبت نشده است.');
+            this.showUserToast('error', 'برای این روز غذایی ثبت نشده است.');
             return;
         }
 
         if (!menu.has_extra_reservation || menu.extra_reservation_count === 0) {
-            this.showToast('warning', 'رزرو اضافه‌ای برای کاهش وجود ندارد.');
+            this.showUserToast('warning', 'رزرو اضافه‌ای برای کاهش وجود ندارد.');
             return;
         }
 
@@ -666,13 +692,13 @@ class PersianCalendar {
                 if (typeof updateReservedCount === 'function') {
                     updateReservedCount();
                 }
-                this.showToast('success', data.message || 'رزرو اضافه کاهش یافت.');
+                this.showUserToast('success', data.message || 'رزرو اضافه کاهش یافت.');
             } else {
-                this.showToast('error', data.message || 'خطا در کاهش رزرو اضافه.');
+                this.showUserToast('error', data.message || 'خطا در کاهش رزرو اضافه.');
             }
         } catch (error) {
             console.error('❌ Error in removeExtraReservation:', error);
-            this.showToast('error', 'خطا در ارتباط با سرور.');
+            this.showUserToast('error', 'خطا در ارتباط با سرور.');
         }
     }
 }

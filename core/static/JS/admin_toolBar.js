@@ -1,7 +1,25 @@
 // ============================================================
 // Admin ToolBar JS 
 // ============================================================
+document.addEventListener("click", function (e) {
 
+    const btn = e.target.closest("#importUsersBtn");
+
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const modalElement = document.getElementById("importUsersModal");
+
+    if (!modalElement) {
+        console.error("❌ MODAL NOT FOUND");
+        return;
+    }
+
+    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+
+});
 // ===========================
 // global Variable
 // ===========================
@@ -298,8 +316,8 @@ document.addEventListener("DOMContentLoaded", function() {
     // ============================================================
     const todayDateElement = document.getElementById("todayDate");
     if (todayDateElement) {
-        const today = new Date();
-        todayDateElement.textContent = today.toLocaleDateString("fa-IR");
+        const admin_toolbar_today = new Date();
+        todayDateElement.textContent = admin_toolbar_today.toLocaleDateString("fa-IR");
     }
     
     // ============================================================
@@ -876,14 +894,27 @@ document.addEventListener("DOMContentLoaded", function() {
     // ============================================================
     // Input Excel
     // ============================================================
-    const importUsersBtn = document.getElementById("importUsers") || document.getElementById("importUsersBtn");
-    if (importUsersBtn) {
-        importUsersBtn.addEventListener("click", function(e) {
-            e.preventDefault();
-            const modal = new bootstrap.Modal(document.getElementById("importUsersModal"));
-            modal.show();
-        });
-    }
+
+    document.addEventListener("click", function (e) {
+
+        const importBtn = e.target.closest("#importUsersBtn");
+
+        if (!importBtn) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const modalElement = document.getElementById("importUsersModal");
+
+        if (!modalElement) {
+            console.error("❌ importUsersModal پیدا نشد!");
+            return;
+        }
+
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+        modal.show();
+    });
 
 
     function showImportErrors(errors, createdCount, failedCount) {

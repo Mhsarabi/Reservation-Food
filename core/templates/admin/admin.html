@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="{% static 'css/persian-datepicker.min.css' %}">
 </head>
 
-<body>
+<body data-admin-page="true">
 
 <!-- ================= Header ================= -->
 
@@ -228,22 +228,7 @@
 
 <script src="{% static 'js/calendar.js' %}"></script>
 
-<script src="{% static 'js/ui.js' %}"></script>
-
-<script>
-    let menuData = {};
-</script>
-
 <script src="{% static 'js/admin_toolBar.js' %}"></script>
-<script src="{% static 'js/admin_toolBar.js' %}"></script>
-
-<script>
-    console.log("AFTER admin_toolbar");
-    console.log("jQuery:", $.fn.jquery);
-    console.log("persianDatepicker:", typeof $.fn.persianDatepicker);
-</script>
-
-<script src="{% static 'js/weekly-program.js' %}"></script>
 
 <script src="{% static 'js/admin.js' %}"></script>
 
