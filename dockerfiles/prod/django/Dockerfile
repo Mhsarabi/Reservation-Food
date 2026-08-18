@@ -1,23 +1,29 @@
-# Base image
 FROM python:3.12-slim
 
-# Maintainer
 LABEL maintainer="mohsen.sarabi81@gmail.com"
 
-# Set work directory
 WORKDIR /usr/src/app
 
-# Install dependencies
-COPY ./requirements.txt .
+# Install Nginx
+RUN apt-get update && \
+    apt-get install -y nginx && \
+    rm -rf /var/lib/apt/lists/*
+
+# Python dependencies
+COPY requirements.txt .
 
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-# Copy Django project
-COPY ./core .
+# Django project
+COPY core .
 
-# Expose Gunicorn port
-EXPOSE 8000
+# Nginx configuration
+COPY default.conf /etc/nginx/conf.d/default.conf
 
-# Start Gunicorn
-CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Static files
+RUN python manage.py collectstatic --noinput
+
+EXPOSE 80
+
+CMD ["sh", "-c", "gunicorn core.wsgi:application --bind 127.0.0.1:8000 & nginx -g 'daemon off;'"]

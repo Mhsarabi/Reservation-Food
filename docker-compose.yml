@@ -1,59 +1,41 @@
 version: "3.9"
 
 services:
+
   db:
-    container_name: db
     image: postgres:15-alpine
+    container_name: db
+
     volumes:
       - ./postgres/data:/var/lib/postgresql/data
+
     environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    expose:
-      - 5432
-    env_file:
-      - ./envs/dev/postgre/.env
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
     ports:
-      - 5432:5432
+      - "5432:5432"
+
     restart: always
 
   backend:
     container_name: backend
+
     build:
       context: .
-      dockerfile: ./dockerfiles/dev/django/Dockerfile
-    volumes:
-     - ./core:/usr/src/app
-     - static_volume:/usr/src/app/staticfiles
-     - media_volume:/usr/src/app/media
-    working_dir: /usr/src/app
-    command: sh -c "python manage.py check_database && \ 
-                    yes | python manage.py makemigrations  && \
-                    yes | python manage.py migrate  && \
-                    python manage.py runserver 0.0.0.0:8000"
-    expose:
-     - '8000'
+      dockerfile: ./dockerfiles/prod/django/Dockerfile
+
     environment:
-      - DEBUG=False
+      DEBUG: "False"
+
     env_file:
       - ./envs/dev/django/.env
-    restart: always
-    depends_on:
-      - db
-  nginx:
-    image: nginx
-    container_name: nginx
-    restart: always
+
     ports:
       - "80:80"
-    volumes:
-      - ./default.conf:/etc/nginx/conf.d/default.conf
-      - static_volume:/home/usr/src/app/staticfiles
-      - media_volume:/home/usr/src/app/media
-    depends_on:
-      - backend  
 
-volumes:
-  static_volume: 
-  media_volume:
+    restart: always
+
+    depends_on:
+      - db
