@@ -1,32 +1,23 @@
-# pull official base image
-FROM python:3.10-slim-buster
+# Base image
+FROM python:3.12-slim
 
-# maintainers info
+# Maintainer
 LABEL maintainer="mohsen.sarabi81@gmail.com"
 
-# set work directory
+# Set work directory
 WORKDIR /usr/src/app
 
-# install dependencies
+# Install dependencies
 COPY ./requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
 
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
-# Set up Gunicorn
+# Copy Django project
 COPY ./core .
 
-# Configure Nginx
-COPY ./default.conf /etc/nginx/nginx.conf
+# Expose Gunicorn port
+EXPOSE 8000
 
-# exposing nginx port
-EXPOSE 80
-
-
-# copy entrypoint
-COPY ./dockerfiles/prod/django/entrypoint.sh .
-
-# make our entrypoint.sh executable
-RUN chmod +x ./entrypoint.sh
-
-# execute our entrypoint.sh file
-CMD ["./entrypoint.sh"]
+# Start Gunicorn
+CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000"]
