@@ -28,7 +28,12 @@ DEBUG = config("DEBUG",cast=bool,default=True)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS",cast= lambda v:[item.strip() for item in v.split(',')],default="*")
 
+CSRF_TRUSTED_ORIGINS = ["https://alvan-reservarion-food.darkube.ir",]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 # Application definition
 
 INSTALLED_APPS = [
