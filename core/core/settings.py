@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("SECRET_KEY",default='django-insecure-6usl5*e-2f%@*ekc5nykxxvqzv+%%gdy10q*d@q+25rx9h-0@z')
+SECRET_KEY = config("SECRET_KEY",default='test')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG",cast=bool,default=True)
@@ -126,8 +126,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-MEDIA_URL = 'media/'
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
 
 STATIC_ROOT=BASE_DIR/'staticfiles'
 MEDIA_ROOT=BASE_DIR/'media'
@@ -141,16 +141,8 @@ STATICFILES_DIRS=[
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = config("EMAIL_HOST",default="smtp4dev")
-EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool ,default=False)
-EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool ,default=False)
-EMAIL_PORT = config("EMAIL_PORT", cast=int,default=25)
-EMAIL_HOST_USER = config("EMAIL_HOST_USER",default="")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD",default="")
-
 # django debug toolbar for docker usage
-SHOW_DEBUGGER_TOOLBAR = config("SHOW_DEBUGGER_TOOLBAR", cast=bool, default=True)
+SHOW_DEBUGGER_TOOLBAR = config("SHOW_DEBUGGER_TOOLBAR", cast=bool, default=False)
 if SHOW_DEBUGGER_TOOLBAR:
     INSTALLED_APPS += [
         "debug_toolbar",
@@ -166,7 +158,3 @@ if SHOW_DEBUGGER_TOOLBAR:
 AUTH_USER_MODEL = 'accounts.User'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL= '/'
-
-# payment gateway settings
-MERCHANT_ID = config("MERCHANT_ID",default="4ced0a1e-4ad8-4309-9668-3ea3ae8e8897")
-SANDBOX_MODE = config("SANDBOX_MODE", cast=bool, default=True)

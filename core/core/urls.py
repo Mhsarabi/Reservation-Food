@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('Alvan/manage/admin/', admin.site.urls),
     path("",include("accounts.urls")),
     path("menu/",include("menu.urls")),
     path("reservations/",include("reservations.urls")),

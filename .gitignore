@@ -156,3 +156,6 @@ postgres/data/*
 
 
 core/media/*
+
+# Django collected static files
+core/staticfiles/*
