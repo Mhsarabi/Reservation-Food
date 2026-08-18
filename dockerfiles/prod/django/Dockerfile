@@ -2,10 +2,7 @@
 FROM python:3.10-slim-buster
 
 # maintainers info
-LABEL maintainer="bigdeli.ali3@gmail.com"
-
-# Install Nginx
-RUN apt-get update && apt-get install -y nginx
+LABEL maintainer="mohsen.sarabi81@gmail.com"
 
 # set work directory
 WORKDIR /usr/src/app
