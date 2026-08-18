@@ -152,8 +152,7 @@ cython_debug/
 #.idea/
 
 # ignore database files
-postgres/data/*
-
+postgres/
 
 core/media/*
 
