@@ -25,7 +25,9 @@ RUN rm -f /etc/nginx/sites-enabled/default
 COPY default.conf /etc/nginx/conf.d/default.conf
 
 # Collect static files
-RUN python manage.py collectstatic --noinput
+RUN rm -rf /usr/src/app/staticfiles && \
+    mkdir -p /usr/src/app/staticfiles && \
+    python manage.py collectstatic --noinput
 
 EXPOSE 80
 
