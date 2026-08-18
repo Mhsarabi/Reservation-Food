@@ -18,10 +18,13 @@ RUN pip install --upgrade pip && \
 # Django project
 COPY core .
 
-# Nginx configuration
+# Remove default Nginx configuration
+RUN rm -f /etc/nginx/conf.d/default.conf
+
+# Copy our Nginx configuration
 COPY default.conf /etc/nginx/conf.d/default.conf
 
-# Static files
+# Collect static files
 RUN python manage.py collectstatic --noinput
 
 EXPOSE 80
