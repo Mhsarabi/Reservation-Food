@@ -19,7 +19,7 @@ RUN pip install --upgrade pip && \
 COPY core .
 
 # Remove default Nginx configuration
-RUN rm -f /etc/nginx/conf.d/default.conf
+RUN rm -f /etc/nginx/sites-enabled/default
 
 # Copy our Nginx configuration
 COPY default.conf /etc/nginx/conf.d/default.conf
