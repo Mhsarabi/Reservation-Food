@@ -28,7 +28,7 @@ DEBUG = config("DEBUG",cast=bool,default=True)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS",cast= lambda v:[item.strip() for item in v.split(',')],default="*")
 
-CSRF_TRUSTED_ORIGINS = ["https://alvan-reservarion-food.darkube.ir",]
+CSRF_TRUSTED_ORIGINS = ["https://alvan-reservation-food.darkube.ir",]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
