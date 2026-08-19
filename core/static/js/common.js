@@ -1,5 +1,5 @@
 // ============================================================
-// Common Functions - توابع مشترک بین همه بخش‌ها
+// Common Functions 
 // ============================================================
 
 // --------------------------------------------
@@ -21,6 +21,37 @@ function getCSRFToken() {
     }
 
     return decodeURIComponent(cookie.split("=")[1]);
+}
+
+// --------------------------------------------
+// Image URL
+// --------------------------------------------
+
+function getImageUrl(imagePath) {
+    if (!imagePath || imagePath === '') {
+        return '/static/images/no-food.png';
+    }
+
+    if (
+        imagePath.startsWith('http://') ||
+        imagePath.startsWith('https://')
+    ) {
+        return imagePath;
+    }
+
+    if (imagePath.startsWith('/media/')) {
+        return imagePath;
+    }
+
+    if (imagePath.startsWith('media/')) {
+        return '/' + imagePath;
+    }
+
+    if (imagePath.includes('foods/')) {
+        return '/media/' + imagePath;
+    }
+
+    return '/static/images/no-food.png';
 }
 
 // --------------------------------------------
@@ -100,5 +131,61 @@ function showConfirmModal(title, bodyHTML, onConfirm) {
 
     modalElement.addEventListener("hidden.bs.modal", function() {
         modalElement.remove();
+    });
+}
+
+
+function fetchFoods() {
+    return fetch('/menu/foods/list/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`خطا در دریافت غذاها: ${response.status}`);
+        }
+
+        return response.json();
+    })
+    .then(data => {
+        if (!data.success) {
+            throw new Error('دریافت غذاها با خطا مواجه شد.');
+        }
+
+        window.foods = data.foods || [];
+
+        return window.foods;
+    });
+}
+
+function updateAllFoodSelects() {
+    const selectIds = ['foodSelect', 'editFoodSelect'];
+
+    selectIds.forEach(selectId => {
+        const select = document.getElementById(selectId);
+
+        if (!select) return;
+
+        const currentValue = select.value;
+
+        select.innerHTML = '<option value="">انتخاب غذا...</option>';
+
+        window.foods.forEach(food => {
+            const option = document.createElement('option');
+
+            option.value = food.id;
+            option.textContent = food.name;
+
+            select.appendChild(option);
+        });
+
+        if (
+            currentValue &&
+            window.foods.some(food => food.id == currentValue)
+        ) {
+            select.value = currentValue;
+        }
     });
 }

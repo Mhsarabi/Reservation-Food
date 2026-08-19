@@ -6,7 +6,7 @@
 // Global variables
 // ===========================
 let selectedKey = null;
-let foods = [];
+window.foods = [];
 let menuData = {};
 let adminCalendar = null;
 
@@ -75,7 +75,6 @@ function showToast(message, type = "info", duration = 4000) {
     }, duration);
 }
 
-
 function removeToast(toast) {
 
     if (!toast || toast.dataset.removing === "true") {
@@ -84,82 +83,11 @@ function removeToast(toast) {
 
     toast.dataset.removing = "true";
 
-    toast.classList.add("toast-removing");
-
-    setTimeout(() => {
-        toast.remove();
-    }, 300);
-}
-
-function removeToast(toast) {
     toast.style.animation = "slideOut .4s ease";
+
     setTimeout(() => {
         toast.remove();
     }, 400);
-}
-
-// ===========================
-// CSRF Token
-// ===========================
-function getCSRFToken() {
-    const cookieValue = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1];
-    return cookieValue || '';
-}
-
-// ===========================
-// Helper: Get image URL
-// ===========================
-function getImageUrl(imagePath) {
-    if (!imagePath || imagePath === '') {
-        return '/static/images/no-food.png';
-    }
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-        return imagePath;
-    }
-    if (imagePath.startsWith('/media/')) {
-        return imagePath;
-    }
-    if (imagePath.startsWith('media/')) {
-        return '/' + imagePath;
-    }
-    if (imagePath.includes('foods/')) {
-        return '/media/' + imagePath;
-    }
-    return '/static/images/no-food.png';
-}
-
-// ===========================
-// Fetch foods list from server
-// ===========================
-function fetchFoods() {
-    return fetch('/menu/foods/list/', {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`خطا در دریافت غذاها: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            foods = data.foods;
-            return foods;
-        } else {
-            throw new Error('دریافت غذاها با خطا مواجه شد.');
-        }
-    })
-    .catch(error => {
-        console.error('❌ خطا در دریافت غذاها:', error);
-        foods = [];
-        return foods;
-    });
 }
 
 // ===========================
@@ -200,32 +128,6 @@ function fetchMenuData() {
 }
 
 // ===========================
-// Update all food select dropdowns
-// ===========================
-function updateAllFoodSelects() {
-    const selectIds = ['foodSelect', 'editFoodSelect'];
-    
-    selectIds.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        if (!select) return;
-        
-        const currentValue = select.value;
-        select.innerHTML = '<option value="">انتخاب غذا...</option>';
-        
-        foods.forEach(food => {
-            const option = document.createElement('option');
-            option.value = food.id;
-            option.textContent = food.name;
-            select.appendChild(option);
-        });
-        
-        if (currentValue && foods.some(f => f.id == currentValue)) {
-            select.value = currentValue;
-        }
-    });
-}
-
-// ===========================
 // Convert Persian digits to English
 // ===========================
 function toEnglishDigits(str) {
@@ -254,7 +156,7 @@ function displayFoodInfo(foodId) {
         return;
     }
 
-    const food = foods.find(f => String(f.id) === String(foodId));
+    const food = window.foods.find(f => String(f.id) === String(foodId));
 
     if (food) {
         if (foodSelectEl) foodSelectEl.value = String(food.id);
@@ -504,7 +406,7 @@ function onFoodSelectChange() {
         displayFoodInfo(null);
         return;
     }
-    const food = foods.find(f => String(f.id) === String(foodId));
+    const food = window.foods.find(f => String(f.id) === String(foodId));
     if (food) {
         displayFoodInfo(foodId);
     } else {

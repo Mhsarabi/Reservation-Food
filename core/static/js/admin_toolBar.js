@@ -20,42 +20,6 @@ document.addEventListener("click", function (e) {
     bootstrap.Modal.getOrCreateInstance(modalElement).show();
 
 });
-// ===========================
-// global Variable
-// ===========================
-window.foods = [];
-
-// ===========================
-//  CSRF Token
-// ===========================
-function getCSRFToken() {
-    const tokenElement = document.getElementById("csrf-token");
-    return tokenElement ? tokenElement.value : null;
-}
-
-
-function getImageUrl(imagePath) {
-    if (!imagePath || imagePath === '') {
-        return '/static/images/no-food.png';
-    }
-    
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-        return imagePath;
-    }
-    
-    if (imagePath.startsWith('/media/')) {
-        return imagePath;
-    }
-    
-    if (imagePath.startsWith('media/')) {
-        return '/' + imagePath;
-    } 
-    if (imagePath.includes('foods/')) {
-        return '/media/' + imagePath;
-    }
-    
-    return '/static/images/no-food.png';
-}
 
 // ===========================
 // Showing message in modal
@@ -72,64 +36,6 @@ function showFoodMessage(message, type = 'success') {
     window.foodMessageTimeout = setTimeout(() => {
         messageDiv.classList.add('d-none');
     }, 5000);
-}
-
-// ===========================
-// fetch list of foods
-// ===========================
-function fetchFoods() {
-    
-    return fetch('/menu/foods/list/', {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`خطا در دریافت غذاها: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            window.foods = data.foods;
-            return window.foods;
-        } else {
-            throw new Error('دریافت غذاها با خطا مواجه شد.');
-        }
-    })
-    .catch(error => {
-        console.error('❌ خطا:', error);
-        window.foods = [];
-        return window.foods;
-    });
-}
-
-// ===========================
-// Edit list of foods
-// ===========================
-function updateAllFoodSelects() {
-    const selectIds = ['foodSelect', 'editFoodSelect'];
-    
-    selectIds.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        if (!select) return;
-        
-        const currentValue = select.value;
-        select.innerHTML = '<option value=""></option>';
-        
-        window.foods.forEach(food => {
-            const option = document.createElement('option');
-            option.value = food.id;
-            option.textContent = food.name;
-            select.appendChild(option);
-        });
-        
-        if (currentValue && window.foods.some(f => f.id == currentValue)) {
-            select.value = currentValue;
-        }
-    });
 }
 
 // ===========================
